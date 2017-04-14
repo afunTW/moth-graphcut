@@ -135,7 +135,7 @@ def kmeans_clustering(n_clusters, n_init):
 
 def main():
     try:
-        kmeans_clustering(n_clusters=10, n_init=10)
+        kmeans_clustering(n_clusters=5, n_init=10)
     except Exception as e:
         logging.exception(e)
 
