@@ -61,9 +61,14 @@ class Grabcut(object):
         self.__orig_img = self.__img.copy()
         self.__mask = np.zeros(self.__img.shape[:2], dtype=np.uint8)
         self.__output = np.zeros(self.__img.shape, dtype=np.uint8)
+        self.__segment_count = 0
         self.__bgdmodel = np.zeros((1, 65), np.float64)
         self.__fgdmodel = np.zeros((1, 65), np.float64)
         self.__iter_count = cv2.GC_INIT_WITH_RECT
+
+    @property
+    def segment_count(self):
+        return self.__segment_count
 
     def reset(self):
         self.__rect = (0,0,1,1)
@@ -78,6 +83,7 @@ class Grabcut(object):
         self.__img = self.__orig_img.copy()
         self.__mask = np.zeros(self.__img.shape[:2], dtype=np.uint8)
         self.__output = np.zeros(self.__img.shape, dtype=np.uint8)
+        self.__segment_count = 0
 
     def draw_rect(self, x, y):
         assert self.__ix and self.__iy
@@ -222,3 +228,4 @@ class Grabcut(object):
                     self.__orig_img,
                     mask=mask2
                 )
+                self.__segment_count += 1
