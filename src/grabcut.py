@@ -40,10 +40,10 @@ class Grabcut(object):
         self.BLACK = [0,0,0]         # sure BG
         self.WHITE = [255,255,255]   # sure FG
 
-        self.DRAW_BG = {'color' : BLACK, 'val' : 0}
-        self.DRAW_FG = {'color' : WHITE, 'val' : 1}
-        self.DRAW_PR_FG = {'color' : GREEN, 'val' : 3}
-        self.DRAW_PR_BG = {'color' : RED, 'val' : 2}
+        self.DRAW_BG = {'color' : self.BLACK, 'val' : 0}
+        self.DRAW_FG = {'color' : self.WHITE, 'val' : 1}
+        self.DRAW_PR_FG = {'color' : self.GREEN, 'val' : 3}
+        self.DRAW_PR_BG = {'color' : self.RED, 'val' : 2}
 
         # flag
         self.__rect = (0,0,1,1)
@@ -51,7 +51,7 @@ class Grabcut(object):
         self.__rectangle = False       # flag for drawing rect
         self.__rect_over = False       # flag to check if rect drawn
         self.__rect_or_mask = 100      # flag for selecting rect or mask mode
-        self.__value = DRAW_FG         # drawing initialized to FG
+        self.__value = self.DRAW_FG         # drawing initialized to FG
         self.__thickness = 3           # brush thickness
         self.__ix = None
         self.__iy = None
@@ -64,11 +64,36 @@ class Grabcut(object):
         self.__segment_count = 0
         self.__bgdmodel = np.zeros((1, 65), np.float64)
         self.__fgdmodel = np.zeros((1, 65), np.float64)
-        self.__iter_count = cv2.GC_INIT_WITH_RECT
+        self.__iter_count = 1
+        self.__mode = cv2.GC_INIT_WITH_RECT
 
     @property
     def segment_count(self):
         return self.__segment_count
+
+    @property
+    def image(self):
+        return self.__img
+
+    @property
+    def orig_image(self):
+        return self.__orig_img
+
+    @property
+    def mask(self):
+        return self.__mask
+
+    @property
+    def iter_count(self):
+        return self.__iter_count
+
+    @property
+    def rect(self):
+        return self.__rect
+
+    @property
+    def output(self):
+        return self.__output
 
     def reset(self):
         self.__rect = (0,0,1,1)
@@ -83,6 +108,7 @@ class Grabcut(object):
         self.__img = self.__orig_img.copy()
         self.__mask = np.zeros(self.__img.shape[:2], dtype=np.uint8)
         self.__output = np.zeros(self.__img.shape, dtype=np.uint8)
+        self.__mode = cv2.GC_INIT_WITH_RECT
         self.__segment_count = 0
 
     def draw_rect(self, x, y):
@@ -90,7 +116,7 @@ class Grabcut(object):
         cv2.rectangle(
             self.__img,
             (self.__ix, self.__iy), (x, y),
-            self.BULE, 2
+            self.BLUE, 2
         )
         self.__rect = self.get_rect_shape(x, y)
         self.__rect_or_mask = 0
@@ -127,7 +153,7 @@ class Grabcut(object):
             self.__rect_over = True
             self.draw_rect(x, y)
             logging.info('Set rectangle (%d, %d, %d, %d)' % self.__rect)
-            logging.info(' Now press the key 'n' a few times until no further change')
+            logging.info(' Now press the key "n" a few times until no further change')
 
         # draw touchup curves
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -199,33 +225,38 @@ class Grabcut(object):
                 logging.info(' Reset all actions')
 
             # segment the image
-            elif k == orn('n'):
+            elif k == ord('n'):
 
                 # grabcut with rect
                 if not self.__rect_or_mask:
                     logging.info('grabcut with rectangle')
-                    iter_count = cv2.GC_INIT_WITH_RECT
+                    self.__mode = cv2.GC_INIT_WITH_RECT
+                    self.__rect_or_mask = 1
 
                 # grabcut with mask
                 elif self.__rect_or_mask:
                     logging.info('grabcut with mask')
-                    iter_count = cv2.GC_INIT_WITH_MASK
+                    self.__mode = cv2.GC_INIT_WITH_MASK
 
+                self.__segment_count += self.__iter_count
+                logging.info('mode : %d' % self.__mode)
                 cv2.grabCut(
                     self.__orig_img,
                     self.__mask,
                     self.__rect,
                     self.__bgdmodel,
                     self.__fgdmodel,
-                    self.__iter_count
+                    self.__iter_count,
+                    self.__mode
                 )
 
-                mask2 = np.where(
-                    (self.__mask == 1) + (self.__mask == 3), 255, 0
-                ).astype('uint8')
-                self.__output = cv2.bitwise_and(
-                    self.__orig_img,
-                    self.__orig_img,
-                    mask=mask2
-                )
-                self.__segment_count += 1
+            mask2 = np.where(
+                (self.__mask == 1) + (self.__mask == 3), 255, 0
+            ).astype('uint8')
+            self.__output = cv2.bitwise_and(
+                self.__orig_img,
+                self.__orig_img,
+                mask=mask2
+            )
+
+        cv2.destroyAllWindows()
