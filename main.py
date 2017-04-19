@@ -9,6 +9,7 @@ sys.path.append('.')
 from src import grabcut
 from scipy.ndimage.filters import gaussian_filter
 
+
 def main():
     kmeans_path = os.path.abspath('./kmeans')
     kmeans_map = os.path.join(kmeans_path, 'cluster_map.p')
@@ -35,12 +36,32 @@ def main():
         fore_pair = np.bitwise_or(center[0].output, center[1].output)
         back_pair = np.bitwise_or(center[2].output, center[3].output)
         wing_mask = np.bitwise_or(fore_pair, back_pair)
+        moth_body = center[4].output
+
         blur_mask = gaussian_filter(wing_mask, sigma=3)
         blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_BGR2GRAY)
         blur_mask[np.where(blur_mask != 0)] = 255
         blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)
+
+        fore_pair[fore_pair == [0]] = 255
+        back_pair[back_pair == [0]] = 255
+        moth_body[moth_body == [0]] = 255
         remain_body = np.bitwise_xor(center[0].orig_image, wing_mask)
-        blur_body = np.bitwise_xor(center[0].orig_image, blur_mask)
+        # remain_body[remain_body == [0]] = 255
+        blur_body = center[0].orig_image.copy()
+        blur_body[blur_mask == [255]] = 255
+
+        # test
+        ix, iy, w, h = center[4].rect
+        remain_body[iy:iy+h, ix:ix+w] = 0
+
+        for cover_index in range(4):
+            ix, iy, w, h = center[cover_index].rect
+            tmp = remain_body[iy:iy+h, ix:ix+w]
+            base = fore_pair if cover_index in [0, 1] else back_pair
+            base[iy:iy+h, ix:ix+w] = base[iy:iy+h, ix:ix+w] + tmp
+
+        remain_body[remain_body == [0]] = 255
 
         cv2.imwrite(
             os.path.join(saved_dir, '_'.join(['cluster', str(i), 'center.png'])),
@@ -65,25 +86,29 @@ def main():
             fore_pair = np.bitwise_or(neighbor[0].output, neighbor[1].output)
             back_pair = np.bitwise_or(neighbor[2].output, neighbor[3].output)
             wing_mask = np.bitwise_or(fore_pair, back_pair)
+            moth_body = neighbor[4].output
+
             blur_mask = gaussian_filter(wing_mask, sigma=3)
             blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_BGR2GRAY)
             blur_mask[np.where(blur_mask != 0)] = 255
             blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)
-            remain_body = np.bitwise_xor(neighbor[0].orig_image, wing_mask)
-            blur_body = neighbor[0].orig_image.copy()
 
-            for row in range(neighbor[0].orig_image.shape[1]):
-                for column in range(neighbor[0].orig_image.shape[0]):
-                    if blur_mask[row, column] == 255:
-                        blur_body[row, column] = 0
+            fore_pair[fore_pair == [0]] = 255
+            back_pair[back_pair == [0]] = 255
+            moth_body[moth_body == [0]] = 255
+            remain_body = np.bitwise_xor(neighbor[0].orig_image, wing_mask)
+            remain_body[remain_body == [0]] = 255
+            blur_body = neighbor[0].orig_image.copy()
+            blur_body[blur_mask == [255]] = 255
 
             # test
             test = neighbor[0].orig_image
             for _ in range(5):
-                cv2.rectangle(test, neighbor[_].rect[0:1], neighbor[_].rect[2:], [255, 0, 0])
+                x, y, w, h = neighbor[_].rect
+                cv2.rectangle(test, (x, y), (x + w, y + h), [255, 0, 0], 2)
                 for tmp in neighbor[_].mask_records:
-                    cv2.circle(test, tmp['corrdinate'], 3, tmp['value']['color'], -1)
-                    cv2.circle(test, tmp['corrdinate'], 3, tmp['value']['val'], -1)
+                    cv2.circle(test, tmp['coordinate'], 3, tmp['value']['color'], -1)
+                    cv2.circle(test, tmp['coordinate'], 3, tmp['value']['val'], -1)
 
             cv2.imwrite(
                 os.path.join(
