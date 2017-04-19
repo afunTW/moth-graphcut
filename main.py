@@ -8,7 +8,47 @@ import numpy as np
 sys.path.append('.')
 from src import grabcut
 from scipy.ndimage.filters import gaussian_filter
+from src import grabcut_tools
 
+
+def grabcut_process(inGP, outimg):
+    fore_pair = inGP.image_or(0, 1)
+    back_pair = inGP.image_or(2, 3)
+    moth_body = inGP.parts[-1].output
+    track_image = inGP.track_image(0, 1, 2, 3, 4)
+    fore_pair[fore_pair == [0]] = 255
+    back_pair[back_pair == [0]] = 255
+    moth_body[moth_body == [0]] = 255
+
+    blur_mask = inGP.blur_image_or(255, 3, 0, 1, 2, 3)
+    blur_body = inGP.orig_image.copy()
+    blur_body[blur_mask == [255]] = 255
+    blur_remain_body = blur_body.copy()
+
+    # padding
+    ix, iy, w, h = inGP.parts[-1].rect
+    remain_body = inGP.remain_image(0, 1, 2, 3)
+    remain_body[remain_body == [0]] = 255
+    remain_wing = remain_body.copy()
+    remain_wing[iy:iy+h, ix:ix+w] = 255
+    fore_padding = fore_pair.copy()
+    back_padding = back_pair.copy()
+
+    for cover_index in range(4):
+        ix, iy, w, h = inGP.parts[cover_index].rect
+        tmp = remain_wing[iy:iy+h, ix:ix+w]
+        base = fore_padding if cover_index in [0, 1] else back_padding
+        base[iy:iy+h, ix:ix+w] = base[iy:iy+h, ix:ix+w] + tmp
+        blur_remain_body[iy:iy+h, ix:ix+w] = 255
+
+    cv2.imwrite(
+        outimg,
+        np.vstack((
+            np.hstack((fore_pair, back_pair, moth_body)),
+            np.hstack((fore_padding, back_padding, remain_body)),
+            np.hstack((track_image, blur_body, blur_remain_body))
+            ))
+        )
 
 def main():
     kmeans_path = os.path.abspath('./kmeans')
@@ -27,102 +67,27 @@ def main():
 
         # interactive grabcut with center
         logging.info('grabcut %d cluster center %s' % (i, cluster['center']))
-        center = []
-        for iter_times in range(5):
-            part = grabcut.Grabcut(cluster['center'])
-            part.active()
-            center.append(part)
-
-        fore_pair = np.bitwise_or(center[0].output, center[1].output)
-        back_pair = np.bitwise_or(center[2].output, center[3].output)
-        wing_mask = np.bitwise_or(fore_pair, back_pair)
-        moth_body = center[4].output
-
-        blur_mask = gaussian_filter(wing_mask, sigma=3)
-        blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_BGR2GRAY)
-        blur_mask[np.where(blur_mask != 0)] = 255
-        blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)
-
-        fore_pair[fore_pair == [0]] = 255
-        back_pair[back_pair == [0]] = 255
-        moth_body[moth_body == [0]] = 255
-        remain_body = np.bitwise_xor(center[0].orig_image, wing_mask)
-        # remain_body[remain_body == [0]] = 255
-        blur_body = center[0].orig_image.copy()
-        blur_body[blur_mask == [255]] = 255
-
-        # test
-        ix, iy, w, h = center[4].rect
-        remain_body[iy:iy+h, ix:ix+w] = 0
-
-        for cover_index in range(4):
-            ix, iy, w, h = center[cover_index].rect
-            tmp = remain_body[iy:iy+h, ix:ix+w]
-            base = fore_pair if cover_index in [0, 1] else back_pair
-            base[iy:iy+h, ix:ix+w] = base[iy:iy+h, ix:ix+w] + tmp
-
-        remain_body[remain_body == [0]] = 255
-
-        cv2.imwrite(
-            os.path.join(saved_dir, '_'.join(['cluster', str(i), 'center.png'])),
-            np.vstack((
-                np.hstack((fore_pair, back_pair, center[4].output)),
-                np.hstack((center[0].orig_image, remain_body, blur_body))
-                ))
-            )
+        center = grabcut_tools.GrabcutProcess(cluster['center'], iter_times=5)
+        center.active()
+        output = os.path.join(saved_dir, '_'.join(['cluster', str(i), 'center.png']))
+        grabcut_process(center, output)
 
         # grabcut neighbor by center parameters
         for j, img in enumerate(cluster['neighbor']):
-            logging.info('grabcut %d cluster neighbor (%d/%d) %s' % (i, j, len(cluster['neighbor']), img))
-            neighbor = []
-            for iter_times in range(5):
-                part = grabcut.Grabcut(img)
-                part.rect = center[iter_times].rect
-                part.mask_records = center[iter_times].mask_records
-                part.segment_count = center[iter_times].segment_count
-                part.simulate()
-                neighbor.append(part)
+            logging.info(
+                'grabcut %d cluster neighbor (%d/%d) %s' %
+                (i, j, len(cluster['neighbor']), img))
 
-            fore_pair = np.bitwise_or(neighbor[0].output, neighbor[1].output)
-            back_pair = np.bitwise_or(neighbor[2].output, neighbor[3].output)
-            wing_mask = np.bitwise_or(fore_pair, back_pair)
-            moth_body = neighbor[4].output
-
-            blur_mask = gaussian_filter(wing_mask, sigma=3)
-            blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_BGR2GRAY)
-            blur_mask[np.where(blur_mask != 0)] = 255
-            blur_mask = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)
-
-            fore_pair[fore_pair == [0]] = 255
-            back_pair[back_pair == [0]] = 255
-            moth_body[moth_body == [0]] = 255
-            remain_body = np.bitwise_xor(neighbor[0].orig_image, wing_mask)
-            remain_body[remain_body == [0]] = 255
-            blur_body = neighbor[0].orig_image.copy()
-            blur_body[blur_mask == [255]] = 255
-
-            # test
-            test = neighbor[0].orig_image
-            for _ in range(5):
-                x, y, w, h = neighbor[_].rect
-                cv2.rectangle(test, (x, y), (x + w, y + h), [255, 0, 0], 2)
-                for tmp in neighbor[_].mask_records:
-                    cv2.circle(test, tmp['coordinate'], 3, tmp['value']['color'], -1)
-                    cv2.circle(test, tmp['coordinate'], 3, tmp['value']['val'], -1)
-
-            cv2.imwrite(
-                os.path.join(
-                    saved_dir,
-                    ''.join(['cluster_', str(i), '_neighbor_', str(j), '.png'])
-                ),
-                np.vstack((
-                    np.hstack((fore_pair, back_pair, neighbor[4].output)),
-                    np.hstack((test, remain_body, blur_body))
-                    ))
+            neighbor = grabcut_tools.GrabcutProcess(img, iter_times=5)
+            neighbor.rect = [_.rect for _ in center.parts]
+            neighbor.mask_records = [_.mask_records for _ in center.parts]
+            neighbor.segment_count = [_.segment_count for _ in center.parts]
+            neighbor.simulate()
+            output = os.path.join(
+                saved_dir,
+                ''.join(['cluster_', str(i), '_neighbor_', str(j), '.png'])
                 )
-
-        # test
-        break
+            grabcut_process(neighbor, output)
 
 if __name__ == '__main__':
 
