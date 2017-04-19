@@ -283,6 +283,7 @@ class Grabcut(object):
             mask2 = np.where(
                 (self.__mask == 1) + (self.__mask == 3), 255, 0
             ).astype('uint8')
+
             self.__output = cv2.bitwise_and(
                 self.__orig_img,
                 self.__orig_img,
@@ -296,10 +297,10 @@ class Grabcut(object):
         logging.info('image shape (%d, %d, %d)' % self.__img.shape)
 
         logging.info('grabcut with rectangle (%d, %d, %d, %d)' % self.__rect)
+        ix, iy, w, h = self.__rect
         self.__mode = cv2.GC_INIT_WITH_RECT
-        self.__ix, self.__iy = self.__rect[0], self.__rect[1]
-        self.draw_rect(self.__rect[2], self.__rect[3])
-        cv2.waitKey(2)
+        self.__ix, self.__iy = ix, iy
+        self.draw_rect(ix+w, iy+h)
         cv2.grabCut(
             self.__orig_img,
             self.__mask,
@@ -309,13 +310,15 @@ class Grabcut(object):
             self.__iter_count,
             self.__mode
             )
-        cv2.waitKey(2)
+
         logging.info('grabcut with mask %d times' % (self.__segment_count))
         self.__mode = cv2.GC_INIT_WITH_MASK
+
         for record in self.__mask_records:
             self.__value = record['value']
             self.__thickness = record['thickness']
             self.draw_circle(record['coordinate'][0], record['coordinate'][1])
+
         for _ in range(self.__segment_count-1):
             cv2.grabCut(
                 self.__orig_img,
@@ -326,9 +329,11 @@ class Grabcut(object):
                 self.__iter_count,
                 self.__mode
                 )
+
         mask2 = np.where(
             (self.__mask == 1) + (self.__mask == 3), 255, 0
         ).astype('uint8')
+
         self.__output = cv2.bitwise_and(
             self.__orig_img,
             self.__orig_img,
