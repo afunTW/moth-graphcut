@@ -128,6 +128,7 @@ class Grabcut(object):
         self.__output = np.zeros(self.__img.shape, dtype=np.uint8)
         self.__mode = cv2.GC_INIT_WITH_RECT
         self.__segment_count = 0
+        self.__mask_records = []
 
     def draw_rect(self, x, y):
         assert self.__ix and self.__iy
@@ -170,7 +171,7 @@ class Grabcut(object):
             self.__rectangle = False
             self.__rect_over = True
             self.draw_rect(x, y)
-            logging.info('Set rectangle (%d, %d, %d, %d)' % self.__rect)
+            logging.debug('Set rectangle (%d, %d, %d, %d)' % self.__rect)
             logging.info(' Now press the key "n" a few times until no further change')
 
         mask_record = {
@@ -202,11 +203,17 @@ class Grabcut(object):
         if mask_record['coordinate']:
             self.__mask_records.append(mask_record)
 
+        if event == cv2.EVENT_MOUSEWHEEL:
+            if flags > 0:
+                self.__thickness += 1
+            else:
+                self.__thickness -= 1
+
     def active(self):
         print(self.__doc__)
 
         self.reset()
-        logging.info('image shape (%d, %d, %d)' % self.__img.shape)
+        logging.debug('image shape (%d, %d, %d)' % self.__img.shape)
 
         cv2.namedWindow('output')
         cv2.namedWindow('input', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
@@ -294,9 +301,9 @@ class Grabcut(object):
 
     def simulate(self):
         assert self.__rect and self.__segment_count
-        logging.info('image shape (%d, %d, %d)' % self.__img.shape)
+        logging.debug('image shape (%d, %d, %d)' % self.__img.shape)
+        logging.debug('grabcut with rectangle (%d, %d, %d, %d)' % self.__rect)
 
-        logging.info('grabcut with rectangle (%d, %d, %d, %d)' % self.__rect)
         ix, iy, w, h = self.__rect
         self.__mode = cv2.GC_INIT_WITH_RECT
         self.__ix, self.__iy = ix, iy
@@ -311,7 +318,7 @@ class Grabcut(object):
             self.__mode
             )
 
-        logging.info('grabcut with mask %d times' % (self.__segment_count))
+        logging.debug('grabcut with mask %d times' % (self.__segment_count))
         self.__mode = cv2.GC_INIT_WITH_MASK
 
         for record in self.__mask_records:
