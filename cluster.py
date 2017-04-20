@@ -84,16 +84,14 @@ def concat_n_images(image_path_list):
             output = concat_images(output, img)
     return output
 
-def kmeans_clustering(n_clusters, n_init):
+def kmeans_clustering(n_clusters, n_init, outfile='cluster_map', **features):
     global saved_dir, moth
 
-    cluster_map_path = os.path.join(saved_dir, 'cluster_map.p')
-    saved_img_path = os.path.join(saved_dir, 'kmeans.png')
+    cluster_map_path = os.path.join(saved_dir, ''.join([outfile, '.p']))
+    saved_img_path = os.path.join(saved_dir, ''.join([outfile, '.png']))
 
-    shape_features = get_all_moments(moment_path)
     estimator = KMeans(n_clusters=n_clusters, n_init=n_init)
-
-    estimator.fit_predict(list(shape_features.values()))
+    estimator.fit_predict(list(features.values()))
     labels = estimator.labels_
     centers = estimator.cluster_centers_
     mapping = {
@@ -105,9 +103,9 @@ def kmeans_clustering(n_clusters, n_init):
         }
 
     # mapping
-    for i, moth in enumerate(list(shape_features.keys())):
+    for i, moth in enumerate(list(features.keys())):
         dist = pdist(
-                    np.array([shape_features[moth], centers[labels[i]]]),
+                    np.array([features[moth], centers[labels[i]]]),
                     'euclidean'
                 )[0]
 
@@ -130,12 +128,14 @@ def kmeans_clustering(n_clusters, n_init):
         plt.subplot(n_clusters, 1, k+1)
         plt.imshow(output)
         plt.axis('off')
+
     plt.savefig(saved_img_path, dpi=1000)
     logging.info('Save k-means result to %s' % saved_img_path)
 
 def main():
     try:
-        kmeans_clustering(n_clusters=5, n_init=10)
+        shape_features = get_all_moments(moment_path)
+        kmeans_clustering(n_clusters=10, n_init=10, outfile='cluster_map', **shape_features)
     except Exception as e:
         logging.exception(e)
 
