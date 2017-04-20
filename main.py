@@ -36,10 +36,10 @@ def grabcut_process(inGP, outimg):
 
     for cover_index in range(4):
         ix, iy, w, h = inGP.parts[cover_index].rect
-        tmp = remain_wing[iy:iy+h, ix:ix+w]
+        remain_part = remain_wing[iy:iy+h, ix:ix+w]
         base = fore_padding if cover_index in [0, 1] else back_padding
-        base[iy:iy+h, ix:ix+w] = base[iy:iy+h, ix:ix+w] + tmp
-        blur_remain_body[iy:iy+h, ix:ix+w] = 255
+        base[iy:iy+h, ix:ix+w] = base[iy:iy+h, ix:ix+w] + remain_part
+        blur_remain_body[iy:iy+h, ix:ix+w][np.where(remain_part != 255)] = 255
 
     cv2.imwrite(
         outimg,
@@ -66,7 +66,9 @@ def main():
             logging.info('Create directory %s' % saved_dir)
 
         # interactive grabcut with center
-        logging.info('grabcut %d cluster center %s' % (i, cluster['center']))
+        logging.info(
+            'grabcut cluster (%d/%d) center %s' %
+            (i, len(cluster_map), cluster['center']))
         center = grabcut_tools.GrabcutProcess(cluster['center'], iter_times=5)
         center.active()
         output = os.path.join(saved_dir, '_'.join(['cluster', str(i), 'center.png']))
@@ -75,8 +77,8 @@ def main():
         # grabcut neighbor by center parameters
         for j, img in enumerate(cluster['neighbor']):
             logging.info(
-                'grabcut %d cluster neighbor (%d/%d) %s' %
-                (i, j, len(cluster['neighbor']), img))
+                'grabcut cluster (%d/%d) neighbor (%d/%d) %s' %
+                (i, len(cluster_map), j, len(cluster['neighbor']), img))
 
             neighbor = grabcut_tools.GrabcutProcess(img, iter_times=5)
             neighbor.rect = [_.rect for _ in center.parts]
