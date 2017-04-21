@@ -68,7 +68,7 @@ def main():
         # interactive grabcut with center
         logging.info(
             'grabcut cluster (%d/%d) center %s' %
-            (i, len(cluster_map), cluster['center']))
+            (i+1, len(cluster_map), cluster['center']))
         center = grabcut_tools.GrabcutProcess(cluster['center'], iter_times=5)
         center.active()
         output = os.path.join(saved_dir, '_'.join(['cluster', str(i), 'center.png']))
@@ -78,7 +78,7 @@ def main():
         for j, img in enumerate(cluster['neighbor']):
             logging.info(
                 'grabcut cluster (%d/%d) neighbor (%d/%d) %s' %
-                (i, len(cluster_map), j, len(cluster['neighbor']), img))
+                (i+1, len(cluster_map), j+1, len(cluster['neighbor']), img))
 
             neighbor = grabcut_tools.GrabcutProcess(img, iter_times=5)
             neighbor.rect = [_.rect for _ in center.parts]
