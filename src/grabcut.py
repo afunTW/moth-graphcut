@@ -203,12 +203,6 @@ class Grabcut(object):
         if mask_record['coordinate']:
             self.__mask_records.append(mask_record)
 
-        if event == cv2.EVENT_MOUSEWHEEL:
-            if flags > 0:
-                self.__thickness += 1
-            else:
-                self.__thickness -= 1
-
     def active(self):
         print(self.__doc__)
 
@@ -217,6 +211,7 @@ class Grabcut(object):
 
         cv2.namedWindow('output')
         cv2.namedWindow('input', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        # cv2.namedWindow('input', cv2.WINDOW_OPENGL + cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback('input', self.onmouse)
         cv2.moveWindow('input', self.__img.shape[1], 0)
         cv2.imshow('input', self.__img)
@@ -256,6 +251,13 @@ class Grabcut(object):
                 res = np.hstack((self.__orig_img, bar, self.__img, bar, self.__output))
                 cv2.imwrite(''.join(['grabcut_', self.filename, '.png']), res)
                 logging.info(' Result saved as image')
+
+            # add thickness
+            elif k == 82 or k == ord('z'):
+                self.__thickness += 1
+
+            elif k == 84 or k == ord('x'):
+                self.__thickness -= 1
 
             # reset everything
             elif k == ord('r'):
