@@ -1,7 +1,6 @@
 import os
 import sys
 import cv2
-import mahotas
 import pickle
 import logging
 import numpy as np
@@ -13,6 +12,8 @@ from scipy.cluster.hierarchy import dendrogram
 from scipy.cluster.hierarchy import linkage
 from scipy.cluster.hierarchy import cophenet
 from scipy.spatial.distance import pdist
+from mahotas.features import zernike_moments
+from mahotas.features import haralick
 
 
 saved_dir = ''
@@ -25,7 +26,7 @@ moths = [
     if os.path.isfile(os.path.join(image_path, img))
 ]
 
-def get_moments(image):
+def get_shape_features(image):
     img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (1200, 800))
     img = cv2.GaussianBlur(img, (3, 3), 0)
@@ -33,9 +34,9 @@ def get_moments(image):
     img[690:, 650:] = 255
     img = cv2.dilate(img, None, iterations=4)
     img = cv2.erode(img, None, iterations=2)
-    return mahotas.features.zernike_moments(img, img.shape[1]/2, degree=8).tolist()
+    return zernike_moments(img, img.shape[1]/2, degree=8).tolist()
 
-def get_all_moments(moment_file=None):
+def get_all_shape_features(moment_file=None):
     global moths
 
     if moment_file and os.path.isfile(moment_file):
@@ -48,7 +49,7 @@ def get_all_moments(moment_file=None):
     shape_features = {}
     for moth in moths:
         logging.info('Calculating moment of %s' % moth)
-        shape_features[moth] = get_moments(cv2.imread(moth))
+        shape_features[moth] = get_shape_features(cv2.imread(moth))
 
     outfile = moment_file or './zernike_moments.p'
     outfile = os.path.abspath(outfile)
@@ -134,8 +135,8 @@ def kmeans_clustering(n_clusters, n_init, outfile='cluster_map', **features):
 
 def main():
     try:
-        shape_features = get_all_moments(moment_path)
-        kmeans_clustering(n_clusters=10, n_init=10, outfile='cluster_map', **shape_features)
+        shape_features = get_all_shape_features(moment_path)
+        kmeans_clustering(10, 10, 'shape_map', **shape_features)
     except Exception as e:
         logging.exception(e)
 
