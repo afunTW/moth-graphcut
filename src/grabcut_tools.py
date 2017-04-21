@@ -122,8 +122,16 @@ class GrabcutProcess(object):
             # circle:
             for record in self.__parts[index].mask_records:
                 cv2.circle(
-                    output, record['coordinate'], 3, record['value']['color'], -1)
+                    output,
+                    record['coordinate'],
+                    record['thickness'],
+                    record['value']['color'],
+                    -1)
                 cv2.circle(
-                    output, record['coordinate'], 3, record['value']['val'], -1)
+                    output,
+                    record['coordinate'],
+                    record['thickness'],
+                    record['value']['val'],
+                    -1)
 
         return output
