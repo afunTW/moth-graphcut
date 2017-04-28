@@ -17,8 +17,8 @@ from mahotas.features import haralick
 
 
 saved_dir = ''
-image_path = os.path.abspath('demo')
-moment_path = os.path.abspath('zernike_moments.p')
+image_path = os.path.abspath('../img')
+moment_path = os.path.abspath('all_zernike_moments.p')
 
 moths = [
     os.path.join(image_path, img)
@@ -47,8 +47,8 @@ def get_all_shape_features(moment_file=None):
                 return shape_features
 
     shape_features = {}
-    for moth in moths:
-        logging.info('Calculating moment of %s' % moth)
+    for i, moth in enumerate(moths):
+        logging.info('Calculating moment ({}/{}) {}'.format(i+1, len(moths), moth))
         shape_features[moth] = get_shape_features(cv2.imread(moth))
 
     outfile = moment_file or './zernike_moments.p'
@@ -136,7 +136,7 @@ def kmeans_clustering(n_clusters, n_init, outfile='cluster_map', **features):
 def main():
     try:
         shape_features = get_all_shape_features(moment_path)
-        kmeans_clustering(10, 10, 'shape_map', **shape_features)
+        kmeans_clustering(50, 50, 'all_shape_map', **shape_features)
     except Exception as e:
         logging.exception(e)
 
