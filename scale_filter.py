@@ -31,8 +31,8 @@ def is_bottom_right(rects):
     return result
 
 def main():
-    image_path = os.path.abspath('./demo')
-    saved_path = os.path.abspath('./cleardemo')
+    image_path = os.path.abspath('../img')
+    saved_path = os.path.abspath('../clearimg')
     template_path = os.path.abspath('./10mm.png')
 
     # list all demo filename
@@ -49,7 +49,7 @@ def main():
         scale_detector = detector.ShapeDetector(template_path, moth)
         scale_detector.detect_template()
         output = scale_detector.output
-        outname = os.path.join(saved_path, moth.split('/')[-1])
+        outname = os.path.join(saved_path, '_'.join([str(i+1), moth.split('/')[-1]]))
 
         if scale_detector.template_result:
             tx, ty, tw, th = scale_detector.template_result
@@ -70,8 +70,8 @@ def main():
             output[y-5:y+h+5, x-5:x+w+5, :] = 255
             # cv2.rectangle(output, (x,y), (x+w, y+h), scale_detector.BLUE, 2)
 
-        cv2.imwrite(outname, output)
-        logging.info('Saved {}'.format(outname))
+            cv2.imwrite(outname, output)
+            logging.info('Saved ({}/{}) {}'.format(i+1, len(moths), outname))
 
 
 if __name__ == '__main__':

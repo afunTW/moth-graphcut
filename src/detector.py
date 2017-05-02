@@ -22,6 +22,8 @@ class ShapeDetector(object):
         self.__target_img = cv2.imread(target)
         self.__target_img = cv2.cvtColor(self.__target_img, cv2.COLOR_BGR2GRAY)
         self.__output = cv2.imread(target)
+        self.__template_rect = None
+        self.__rect = []
 
         # flag
         self.__found = None
@@ -30,10 +32,30 @@ class ShapeDetector(object):
     def output(self):
         return self.__output
 
-    def detect(self, method=cv2.TM_CCOEFF, show=False):
+    @property
+    def rectangles(self):
+        return self.__rect
+
+    @property
+    def template_result(self):
+        if self.__found:
+            return self.__template_rect
+        else:
+            return None
+
+    @classmethod
+    def points2rect(self, pos1, pos2):
+        x = min(pos1[0], pos2[0])
+        y = min(pos1[1], pos2[1])
+        w = abs(pos1[0] - pos2[0])
+        h = abs(pos1[1] - pos2[1])
+        return (x, y, w, h)
+
+    def detect_template(self, method=cv2.TM_CCOEFF, show=False):
+        self.__found = None
 
         # multiscale
-        for scale in np.linspace(0.5, 1.0, 20)[::-1]:
+        for scale in np.linspace(0.5, 1.0, 32)[::-1]:
             tH, tW = self.__template.shape
             img_w = self.__target_img.shape[1]
             resized_img = imutils.resize(self.__target_img, width=int(img_w*scale))
@@ -54,19 +76,34 @@ class ShapeDetector(object):
                 if self.__found is None or max_val > self.__found[0]:
                     self.__found = (max_val, max_loc, ratio)
 
-            if show:
-                val, loc, r = self.__found
-                top_left = (int(loc[0]*r), int(loc[1]*r))
-                bottom_right = (int((loc[0]+tW)*r), int((loc[1]+tH)*r))
-                resized_img = cv2.cvtColor(resized_img, cv2.COLOR_GRAY2BGR)
-                cv2.rectangle(resized_img, top_left, bottom_right, self.BLUE, 2)
-                cv2.imshow('matching', resized_img)
-                cv2.waitKey(0)
-
         val, loc, r = self.__found
         top_left = (int(loc[0]*r), int(loc[1]*r))
         bottom_right = (int((loc[0]+tW)*r), int((loc[1]+tH)*r))
-        cv2.rectangle(self.output, top_left, bottom_right, self.BLUE, 2)
-        cv2.imshow('output', self.output)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        self.__template_rect = self.points2rect(top_left, bottom_right)
+
+        if show:
+            output = self.output.copy()
+            cv2.rectangle(output, top_left, bottom_right, self.RED, 2)
+            cv2.imshow('output', output)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+    def detect_retangle(self, focus_rect=None):
+        target = self.__target_img.copy()
+        target[np.where(target > [5])] = 120
+        # target_blur = cv2.GaussianBlur(target, (5,5), 0)
+        # target_thresh = cv2.threshold(target_blur, 60, 255, cv2.THRESH_BINARY)[1]
+        target_thresh = cv2.threshold(target, 60, 255, cv2.THRESH_BINARY)[1]
+        cnts = cv2.findContours(target_thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+
+        for i, c in enumerate(cnts):
+            perimeter = cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, 0.003*perimeter, True)
+            x, y, w, h = cv2.boundingRect(approx)
+
+            if focus_rect:
+                assert isinstance(focus_rect, tuple) and len(focus_rect) == 4
+                X, Y, W, H = focus_rect
+
+                if X<x<x+w<X+W and Y<y<y+h<Y+H:
+                    self.__rect.append((x, y, w, h))
