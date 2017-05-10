@@ -39,26 +39,26 @@ def is_bottom_right(rects):
 
     return result
 
-def antenna_filter(image, reverse=False):
-    img = image.copy()
+# def antenna_filter(image, reverse=False):
+#     img = image.copy()
 
-    kernel = np.ones((15, 15), np.float32) / 225
-    lower = np.array([0, 0, 0])
-    upper = np.array([240, 240, 240])
-    mask = cv2.inRange(image, lower, upper)
-    mask = cv2.dilate(mask, kernel, iterations = 1)
+#     kernel = np.ones((15, 15), np.float32) / 225
+#     lower = np.array([0, 0, 0])
+#     upper = np.array([240, 240, 240])
+#     mask = cv2.inRange(image, lower, upper)
+#     mask = cv2.dilate(mask, kernel, iterations = 1)
 
-    for i, row in enumerate(mask):
-        groups = [list(g) for k, g in groupby(row)]
-        index = [len(elt) for elt in groups]
+#     for i, row in enumerate(mask):
+#         groups = [list(g) for k, g in groupby(row)]
+#         index = [len(elt) for elt in groups]
 
-        if len(index) > 3:
-            index = np.cumsum(index)
-            if reverse:
-                image[i, :index[-3]] = 255
-            else:
-                image[i, index[2]:] = 255
-    return image
+#         if len(index) > 3:
+#             index = np.cumsum(index)
+#             if reverse:
+#                 image[i, :index[-3]] = 255
+#             else:
+#                 image[i, index[2]:] = 255
+#     return image
 
 def main(filename, template=None, interactive=True, shift_x=None, shift_y=None):
 
@@ -97,11 +97,15 @@ def main(filename, template=None, interactive=True, shift_x=None, shift_y=None):
 
     img.active(interactive=interactive)
 
-    # forewings = (
-    #     antenna_filter(center.output[0].copy()) +
-    #     antenna_filter(center.output[2].copy(), reverse=True) - 255)
-    forewings = img.output[0].copy() + img.output[1].copy() - 255
-    backwings = img.output[2].copy() + img.output[3].copy() - 255
+    forewings = img.output[0] + img.output[1] - 255
+    forewings, remained = img.fixed(forewings)
+    padding = np.ones(remained.shape)*255
+    padding[np.where(remained != [0])] = remained[np.where(remained != [0])]
+    padding.astype('uint8')
+
+    backwings = img.output[2] + img.output[3] - 255
+    backwings[np.where(padding != [255])] = padding[np.where(padding != [255])]
+    backwings, remained = img.fixed(backwings)
     return (img, np.hstack((img.image, forewings, backwings)))
 
 if __name__ == '__main__':
