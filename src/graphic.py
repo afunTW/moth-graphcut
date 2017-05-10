@@ -30,7 +30,7 @@ class GraphCut(object):
         self.BLACK = [0,0,0]
         self.WHITE = [255,255,255]
         self.CLEAR_UPWARD = {'color': self.BLACK}
-        self.CLEAR_DOWNWARD = {'color': self.WHITE}
+        self.CLEAR_DOWNWARD = {'color': self.BLACK}
 
         # flags & others
         self.__transparent_bg = None
@@ -61,6 +61,8 @@ class GraphCut(object):
         self.__label_r_block = []
         self.__label_l_track = []
         self.__label_r_track = []
+        self.__forewings_color = {'left': None, 'right': None}
+        self.__backwings_color = {'left': None, 'right': None}
 
     @property
     def orig_image(self):
@@ -206,6 +208,32 @@ class GraphCut(object):
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
         return np.where(output[1] == cond_sequence[nth-1][0])
 
+    def fixed(self, image, track, mode):
+        fixed_img = image.copy()
+        erase_img = np.zeros(image.shape)
+
+        for block in track:
+            if not block: continue
+            block = sorted(block, key=lambda ptx: ptx[0])
+            xp = [p[0] for p in block]
+            fp = [p[1] for p in block]
+            track = [(
+                int(i), int(np.interp(i, xp, fp))
+                ) for i in range(min(xp), max(xp)+1)]
+
+            for ptx in track:
+                x, y = ptx
+                if mode is self.CLEAR_UPWARD:
+                    erase_img[0:y, x] = image[0:y, x].copy()
+                    erase_img = erase_img.astype('uint8')
+                    fixed_img[0:y, x] = 255
+                elif mode is self.CLEAR_DOWNWARD:
+                    erase_img[y:, x] = image[y:, x].copy()
+                    erase_img = erase_img.astype('uint8')
+                    fixed_img[y:, x] = 255
+
+        return (fixed_img, erase_img)
+
     def split_component(self):
         '''
         get the connected component by current stat
@@ -216,17 +244,68 @@ class GraphCut(object):
                 if self.__is_left_label:
                     x = self.__mirror_line[0][0]-self.__mirror_shift
                     y = max([ptx[1] for block in self.__label_l_track for ptx in block])
-                    forewings = self.__orig_img[:y, :x].copy()
+
+                    # fixed
+                    forewings = self.__orig_img.copy()
+                    forewings[:, x:] = 255
+                    forewings[y:, :] = 255
+                    forewings, remained = self.fixed(
+                        forewings, self.__label_l_track, self.CLEAR_DOWNWARD)
+
+                    backwings = self.__orig_img.copy()
+                    backwings[:, x:] = 255
+                    backwings[:y, :] = 255
+                    padding = np.where(remained != [0])
+                    backwings[padding] += remained[padding] - 255
+
+                    # connected component
                     foreparts = cv2.cvtColor(forewings, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(foreparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    output = cv2.connectedComponentsWithStats(threshold, 4, cv2.CV_32S)
-                    cond = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+                    foreparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
 
-                    self.__forewings[:y, :x][cond] = forewings[cond]
+                    backparts = cv2.cvtColor(backwings, cv2.COLOR_BGR2GRAY)
+                    ret, threshold = cv2.threshold(backparts, 250, 255, cv2.THRESH_BINARY_INV)
+                    backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+                    self.__forewings_color['left'] = forewings[foreparts]
+                    self.__forewings[:, :x][foreparts] = forewings[foreparts]
                     self.__forewings = self.__forewings.astype('uint8')
+                    self.__backwings_color['left'] = backwings[backparts]
+                    self.__backwings[:, :x][backparts] = backwings[backparts]
+                    self.__backwings = self.__backwings.astype('uint8')
 
                 if self.__is_right_label:
-                    pass
+                    x = self.__mirror_line[0][0]+self.__mirror_shift
+                    y = max([ptx[1] for block in self.__label_r_track for ptx in block])
+
+                    # fixed
+                    forewings = self.__orig_img.copy()
+                    forewings[:, :x] = 255
+                    forewings[y:, :] = 255
+                    forewings, remained = self.fixed(
+                        forewings, self.__label_r_track, self.CLEAR_DOWNWARD)
+
+                    backwings = self.__orig_img.copy()
+                    backwings[:, :x] = 255
+                    backwings[:y, :] = 255
+                    padding = np.where(remained != [0])
+                    backwings[padding] += remained[padding] - 255
+
+                    # connected component
+                    foreparts = cv2.cvtColor(forewings, cv2.COLOR_BGR2GRAY)
+                    ret, threshold = cv2.threshold(foreparts, 250, 255, cv2.THRESH_BINARY_INV)
+                    foreparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+                    backparts = cv2.cvtColor(backwings, cv2.COLOR_BGR2GRAY)
+                    ret, threshold = cv2.threshold(backparts, 250, 255, cv2.THRESH_BINARY_INV)
+                    backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+                    self.__forewings_color['right'] = forewings[foreparts]
+                    self.__forewings[foreparts] = forewings[foreparts]
+                    self.__forewings = self.__forewings.astype('uint8')
+                    self.__backwings_color['right'] = backwings[backparts]
+                    self.__backwings[backparts] = backwings[backparts]
+                    self.__backwings = self.__backwings.astype('uint8')
 
     def onmouse(self, event, x, y, flags, params):
         '''
