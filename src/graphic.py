@@ -68,6 +68,10 @@ class GraphCut(object):
         self.__label_r_track = []
         self.__forewings_color = {'left': None, 'right': None}
         self.__backwings_color = {'left': None, 'right': None}
+        self.__body_color = None
+        self.__forewings_coor = {'left': None, 'right': None}
+        self.__backwings_coor = {'left': None, 'right': None}
+        self.__body_coor = None
         self.__forewings = None
         self.__backwings = None
         self.__body = None
@@ -166,6 +170,10 @@ class GraphCut(object):
             self.__label_r_track = []
             self.__forewings_color = {'left': None, 'right': None}
             self.__backwings_color = {'left': None, 'right': None}
+            self.__body_color = None
+            self.__forewings_coor = {'left': None, 'right': None}
+            self.__backwings_coor = {'left': None, 'right': None}
+            self.__body_coor = None
             self.__forewings = None
             self.__backwings = None
             self.__body = None
@@ -266,11 +274,21 @@ class GraphCut(object):
             backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
 
             self.__forewings_color[side] = forewings[foreparts]
+            self.__forewings_coor[side] = foreparts
             self.__forewings[foreparts] = forewings[foreparts]
             self.__forewings = self.__forewings.astype('uint8')
             self.__backwings_color[side] = backwings[backparts]
+            self.__backwings_coor[side] = backparts
             self.__backwings[backparts] = backwings[backparts]
             self.__backwings = self.__backwings.astype('uint8')
+
+        def clear_wings(value):
+            img = self.__orig_img.copy()
+            img[self.__forewings_coor['left']] = value
+            img[self.__forewings_coor['right']] = value
+            img[self.__backwings_coor['left']] = value
+            img[self.__backwings_coor['right']] = value
+            return img
 
         if self.__is_body:
             if self.__label_l_track or self.__label_r_track:
@@ -313,6 +331,15 @@ class GraphCut(object):
                     backwings[padding] += remained[padding] - 255
 
                     save_wings(forewings, backwings, 'right')
+
+                self.__body = self.__transparent_bg.copy()
+                body = clear_wings(255)
+                bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
+                ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
+                bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+                self.__body_color = bodyparts
+                self.__body[bodyparts] = body[bodyparts]
+                self.__body = self.body.astype('uint8')
 
     def onmouse(self, event, x, y, flags, params):
         '''
