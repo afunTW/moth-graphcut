@@ -32,6 +32,7 @@ class GraphCut(object):
         self.WHITE = [255,255,255]
         self.CLEAR_UPWARD = {'color': self.BLACK}
         self.CLEAR_DOWNWARD = {'color': self.BLACK}
+        self.CLEAR = {'color': self.RED}
 
         if os.name == 'posix':
             self.KEY_LEFT = 81
@@ -49,6 +50,7 @@ class GraphCut(object):
         self.__was_right_draw = False
         self.__is_right_draw = False
         self.__is_right_label = False
+        self.__is_eliminate = False
 
         # image
         if orig_image is None:
@@ -66,6 +68,7 @@ class GraphCut(object):
         self.__label_r_block = []
         self.__label_l_track = []
         self.__label_r_track = []
+        self.__eliminate_track = []
         self.__forewings_color = {'left': None, 'right': None}
         self.__backwings_color = {'left': None, 'right': None}
         self.__body_color = None
@@ -152,62 +155,6 @@ class GraphCut(object):
 
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
-
-    def reset(self):
-        '''
-        reset all metadata and image
-        '''
-        self.__panel_img = self.__orig_img.copy()
-
-        if self.__was_left_draw or self.__was_right_draw:
-            self.__was_left_draw = False
-            self.__is_left_draw = False
-            self.__is_left_label = False
-            self.__was_right_draw = False
-            self.__is_right_draw = False
-            self.__is_right_label = False
-            self.__label_l_track = []
-            self.__label_r_track = []
-            self.__forewings_color = {'left': None, 'right': None}
-            self.__backwings_color = {'left': None, 'right': None}
-            self.__body_color = None
-            self.__forewings_coor = {'left': None, 'right': None}
-            self.__backwings_coor = {'left': None, 'right': None}
-            self.__body_coor = None
-            self.__forewings = None
-            self.__backwings = None
-            self.__body = None
-        elif self.__is_body:
-            self.__is_body = False
-            self.__mirror_shift = None
-
-        self.draw()
-
-    def draw(self):
-        '''
-        draw all metadata on image
-        '''
-        h, w, channel = self.__panel_img.shape
-
-        if self.__mirror_line:
-            pt1, pt2 = self.__mirror_line
-            cv2.line(self.__panel_img, pt1, pt2, self.BLACK, 2)
-
-            if self.__mirror_shift:
-                shift = self.__mirror_shift
-                l_x, r_x = (pt1[0]-shift, pt1[0]+shift)
-                cv2.line(self.__panel_img, (l_x, 0), (l_x, h), self.BLUE, 2)
-                cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.BLUE, 2)
-
-        if self.__label_l_track:
-            track = [ptx for block in self.__label_l_track for ptx in block]
-            for l_ptx in track:
-                cv2.circle(self.__panel_img, l_ptx, 2, self.BLACK)
-
-        if self.__label_r_track:
-            track = [ptx for block in self.__label_r_track for ptx in block]
-            for r_ptx in track:
-                cv2.circle(self.__panel_img, r_ptx, 2, self.BLACK)
 
     def get_component_by(self, threshold, nth, by):
         '''
@@ -332,14 +279,20 @@ class GraphCut(object):
 
                     save_wings(forewings, backwings, 'right')
 
-                self.__body = self.__transparent_bg.copy()
-                body = clear_wings(255)
-                bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
-                ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
-                bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-                self.__body_color = bodyparts
-                self.__body[bodyparts] = body[bodyparts]
-                self.__body = self.__body.astype('uint8')
+                if (
+                    self.__forewings_coor['left'] and
+                    self.__forewings_coor['right'] and
+                    self.__backwings_coor['left'] and
+                    self.__backwings_coor['right']
+                ):
+                    self.__body = self.__transparent_bg.copy()
+                    body = clear_wings(255)
+                    bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
+                    ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
+                    bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+                    self.__body_color = bodyparts
+                    self.__body[bodyparts] = body[bodyparts]
+                    self.__body = self.__body.astype('uint8')
 
     def onmouse(self, event, x, y, flags, params):
         '''
@@ -382,7 +335,13 @@ class GraphCut(object):
                     self.__is_right_label = True
                     print('label right')
 
-        if event == cv2.EVENT_LBUTTONDOWN:
+        if event == cv2.EVENT_RBUTTONDOWN:
+            self.__is_eliminate = True
+
+        elif event == cv2.EVENT_RBUTTONUP:
+            self.__is_eliminate = False
+
+        elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
                 pt1, pt2 = self.__mirror_line
 
@@ -449,6 +408,71 @@ class GraphCut(object):
                     if not self.__was_left_draw:
                         handle_track('left')
 
+            if self.__is_eliminate:
+                self.__eliminate_track.append((x,y))
+                self.draw()
+
+    def reset(self):
+        '''
+        reset all metadata and image
+        '''
+        self.__panel_img = self.__orig_img.copy()
+
+        if self.__was_left_draw or self.__was_right_draw:
+            self.__was_left_draw = False
+            self.__is_left_draw = False
+            self.__is_left_label = False
+            self.__was_right_draw = False
+            self.__is_right_draw = False
+            self.__is_right_label = False
+            self.__label_l_track = []
+            self.__label_r_track = []
+            self.__eliminate_track = []
+            self.__forewings_color = {'left': None, 'right': None}
+            self.__backwings_color = {'left': None, 'right': None}
+            self.__body_color = None
+            self.__forewings_coor = {'left': None, 'right': None}
+            self.__backwings_coor = {'left': None, 'right': None}
+            self.__body_coor = None
+            self.__forewings = None
+            self.__backwings = None
+            self.__body = None
+        elif self.__is_body:
+            self.__is_body = False
+            self.__mirror_shift = None
+
+        self.draw()
+
+    def draw(self):
+        '''
+        draw all metadata on image
+        '''
+        h, w, channel = self.__panel_img.shape
+
+        if self.__mirror_line:
+            pt1, pt2 = self.__mirror_line
+            cv2.line(self.__panel_img, pt1, pt2, self.BLACK, 2)
+
+            if self.__mirror_shift:
+                shift = self.__mirror_shift
+                l_x, r_x = (pt1[0]-shift, pt1[0]+shift)
+                cv2.line(self.__panel_img, (l_x, 0), (l_x, h), self.BLUE, 2)
+                cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.BLUE, 2)
+
+        if self.__label_l_track:
+            track = [ptx for block in self.__label_l_track for ptx in block]
+            for l_ptx in track:
+                cv2.circle(self.__panel_img, l_ptx, 2, self.BLACK)
+
+        if self.__label_r_track:
+            track = [ptx for block in self.__label_r_track for ptx in block]
+            for r_ptx in track:
+                cv2.circle(self.__panel_img, r_ptx, 2, self.BLACK)
+
+        if self.__eliminate_track:
+            for ptx in self.__eliminate_track:
+                cv2.circle(self.__panel_img, ptx, 2, self.CLEAR['color'])
+
     def run(self):
         '''
         core function to do graph cut
@@ -493,4 +517,3 @@ class GraphCut(object):
                 self.draw()
 
         cv2.destroyAllWindows()
-
