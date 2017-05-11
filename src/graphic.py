@@ -66,6 +66,7 @@ class GraphCut(object):
         self.__mirror_shift = None
         self.__label_l_block = []
         self.__label_r_block = []
+        self.__eliminate_block = []
         self.__label_l_track = []
         self.__label_r_track = []
         self.__eliminate_track = []
@@ -156,6 +157,15 @@ class GraphCut(object):
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
 
+    def get_interp_ptx(self, block):
+        block = sorted(block, key=lambda ptx: ptx[0])
+        xp = [p[0] for p in block]
+        fp = [p[1] for p in block]
+        track = [(
+            int(i), int(np.interp(i, xp, fp))
+            ) for i in range(min(xp), max(xp)+1)]
+        return track
+
     def get_component_by(self, threshold, nth, by):
         '''
         return nth connected component by the value in stat matrix
@@ -182,12 +192,7 @@ class GraphCut(object):
 
         for block in track:
             if not block: continue
-            block = sorted(block, key=lambda ptx: ptx[0])
-            xp = [p[0] for p in block]
-            fp = [p[1] for p in block]
-            track = [(
-                int(i), int(np.interp(i, xp, fp))
-                ) for i in range(min(xp), max(xp)+1)]
+            track = self.get_interp_ptx(block)
 
             for ptx in track:
                 x, y = ptx
@@ -206,6 +211,15 @@ class GraphCut(object):
         '''
         get the connected component by current stat
         '''
+
+        def elimination(image, value):
+            for block in self.__eliminate_track:
+                if not block: continue
+                track = self.get_interp_ptx(block)
+                for ptx in track:
+                    cv2.circle(image, ptx, 3, value)
+                    # image[ptx[1], ptx[0]] = value
+            return image
 
         def save_wings(forewings, backwings, side):
             assert side in self.__forewings_color.keys()
@@ -238,7 +252,9 @@ class GraphCut(object):
             return img
 
         if self.__is_body:
+
             if self.__label_l_track or self.__label_r_track:
+
                 self.init_wings_image()
 
                 if self.__label_l_track:
@@ -247,12 +263,14 @@ class GraphCut(object):
 
                     # fixed
                     forewings = self.__orig_img.copy()
+                    forewings = elimination(forewings, self.WHITE)
                     forewings[:, x:] = 255
                     forewings[y:, :] = 255
                     forewings, remained = self.fixed(
                         forewings, self.__label_l_track, self.CLEAR_DOWNWARD)
 
                     backwings = self.__orig_img.copy()
+                    backwings = elimination(backwings, self.WHITE)
                     backwings[:, x:] = 255
                     backwings[:y, :] = 255
                     padding = np.where(remained != [0])
@@ -266,12 +284,14 @@ class GraphCut(object):
 
                     # fixed
                     forewings = self.__orig_img.copy()
+                    forewings = elimination(forewings, self.WHITE)
                     forewings[:, :x] = 255
                     forewings[y:, :] = 255
                     forewings, remained = self.fixed(
                         forewings, self.__label_r_track, self.CLEAR_DOWNWARD)
 
                     backwings = self.__orig_img.copy()
+                    backwings = elimination(backwings, self.WHITE)
                     backwings[:, :x] = 255
                     backwings[:y, :] = 255
                     padding = np.where(remained != [0])
@@ -340,6 +360,9 @@ class GraphCut(object):
 
         elif event == cv2.EVENT_RBUTTONUP:
             self.__is_eliminate = False
+            self.__eliminate_track.append(self.__eliminate_block)
+            self.__eliminate_block = []
+            self.split_component()
 
         elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
@@ -409,8 +432,8 @@ class GraphCut(object):
                         handle_track('left')
 
             if self.__is_eliminate:
-                self.__eliminate_track.append((x,y))
-                self.draw()
+                self.__eliminate_block.append((x,y))
+                cv2.circle(self.__panel_img, (x,y), 2, self.CLEAR['color'])
 
     def reset(self):
         '''
@@ -470,7 +493,8 @@ class GraphCut(object):
                 cv2.circle(self.__panel_img, r_ptx, 2, self.BLACK)
 
         if self.__eliminate_track:
-            for ptx in self.__eliminate_track:
+            track = [ptx for block in self.__eliminate_track for ptx in block]
+            for ptx in track:
                 cv2.circle(self.__panel_img, ptx, 2, self.CLEAR['color'])
 
     def run(self):
