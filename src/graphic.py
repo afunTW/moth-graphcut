@@ -93,8 +93,8 @@ class GraphCut(object):
         self.__mirror_line = ptx
 
     def init_wings_image(self):
-        if self.__forewings is None: self.__forewings = self.__transparent_bg.copy()
-        if self.__backwings is None: self.__backwings = self.__transparent_bg.copy()
+        self.__forewings = self.__transparent_bg.copy()
+        self.__backwings = self.__transparent_bg.copy()
 
     def gen_transparent_bg(self, image):
         '''
@@ -156,6 +156,11 @@ class GraphCut(object):
             self.__is_right_label = False
             self.__label_l_track = []
             self.__label_r_track = []
+            self.__forewings_color = {'left': None, 'right': None}
+            self.__backwings_color = {'left': None, 'right': None}
+            self.__forewings = None
+            self.__backwings = None
+            self.__body = None
         elif self.__is_body:
             self.__is_body = False
             self.__mirror_shift = None
@@ -239,9 +244,9 @@ class GraphCut(object):
         get the connected component by current stat
         '''
         if self.__is_body:
-            if self.__is_left_label or self.__is_right_label:
+            if self.__label_l_track or self.__label_r_track:
                 self.init_wings_image()
-                if self.__is_left_label:
+                if self.__label_l_track:
                     x = self.__mirror_line[0][0]-self.__mirror_shift
                     y = max([ptx[1] for block in self.__label_l_track for ptx in block])
 
@@ -268,13 +273,13 @@ class GraphCut(object):
                     backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
 
                     self.__forewings_color['left'] = forewings[foreparts]
-                    self.__forewings[:, :x][foreparts] = forewings[foreparts]
+                    self.__forewings[foreparts] = forewings[foreparts]
                     self.__forewings = self.__forewings.astype('uint8')
                     self.__backwings_color['left'] = backwings[backparts]
-                    self.__backwings[:, :x][backparts] = backwings[backparts]
+                    self.__backwings[backparts] = backwings[backparts]
                     self.__backwings = self.__backwings.astype('uint8')
 
-                if self.__is_right_label:
+                if self.__label_r_track:
                     x = self.__mirror_line[0][0]+self.__mirror_shift
                     y = max([ptx[1] for block in self.__label_r_track for ptx in block])
 
@@ -346,6 +351,7 @@ class GraphCut(object):
                 elif r_ptx[0] == pt1[0] + self.__mirror_shift:
                     save_track(side)
                     self.__is_right_label = True
+                    print('label right')
 
         if event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
@@ -387,8 +393,9 @@ class GraphCut(object):
             elif self.__is_right_draw:
                 save_track('right')
 
-            self.__is_left_label and self.split_component()
-            self.__is_right_label and self.split_component()
+            self.split_component()
+            # self.__is_left_label and self.split_component()
+            # self.__is_right_label and self.split_component()
 
         elif event == cv2.EVENT_MOUSEMOVE:
             # deside body region
@@ -423,7 +430,8 @@ class GraphCut(object):
         self.reset()
         self.draw()
         cv2.namedWindow('displayed')
-        cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        # cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow('panel')
         cv2.setMouseCallback('panel', self.onmouse)
         cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
 
@@ -452,3 +460,5 @@ class GraphCut(object):
                 self.__mirror_line = (pt1, pt2)
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
+
+        cv2.destroyAllWindows()
