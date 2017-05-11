@@ -80,18 +80,15 @@ if __name__ == '__main__':
         stream=sys.stdout
         )
     try:
-        template_path = '10mm.png'
-        '''
-        moths_path = os.path.abspath('../img')
+        template_path = 'image/10mm.png'
+        moths_path = os.path.abspath('image/sample')
         moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
 
         for i, moth in enumerate(moths):
             logging.info(
                 '({}/{}) Process {}'.format(i+1, len(moths), moth.split('/')[-1]))
             main(moth, template=template_path)
-            break
-        '''
-        main('sample.jpg', template=template_path)
+            # break
 
     except Exception as e:
         logging.exception(e)

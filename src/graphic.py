@@ -339,7 +339,7 @@ class GraphCut(object):
                 bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
                 self.__body_color = bodyparts
                 self.__body[bodyparts] = body[bodyparts]
-                self.__body = self.body.astype('uint8')
+                self.__body = self.__body.astype('uint8')
 
     def onmouse(self, event, x, y, flags, params):
         '''
@@ -493,3 +493,4 @@ class GraphCut(object):
                 self.draw()
 
         cv2.destroyAllWindows()
+
