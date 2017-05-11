@@ -1,3 +1,4 @@
+import os
 import cv2
 import math
 import logging
@@ -32,6 +33,13 @@ class GraphCut(object):
         self.CLEAR_UPWARD = {'color': self.BLACK}
         self.CLEAR_DOWNWARD = {'color': self.BLACK}
 
+        if os.name == 'posix':
+            self.KEY_LEFT = 81
+            self.KEY_RIGHT = 83
+        elif os.name == 'nt':
+            self.KEY_LEFT = 2424832
+            self.KEY_RIGHT = 2555904
+
         # flags & others
         self.__transparent_bg = None
         self.__is_body = False
@@ -50,9 +58,6 @@ class GraphCut(object):
 
         self.__panel_img = self.__orig_img.copy()
         self.__show_img = self.gen_transparent_bg(self.__orig_img)
-        self.__forewings = None
-        self.__backwings = None
-        self.__body = None
 
         # metadata
         self.__mirror_line = self.gen_mirror_line(self.__orig_img)
@@ -63,6 +68,9 @@ class GraphCut(object):
         self.__label_r_track = []
         self.__forewings_color = {'left': None, 'right': None}
         self.__backwings_color = {'left': None, 'right': None}
+        self.__forewings = None
+        self.__backwings = None
+        self.__body = None
 
     @property
     def orig_image(self):
@@ -243,9 +251,31 @@ class GraphCut(object):
         '''
         get the connected component by current stat
         '''
+
+        def save_wings(forewings, backwings, side):
+            assert side in self.__forewings_color.keys()
+            assert side in self.__backwings_color.keys()
+
+            # connected component
+            foreparts = cv2.cvtColor(forewings, cv2.COLOR_BGR2GRAY)
+            ret, threshold = cv2.threshold(foreparts, 250, 255, cv2.THRESH_BINARY_INV)
+            foreparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+            backparts = cv2.cvtColor(backwings, cv2.COLOR_BGR2GRAY)
+            ret, threshold = cv2.threshold(backparts, 250, 255, cv2.THRESH_BINARY_INV)
+            backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+            self.__forewings_color[side] = forewings[foreparts]
+            self.__forewings[foreparts] = forewings[foreparts]
+            self.__forewings = self.__forewings.astype('uint8')
+            self.__backwings_color[side] = backwings[backparts]
+            self.__backwings[backparts] = backwings[backparts]
+            self.__backwings = self.__backwings.astype('uint8')
+
         if self.__is_body:
             if self.__label_l_track or self.__label_r_track:
                 self.init_wings_image()
+
                 if self.__label_l_track:
                     x = self.__mirror_line[0][0]-self.__mirror_shift
                     y = max([ptx[1] for block in self.__label_l_track for ptx in block])
@@ -263,21 +293,7 @@ class GraphCut(object):
                     padding = np.where(remained != [0])
                     backwings[padding] += remained[padding] - 255
 
-                    # connected component
-                    foreparts = cv2.cvtColor(forewings, cv2.COLOR_BGR2GRAY)
-                    ret, threshold = cv2.threshold(foreparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    foreparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-
-                    backparts = cv2.cvtColor(backwings, cv2.COLOR_BGR2GRAY)
-                    ret, threshold = cv2.threshold(backparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-
-                    self.__forewings_color['left'] = forewings[foreparts]
-                    self.__forewings[foreparts] = forewings[foreparts]
-                    self.__forewings = self.__forewings.astype('uint8')
-                    self.__backwings_color['left'] = backwings[backparts]
-                    self.__backwings[backparts] = backwings[backparts]
-                    self.__backwings = self.__backwings.astype('uint8')
+                    save_wings(forewings, backwings, 'left')
 
                 if self.__label_r_track:
                     x = self.__mirror_line[0][0]+self.__mirror_shift
@@ -296,21 +312,7 @@ class GraphCut(object):
                     padding = np.where(remained != [0])
                     backwings[padding] += remained[padding] - 255
 
-                    # connected component
-                    foreparts = cv2.cvtColor(forewings, cv2.COLOR_BGR2GRAY)
-                    ret, threshold = cv2.threshold(foreparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    foreparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-
-                    backparts = cv2.cvtColor(backwings, cv2.COLOR_BGR2GRAY)
-                    ret, threshold = cv2.threshold(backparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    backparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-
-                    self.__forewings_color['right'] = forewings[foreparts]
-                    self.__forewings[foreparts] = forewings[foreparts]
-                    self.__forewings = self.__forewings.astype('uint8')
-                    self.__backwings_color['right'] = backwings[backparts]
-                    self.__backwings[backparts] = backwings[backparts]
-                    self.__backwings = self.__backwings.astype('uint8')
+                    save_wings(forewings, backwings, 'right')
 
     def onmouse(self, event, x, y, flags, params):
         '''
@@ -394,8 +396,6 @@ class GraphCut(object):
                 save_track('right')
 
             self.split_component()
-            # self.__is_left_label and self.split_component()
-            # self.__is_right_label and self.split_component()
 
         elif event == cv2.EVENT_MOUSEMOVE:
             # deside body region
@@ -430,8 +430,12 @@ class GraphCut(object):
         self.reset()
         self.draw()
         cv2.namedWindow('displayed')
-        # cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
-        cv2.namedWindow('panel')
+
+        if os.name == 'posix':
+            cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        elif os.name == 'nt':
+            cv2.namedWindow('panel')
+
         cv2.setMouseCallback('panel', self.onmouse)
         cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
 
@@ -444,7 +448,7 @@ class GraphCut(object):
                 break
             elif k == ord('r'):
                 self.reset()
-            elif k == 81 or k == ord('a'):
+            elif k == self.KEY_LEFT or k == ord('a'):
                 # left
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]-1, pt1[1])
@@ -452,7 +456,7 @@ class GraphCut(object):
                 self.__mirror_line = (pt1, pt2)
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
-            elif k == 83 or k == ord('d'):
+            elif k == self.KEY_RIGHT or k == ord('d'):
                 # right
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]+1, pt1[1])
