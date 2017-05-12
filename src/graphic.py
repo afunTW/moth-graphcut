@@ -157,6 +157,49 @@ class GraphCut(object):
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
 
+    def get_instruction(self):
+        h, w, channel = self.__panel_img.shape
+        line_height = 20
+        between_line = 5
+        key_esc = 'Key "Esc": Exit the image operation'
+        key_r = 'Key "r": Reset'
+        key_left = 'Key "a" or "<-": Shifting mirror line to the left'
+        key_right = 'Key "d" or "->": Shifting mirror line to the right'
+        mouse_left = 'Mouse click left: '
+        mouse_right = None
+
+        if self.__label_l_track or self.__label_r_track:
+            key_r += ' all labeling point'
+        elif self.__is_body:
+            key_r += ' mirror line'
+
+        if not self.__is_body:
+            mouse_left += 'Determine the body width'
+        elif not self.__was_left_draw or not self.__was_right_draw:
+            mouse_left += 'Separate fore and back wings in mirror mode'
+            mouse_right = 'Mouse click right: Seperate connected component'
+        else:
+            mouse_left += 'Separate fore and back wings'
+            mouse_right = 'Mouse click right: Seperate connected component'
+
+        instructions = [(key_esc, key_r), key_left, key_right, mouse_left]
+        mouse_right and instructions.append(mouse_right)
+        doc_panel = np.zeros(((line_height+between_line)*len(instructions), w, 3))
+
+        for i, instra in enumerate(instructions):
+            y = line_height*(i+1) + between_line*i
+            font = cv2.FONT_HERSHEY_TRIPLEX
+            scale = 0.5
+            fontcolor = self.WHITE
+
+            if isinstance(instra, tuple):
+                cv2.putText(doc_panel, instra[0], (10, y), font, scale, fontcolor)
+                cv2.putText(doc_panel, instra[1], (int(w/2), y), font, scale, fontcolor)
+            else:
+                cv2.putText(doc_panel, instra, (10, y), font , scale, fontcolor)
+
+        return doc_panel
+
     def get_interp_ptx(self, block):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
@@ -519,8 +562,11 @@ class GraphCut(object):
         cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
 
         while True:
+            instructions = self.get_instruction()
+            panel_image = np.vstack((self.__panel_img, instructions))
+            panel_image = panel_image.astype('uint8')
             cv2.imshow('displayed', self.show_image)
-            cv2.imshow('panel', self.__panel_img)
+            cv2.imshow('panel', panel_image)
             k = cv2.waitKey(1)
 
             if k == 27:
