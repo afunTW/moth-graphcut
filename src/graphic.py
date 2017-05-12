@@ -400,9 +400,13 @@ class GraphCut(object):
 
             elif self.__is_left_draw:
                 save_track('left')
+                if not self.__was_right_draw:
+                    save_track('right')
 
             elif self.__is_right_draw:
                 save_track('right')
+                if not self.__was_left_draw:
+                    save_track('left')
 
             self.split_component()
 
