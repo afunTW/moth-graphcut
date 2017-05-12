@@ -341,7 +341,7 @@ class GraphCut(object):
                 if 0 < l_ptx[0] < pt1[0] - self.__mirror_shift:
                     self.__label_l_block.append(l_ptx)
                     cv2.circle(self.__panel_img, l_ptx, 2, self.BLACK, -1)
-                elif l_ptx[0] == pt1[0] - self.__mirror_shift:
+                else:
                     save_track(side)
                     self.__is_left_label = True
                     print('label left')
@@ -350,7 +350,7 @@ class GraphCut(object):
                 if pt1[0] + self.__mirror_shift < r_ptx[0] < w:
                     self.__label_r_block.append(r_ptx)
                     cv2.circle(self.__panel_img, r_ptx, 2, self.BLACK, -1)
-                elif r_ptx[0] == pt1[0] + self.__mirror_shift:
+                else:
                     save_track(side)
                     self.__is_right_label = True
                     print('label right')
