@@ -19,8 +19,8 @@ class GraphCut(object):
 
     Key 'Esc' - To exit the program
     Key 'r' - To reset the setup
-    Key 'a' - Shift mirror line to left side
-    Key 'd' - Shift mirror line to right side
+    Key 'a', '->' - Shift mirror line to left side
+    Key 'd', '<-' - Shift mirror line to right side
     ===============================================================================
     '''
     def __init__(self, filename, orig_image=None):
@@ -107,6 +107,20 @@ class GraphCut(object):
     def mirror_line(self, ptx):
         assert isinstance(ptx, tuple) and len(ptx) == 2
         self.__mirror_line = ptx
+
+    @property
+    def mirror_left_x(self):
+        assert self.__mirror_line and self.__mirror_shift
+        pt1, pt2 = self.__mirror_line
+        shift = self.__mirror_shift
+        return pt1[0]-shift
+
+    @property
+    def mirror_right_x(self):
+        assert self.__mirror_line and self.__mirror_shift
+        pt1, pt2 = self.__mirror_line
+        shift = self.__mirror_shift
+        return pt1[0]+shift
 
     def init_wings_image(self):
         self.__forewings = self.__transparent_bg.copy()
@@ -364,6 +378,11 @@ class GraphCut(object):
         Phase 2: split forewings and backwings
             by self.__is_right_label and self.__is_left_label
         '''
+        def get_mirror_x():
+            X = self.__mirror_line[0][0]
+            shift = abs(X - x)
+            return (X-shift, X+shift)
+
         def save_track(side):
             if side == 'left':
                 self.__label_l_track.append(self.__label_l_block)
@@ -409,24 +428,28 @@ class GraphCut(object):
 
         elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
-                pt1, pt2 = self.__mirror_line
 
-                if x < pt1[0] - self.__mirror_shift:
+                if x < self.mirror_left_x:
+
                     if not self.__was_left_draw:
                         self.__panel_img = self.__orig_img.copy()
                         self.__is_left_label = False
                         self.__label_l_track = []
                         self.draw()
+
                     self.__was_left_draw = True
                     self.__is_left_draw = True
                     self.__label_l_block = []
                     self.__label_r_block = []
-                elif x > pt1[0] + self.__mirror_shift:
+
+                elif x > self.mirror_right_x:
+
                     if not self.__was_right_draw:
                         self.__panel_img = self.__orig_img.copy()
                         self.__is_right_label = False
                         self.__label_r_track = []
                         self.draw()
+
                     self.__was_right_draw = True
                     self.__is_right_draw = True
                     self.__label_l_block = []
@@ -436,8 +459,7 @@ class GraphCut(object):
 
         elif event == cv2.EVENT_LBUTTONUP:
             if not self.__is_body:
-                pt1, pt2 = self.__mirror_line
-                self.__mirror_shift = abs(pt1[0] - x)
+                self.__mirror_shift = abs(self.__mirror_line[0][0] - x)
                 self.__is_body = True
                 self.draw()
 
@@ -454,15 +476,13 @@ class GraphCut(object):
             self.split_component()
 
         elif event == cv2.EVENT_MOUSEMOVE:
+
             # deside body region
             if not self.__is_body:
                 h, w, channel = self.__orig_img.shape
+                l_x, r_x = get_mirror_x()
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
-
-                pt1, pt2 = self.__mirror_line
-                shift = abs(pt1[0] - x)
-                l_x, r_x = (pt1[0]-shift, pt1[0]+shift)
                 cv2.line(self.__panel_img, (l_x, 0), (l_x, h), self.RED, 2)
                 cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.RED, 2)
 
