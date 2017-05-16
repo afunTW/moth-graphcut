@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 from scipy.spatial.distance import cosine
-from scipy.interpolate import interp1d
+from src.interpolation import interpolate_numba
 
 
 class GraphCut(object):
@@ -230,10 +230,11 @@ class GraphCut(object):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
         fp = [p[1] for p in block]
-        # f = interp1d(xp, fp, kind='linear', copy=False)
+        f = interp1d(xp, fp, kind='linear', copy=False)
         # track = [(
         #     int(x), int(f(x))
         #     ) for x in range(min(xp), max(xp)+1)]
+
         track = [(
             int(x), int(np.interp(x, xp, fp))
             ) for x in range(min(xp), max(xp)+1)]
@@ -335,6 +336,7 @@ class GraphCut(object):
             x = x if side == self.ON_RIGHT else -x
             x += mirror_line_x
             y = bottom_y(track)
+
             forewings = init_wings(x, y, side, 'forewings')
             forewings, remained = self.fixed(forewings, track, self.CLEAR_DOWNWARD)
             backwings = init_wings(x, y, side, 'backwings')
@@ -560,7 +562,7 @@ class GraphCut(object):
         if os.name == 'posix':
             cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         elif os.name == 'nt':
-            cv2.namedWindow('panel')
+            cv2.namedWindow('panel', cv2.WINDOW_KEEPRATIO)
 
         cv2.setMouseCallback('panel', self.onmouse)
         cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
