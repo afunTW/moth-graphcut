@@ -5,7 +5,6 @@ import logging
 import numpy as np
 
 from scipy.spatial.distance import cosine
-from src.interpolation import interpolate_numba
 
 
 class GraphCut(object):
