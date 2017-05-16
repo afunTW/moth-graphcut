@@ -229,7 +229,7 @@ class GraphCut(object):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
         fp = [p[1] for p in block]
-        f = interp1d(xp, fp, kind='linear', copy=False)
+        # f = interp1d(xp, fp, kind='linear', copy=False)
         # track = [(
         #     int(x), int(f(x))
         #     ) for x in range(min(xp), max(xp)+1)]
