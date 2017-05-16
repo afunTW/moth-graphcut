@@ -398,6 +398,14 @@ class GraphCut(object):
                     self.__tracking_label[self.ON_LEFT] = []
 
         def not_tracking(side):
+            left_track = self.__tracking_label[self.ON_LEFT]
+            right_track = self.__tracking_label[self.ON_RIGHT]
+
+            if left_track:
+                self.__tracking_label[self.ON_LEFT] = self.get_interp_ptx(left_track)
+            if right_track:
+                self.__tracking_label[self.ON_RIGHT] = self.get_interp_ptx(right_track)
+
             if side == self.ON_LEFT:
                 self.__was_left_draw = True
                 self.__is_left_draw = False
@@ -440,16 +448,8 @@ class GraphCut(object):
 
             elif self.__is_left_draw or self.__is_right_draw:
                 not_tracking(side)
-                left_track = self.__tracking_label[self.ON_LEFT]
-                right_track = self.__tracking_label[self.ON_RIGHT]
-
-                if left_track:
-                    self.__tracking_label[self.ON_LEFT] = self.get_interp_ptx(left_track)
-                if right_track:
-                    self.__tracking_label[self.ON_RIGHT] = self.get_interp_ptx(right_track)
 
                 self.split_component()
-                self.__panel_img = self.__orig_img.copy()
                 self.draw()
 
         elif event == cv2.EVENT_MOUSEMOVE:
