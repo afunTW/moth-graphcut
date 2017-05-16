@@ -5,6 +5,7 @@ import logging
 import numpy as np
 
 from scipy.spatial.distance import cosine
+from scipy.interpolate import interp1d
 
 
 class GraphCut(object):
@@ -229,9 +230,13 @@ class GraphCut(object):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
         fp = [p[1] for p in block]
+        # f = interp1d(xp, fp, kind='linear', copy=False)
+        # track = [(
+        #     int(x), int(f(x))
+        #     ) for x in range(min(xp), max(xp)+1)]
         track = [(
-            int(i), int(np.interp(i, xp, fp))
-            ) for i in range(min(xp), max(xp)+1)]
+            int(x), int(np.interp(x, xp, fp))
+            ) for x in range(min(xp), max(xp)+1)]
         return track
 
     def get_component_by(self, threshold, nth, by):
@@ -435,7 +440,17 @@ class GraphCut(object):
 
             elif self.__is_left_draw or self.__is_right_draw:
                 not_tracking(side)
+                left_track = self.__tracking_label[self.ON_LEFT]
+                right_track = self.__tracking_label[self.ON_RIGHT]
+
+                if left_track:
+                    self.__tracking_label[self.ON_LEFT] = self.get_interp_ptx(left_track)
+                if right_track:
+                    self.__tracking_label[self.ON_RIGHT] = self.get_interp_ptx(right_track)
+
                 self.split_component()
+                self.__panel_img = self.__orig_img.copy()
+                self.draw()
 
         elif event == cv2.EVENT_MOUSEMOVE:
 
@@ -521,9 +536,17 @@ class GraphCut(object):
                 cv2.line(self.__panel_img, (l_x, 0), (l_x, h), self.BLUE, 2)
                 cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.BLUE, 2)
 
-        for parts, tracks in self.__tracking_label.items():
-            for ptx in tracks:
-                cv2.circle(self.__panel_img, ptx, 2, self.BLACK)
+        # for side in [self.ON_LEFT, self.ON_RIGHT]:
+        #     if not self.__tracking_label[side]: continue
+        #     tracks = self.__tracking_label[side]
+        #     tracks = self.get_interp_ptx(tracks)
+        #     for ptx in tracks:
+        #         cv2.circle(self.__panel_img, ptx, 2, self.BLACK)
+
+        for side, track in self.__tracking_label.items():
+            if side in [self.ON_LEFT, self.ON_RIGHT] and track:
+                for ptx in track:
+                    cv2.circle(self.__panel_img, ptx, 2, self.BLACK, -1)
 
     def run(self):
         '''
