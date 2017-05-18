@@ -138,6 +138,22 @@ class GraphCut(object):
         shift = self.__mirror_shift
         return pt1[0]+shift
 
+    @property
+    def tracking_lable(self):
+        return self.__tracking_label
+
+    @property
+    def components_color(self):
+        return self.__color_part
+
+    @property
+    def components_contour(self):
+        return self.__contour_part
+
+    @property
+    def components(self):
+        return self.__component
+
     def gen_transparent_bg(self, image):
         '''
         generate transparents background
@@ -549,7 +565,7 @@ class GraphCut(object):
         for side, track in self.__tracking_label.items():
             if side in [self.ON_LEFT, self.ON_RIGHT] and track:
                 if len(track) > 10:
-                    self.__tracking_label[side] = self.get_smooth_line(track)
+                    track = self.get_smooth_line(track)
                 for i, ptx in enumerate(track):
                     if i == 0: continue
                     cv2.line(self.__panel_img, track[i-1], ptx, self.BLACK, 2)
@@ -557,7 +573,7 @@ class GraphCut(object):
             elif side == 'eliminate':
                 for n, block in enumerate(track):
                     if len(block) > 10:
-                        self.__tracking_label[side][n] = self.get_smooth_line(block)
+                        block = self.get_smooth_line(block)
                     for i, ptx in enumerate(block):
                         if i == 0: continue
                         pt1 = block[i-1]
