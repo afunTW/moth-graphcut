@@ -290,11 +290,9 @@ class GraphCut(object):
 
         def elimination(image, value):
             for block in self.__tracking_label['eliminate']:
-                if not block: continue
-                track = self.get_interp_ptx(block)
-                for ptx in track:
-                    cv2.circle(image, ptx, 3, value)
-                    # image[ptx[1], ptx[0]] = value
+                for i, ptx in enumerate(block):
+                    if i == 0: continue
+                    cv2.line(image, block[i-1], block[i], value, 2)
             return image
 
         def get_wings(wings):
@@ -482,8 +480,10 @@ class GraphCut(object):
                 self.draw()
 
             if self.__is_eliminate:
+                if self.__eliminate_block:
+                    ix, iy = self.__eliminate_block[-1]
+                    cv2.line(self.__panel_img, (ix, iy), (x, y), self.RED, 2)
                 self.__eliminate_block.append((x,y))
-                cv2.circle(self.__panel_img, (x,y), 2, self.RED)
 
     def reset(self):
         '''
@@ -556,8 +556,10 @@ class GraphCut(object):
                     cv2.circle(self.__panel_img, ptx, 2, self.BLACK, -1)
             elif side == 'eliminate':
                 for block in track:
-                    for ptx in block:
-                        cv2.circle(self.__panel_img, ptx, 2, self.RED, -1)
+                    for i, ptx in enumerate(block):
+                        if i == 0: continue
+                        pt1 = block[i-1]
+                        cv2.line(self.__panel_img, pt1, ptx, self.RED, 2)
 
     def run(self):
         '''
