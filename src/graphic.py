@@ -5,6 +5,7 @@ import logging
 import numpy as np
 
 from scipy.spatial.distance import cosine
+from src.filter import savitzky_golay
 
 
 class GraphCut(object):
@@ -181,6 +182,13 @@ class GraphCut(object):
 
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
+
+    def get_smooth_line(self, track):
+        fx, fy = zip(*track)
+        fy = np.asarray(fy)
+        fy = savitzky_golay(fy, window_size=11, order=4)
+        fy = [int(y) for y in fy]
+        return list(zip(fx, fy))
 
     def get_instruction(self):
         h, w, channel = self.__panel_img.shape
@@ -402,11 +410,6 @@ class GraphCut(object):
             left_track = self.__tracking_label[self.ON_LEFT]
             right_track = self.__tracking_label[self.ON_RIGHT]
 
-            if left_track:
-                self.__tracking_label[self.ON_LEFT] = self.get_interp_ptx(left_track)
-            if right_track:
-                self.__tracking_label[self.ON_RIGHT] = self.get_interp_ptx(right_track)
-
             if side == self.ON_LEFT:
                 self.__was_left_draw = True
                 self.__is_left_draw = False
@@ -543,19 +546,18 @@ class GraphCut(object):
                 cv2.line(self.__panel_img, (l_x, 0), (l_x, h), self.BLUE, 2)
                 cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.BLUE, 2)
 
-        # for side in [self.ON_LEFT, self.ON_RIGHT]:
-        #     if not self.__tracking_label[side]: continue
-        #     tracks = self.__tracking_label[side]
-        #     tracks = self.get_interp_ptx(tracks)
-        #     for ptx in tracks:
-        #         cv2.circle(self.__panel_img, ptx, 2, self.BLACK)
-
         for side, track in self.__tracking_label.items():
             if side in [self.ON_LEFT, self.ON_RIGHT] and track:
-                for ptx in track:
-                    cv2.circle(self.__panel_img, ptx, 2, self.BLACK, -1)
+                if len(track) > 10:
+                    track = self.get_smooth_line(track)
+                for i, ptx in enumerate(track):
+                    if i == 0: continue
+                    cv2.line(self.__panel_img, track[i-1], ptx, self.BLACK, 2)
+
             elif side == 'eliminate':
                 for block in track:
+                    if len(block) > 10:
+                        block = self.get_smooth_line(block)
                     for i, ptx in enumerate(block):
                         if i == 0: continue
                         pt1 = block[i-1]
