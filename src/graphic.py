@@ -229,6 +229,7 @@ class GraphCut(object):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
         fp = [p[1] for p in block]
+
         # f = interp1d(xp, fp, kind='linear', copy=False)
         # track = [(
         #     int(x), int(f(x))
@@ -237,6 +238,7 @@ class GraphCut(object):
         track = [(
             int(x), int(np.interp(x, xp, fp))
             ) for x in range(min(xp), max(xp)+1)]
+
         return track
 
     def get_component_by(self, threshold, nth, by):
@@ -481,7 +483,7 @@ class GraphCut(object):
 
             if self.__is_eliminate:
                 self.__eliminate_block.append((x,y))
-                cv2.circle(self.__panel_img, (x,y), 2, self.BLACK)
+                cv2.circle(self.__panel_img, (x,y), 2, self.RED)
 
     def reset(self):
         '''
@@ -489,7 +491,11 @@ class GraphCut(object):
         '''
         self.__panel_img = self.__orig_img.copy()
 
-        if self.__was_left_draw or self.__was_right_draw:
+        if (
+            self.__was_left_draw or
+            self.__was_right_draw or
+            self.__tracking_label['eliminate']
+        ):
             self.__was_left_draw = False
             self.__is_left_draw = False
             self.__is_left_label = False
@@ -548,6 +554,10 @@ class GraphCut(object):
             if side in [self.ON_LEFT, self.ON_RIGHT] and track:
                 for ptx in track:
                     cv2.circle(self.__panel_img, ptx, 2, self.BLACK, -1)
+            elif side == 'eliminate':
+                for block in track:
+                    for ptx in block:
+                        cv2.circle(self.__panel_img, ptx, 2, self.RED, -1)
 
     def run(self):
         '''
