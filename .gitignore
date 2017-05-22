@@ -89,4 +89,4 @@ ENV/
 .ropeproject
 
 # user-defined
-demo/
+metadata/
