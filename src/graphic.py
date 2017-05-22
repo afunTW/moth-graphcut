@@ -36,6 +36,7 @@ class GraphCut(object):
         self.CLEAR_DOWNWARD = {'color': self.BLACK}
         self.ON_LEFT = 'left'
         self.ON_RIGHT = 'right'
+        self.STATE = 'none'
 
         if os.name == 'posix':
             self.KEY_LEFT = 81
@@ -125,6 +126,15 @@ class GraphCut(object):
         self.__mirror_line = ptx
 
     @property
+    def mirror_shift(self):
+        return self.__mirror_shift
+
+    @mirror_shift.setter
+    def mirror_shift(self, w):
+        assert isinstance(w, int)
+        self.__mirror_shift = w
+
+    @property
     def mirror_left_x(self):
         assert self.__mirror_line and self.__mirror_shift
         pt1, pt2 = self.__mirror_line
@@ -139,8 +149,14 @@ class GraphCut(object):
         return pt1[0]+shift
 
     @property
-    def tracking_lable(self):
+    def tracking_label(self):
         return self.__tracking_label
+
+    @tracking_label.setter
+    def tracking_label(self, label):
+        assert isinstance(label, dict)
+        assert label.keys() in self.__tracking_label.keys()
+        self.__tracking_label = label
 
     @property
     def components_color(self):
@@ -394,7 +410,8 @@ class GraphCut(object):
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
                     bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-                    self.__color_part['body'] = bodyparts
+                    self.__color_part['body'] = body[bodyparts]
+                    self.__contour_part['body'] = bodyparts
                     self.__component['body'][bodyparts] = body[bodyparts]
                     self.__component['body'] = self.__component['body'].astype('uint8')
 
@@ -583,8 +600,6 @@ class GraphCut(object):
         '''
         core function to do graph cut
         '''
-        print(self.__doc__)
-        self.reset()
         self.draw()
         cv2.namedWindow('displayed')
 
