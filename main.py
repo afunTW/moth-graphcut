@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import json
+import glob
 import logging
 import argparse
 import numpy as np
@@ -16,7 +17,9 @@ def argparser():
     parser.add_argument('-a', '--all', help='process all image',
         action='store_true', default=False)
     parser.add_argument('-i', '--image', help='process input image',
-        nargs='*', default=[])
+        nargs='+', default=[])
+    parser.add_argument('-r', '--recursive', help='process all image in given directory',
+        nargs='+', default=[])
     return parser
 
 def filter_rects(rects, ignore_rect):
@@ -127,9 +130,18 @@ def main(args):
     metadata_map = os.path.join(metadata_path, 'map.json')
     moths_path = os.path.abspath('image/sample')
     moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
+    flatten = lambda l: [item for sublist in l for item in sublist]
 
-    if args.image:
-        moths = [os.path.abspath(img) for img in args.image]
+    if args.image or args.recursive:
+        moths = []
+        if args.image: moths += [os.path.abspath(img) for img in args.image]
+        if args.recursive:
+            for repo in args.recursive:
+                ext = ['jpg', 'jpeg', 'png']
+                repo = [os.path.abspath(repo) + '/**/*.' + e for e in ext]
+                repo = [glob.glob(r, recursive=True) for r in repo]
+                repo = flatten(repo)
+                moths += repo
 
     try:
         # checked file

@@ -7,8 +7,10 @@ An interactive app to do graph cut with moth images
 optional arguments:
   -h, --help            show this help message and exit
   -a, --all             process all image
-  -i [IMAGE [IMAGE ...]], --image [IMAGE [IMAGE ...]]
+  -i IMAGE [IMAGE ...], --image IMAGE [IMAGE ...]
                         process input image
+  -r RECURSIVE [RECURSIVE ...], --recursive RECURSIVE [RECURSIVE ...]
+                        process all image in given directory
 ```
 
 ## Cited By
