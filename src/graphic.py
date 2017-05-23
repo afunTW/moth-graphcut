@@ -50,10 +50,8 @@ class GraphCut(object):
         self.__is_body = False
         self.__was_left_draw = False
         self.__is_left_draw = False
-        self.__is_left_label = False
         self.__was_right_draw = False
         self.__is_right_draw = False
-        self.__is_right_label = False
         self.__is_eliminate = False
 
         # image
@@ -131,8 +129,9 @@ class GraphCut(object):
 
     @mirror_shift.setter
     def mirror_shift(self, w):
-        assert isinstance(w, int)
+        assert isinstance(w, int) and w > 0
         self.__mirror_shift = w
+        self.__is_body = True
 
     @property
     def mirror_left_x(self):
@@ -155,8 +154,21 @@ class GraphCut(object):
     @tracking_label.setter
     def tracking_label(self, label):
         assert isinstance(label, dict)
-        assert label.keys() in self.__tracking_label.keys()
+        assert list(label.keys()) == list(self.__tracking_label.keys())
         self.__tracking_label = label
+        if self.__tracking_label[self.ON_LEFT]:
+            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.ON_LEFT]]
+            self.__tracking_label[self.ON_LEFT] = to_tuple
+            self.__was_left_draw = True
+        if self.__tracking_label[self.ON_RIGHT]:
+            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.ON_RIGHT]]
+            self.__tracking_label[self.ON_RIGHT] = to_tuple
+            self.__was_right_draw = True
+        if self.__tracking_label['eliminate']:
+            track = self.__tracking_label['eliminate']
+            to_tuple = [ [tuple(ptx) for ptx in block] for block in track]
+            self.__tracking_label['eliminate'] = to_tuple
+        self.split_component()
 
     @property
     def components_color(self):
@@ -228,6 +240,7 @@ class GraphCut(object):
         between_line = 5
         key_esc = 'Key "Esc": Exit the image operation'
         key_r = 'Key "r": Reset'
+        key_s = 'Ket "s": Save the result of graph cut'
         key_left = 'Key "a" or "<-": Shifting mirror line to the left'
         key_right = 'Key "d" or "->": Shifting mirror line to the right'
         mouse_left = 'Mouse click left: '
@@ -247,7 +260,7 @@ class GraphCut(object):
             mouse_left += 'Separate fore and back wings'
             mouse_right = 'Mouse click right: Seperate connected component'
 
-        instructions = [(key_esc, key_r), key_left, key_right, mouse_left]
+        instructions = [(key_esc, key_r), key_s, key_left, key_right, mouse_left]
         mouse_right and instructions.append(mouse_right)
         doc_panel = np.zeros(((line_height+between_line)*len(instructions), w, 3))
 
@@ -416,12 +429,6 @@ class GraphCut(object):
                     self.__component['body'] = self.__component['body'].astype('uint8')
 
     def onmouse(self, event, x, y, flags, params):
-        '''
-        mouse event callback for opencv
-        Phase 1: get body region by self.__is_body
-        Phase 2: split forewings and backwings
-            by self.__is_right_label and self.__is_left_label
-        '''
         h, w, channels = self.__panel_img.shape
         mirror_line_x = self.__mirror_line[0][0]
         point_shift = abs(mirror_line_x - x)
@@ -534,10 +541,8 @@ class GraphCut(object):
         ):
             self.__was_left_draw = False
             self.__is_left_draw = False
-            self.__is_left_label = False
             self.__was_right_draw = False
             self.__is_right_draw = False
-            self.__is_right_label = False
 
             self.__eliminate_block = []
             self.__tracking_label = {
@@ -620,6 +625,10 @@ class GraphCut(object):
             k = cv2.waitKey(1)
 
             if k == 27:
+                self.STATE = 'pause'
+                break
+            elif k == ord('s'):
+                self.STATE = 'done'
                 break
             elif k == ord('r'):
                 self.reset()
