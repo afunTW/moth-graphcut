@@ -5,8 +5,10 @@ An interactive app to do graph cut with moth images
 
 ```
 optional arguments:
-  -h, --help  show this help message and exit
-  -a, --all   process all image
+  -h, --help            show this help message and exit
+  -a, --all             process all image
+  -i [IMAGE [IMAGE ...]], --image [IMAGE [IMAGE ...]]
+                        process input image
 ```
 
 ## Cited By

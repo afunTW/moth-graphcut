@@ -15,6 +15,8 @@ def argparser():
     parser = argparse.ArgumentParser(description='interactive graph cut for moth image')
     parser.add_argument('-a', '--all', help='process all image',
         action='store_true', default=False)
+    parser.add_argument('-i', '--image', help='process input image',
+        nargs='*', default=[])
     return parser
 
 def filter_rects(rects, ignore_rect):
@@ -118,16 +120,18 @@ def saved_metadata(gc, saved_file):
     if gc.STATE == 'pause':
         exit()
 
-def main():
-    try:
-        template_path = 'image/10mm.png'
-        metadata_path = 'metadata/'
-        metadata_path = os.path.abspath(metadata_path)
-        metadata_map = os.path.join(metadata_path, 'map.json')
-        moths_path = os.path.abspath('image/sample')
-        moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
-        parser = argparser()
+def main(args):
+    template_path = 'image/10mm.png'
+    metadata_path = 'metadata/'
+    metadata_path = os.path.abspath(metadata_path)
+    metadata_map = os.path.join(metadata_path, 'map.json')
+    moths_path = os.path.abspath('image/sample')
+    moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
 
+    if args.image:
+        moths = [os.path.abspath(img) for img in args.image]
+
+    try:
         # checked file
         if not os.path.exists(metadata_path):
             os.makedirs(metadata_path)
@@ -148,7 +152,7 @@ def main():
             key_json = os.path.join(metadata_path, key_json)
             result = None
 
-            if parser.parse_args().all:
+            if args.all:
                 if key in exist_data.keys() and os.path.exists(key_json):
                     with open(key_json, 'r') as f:
                         last_status = json.load(f)
@@ -182,4 +186,5 @@ if __name__ == '__main__':
         stream=sys.stdout
         )
 
-    main()
+    parser = argparser()
+    main(parser.parse_args())
