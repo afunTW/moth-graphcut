@@ -154,7 +154,8 @@ class GraphCut(object):
     @tracking_label.setter
     def tracking_label(self, label):
         assert isinstance(label, dict)
-        assert list(label.keys()) == list(self.__tracking_label.keys())
+        assert all([ i in self.__tracking_label.keys() for i in label.keys()])
+
         self.__tracking_label = label
         if self.__tracking_label[self.ON_LEFT]:
             to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.ON_LEFT]]
