@@ -21,7 +21,7 @@ def argparser():
 
 def main(args):
     imgs = []
-    saved_path = 'resized_img'
+    saved_path = '{}x{}'.format(args.width, args.height)
     flatten = lambda l: [item for sublist in l for item in sublist]
 
     if args.image or args.recursive:
