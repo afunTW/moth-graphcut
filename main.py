@@ -16,8 +16,6 @@ def argparser():
     parser = argparse.ArgumentParser(description='interactive graph cut for moth image')
     parser.add_argument('-a', '--all', help='process all image',
         action='store_true', default=False)
-    parser.add_argument('-t', '--template', help='given template image to filtering',
-        action='store')
     parser.add_argument('-i', '--image', help='process input image',
         nargs='+', default=[])
     parser.add_argument('-r', '--recursive', help='process all image in given directory',
@@ -126,16 +124,13 @@ def saved_metadata(gc, saved_file):
         exit()
 
 def main(args):
-    template_path = None
+    template_path = 'image/10mm.png'
     metadata_path = 'metadata/'
     metadata_path = os.path.abspath(metadata_path)
     metadata_map = os.path.join(metadata_path, 'map.json')
     moths_path = os.path.abspath('image/sample')
     moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
     flatten = lambda l: [item for sublist in l for item in sublist]
-
-    if args.template:
-        template_path = args.template
 
     if args.image or args.recursive:
         moths = []
