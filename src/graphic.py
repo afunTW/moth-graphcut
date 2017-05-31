@@ -217,16 +217,11 @@ class GraphCut(object):
         generate transparents background
         '''
         # assert isinstance(shape, tuple) and len(shape) == 3
+        h, w, _ = image.shape
         img = np.zeros(image.shape) * 255
-        h, w, channel = img.shape
-        _col = [False, True] * math.ceil((w/2))
-        _row = [_col[1:], _col[:-1]] * int(h/2)
+        I,J = np.ogrid[:h,:w]
+        img[(I+J)%2==0] = 255
 
-        if h % 2: _row.append(_col[1:])
-        _mat = _row
-        _mat = np.array(_mat)
-
-        img[_mat] = 125
         self.__transparent_bg = img
         return img
 
