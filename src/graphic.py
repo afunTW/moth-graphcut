@@ -98,7 +98,7 @@ class GraphCut(object):
 
     @property
     def show_image(self):
-        output_image = self.gen_transparent_bg(self.__panel_img)
+        output_image = self.__transparent_bg.copy()
         parts = ['body','forewings', 'backwings']
         font = cv2.FONT_HERSHEY_TRIPLEX
 
