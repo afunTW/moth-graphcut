@@ -464,6 +464,7 @@ class GraphCut(object):
         point_shift = abs(mirror_line_x - x)
         left_x, right_x = (mirror_line_x - point_shift, mirror_line_x + point_shift)
         side = self.ON_LEFT if x < mirror_line_x else self.ON_RIGHT
+        if x > w or y > h: return
 
         def is_tracking(side):
             self.__tracking_label[side] = []
@@ -636,7 +637,6 @@ class GraphCut(object):
         core function to do graph cut
         '''
         self.draw()
-        cv2.namedWindow('displayed')
 
         if os.name == 'posix':
             cv2.namedWindow('panel',
@@ -645,14 +645,9 @@ class GraphCut(object):
             cv2.namedWindow('panel', cv2.WINDOW_KEEPRATIO)
 
         cv2.setMouseCallback('panel', self.onmouse)
-        cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
 
         while True:
-            instructions = self.get_instruction(self.__panel_img)
-            panel_image = np.vstack((self.__panel_img, instructions))
-            panel_image = panel_image.astype('uint8')
-            cv2.imshow('displayed', self.show_image)
-            cv2.imshow('panel', panel_image)
+            cv2.imshow('panel', self.show_image)
             k = cv2.waitKey(1)
 
             if k == 27:
