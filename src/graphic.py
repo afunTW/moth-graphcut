@@ -98,21 +98,43 @@ class GraphCut(object):
 
     @property
     def show_image(self):
-        show_img = tuple()
-        parts = ['forewings', 'body', 'backwings']
+        output_image = self.gen_transparent_bg(self.__panel_img)
+        parts = ['body','forewings', 'backwings']
+        boundary = None
 
         for part in parts:
             coor = self.__component[part]
-            if coor is not None: show_img += (coor, )
+            contour = self.__contour_part[part]
 
-        if show_img:
-            show_img = np.vstack(show_img)
-            h, w, channels = show_img.shape
-            show_img = cv2.resize(show_img, (int(w/2), int(h/2)))
-            show_img = show_img.astype('uint8')
-            return show_img
-        else:
-            return self.__transparent_bg
+            if part == 'body' and coor is not None and contour is not None:
+                x, y, w, h = self.get_shape_by_contour(contour)
+                H = coor.shape[0]
+                output_image[0:H, 5:5+w] = coor[0:H, x:x+w]
+                output_image = output_image.astype('uint8')
+                boundary = (0, 5+w)
+                continue
+
+            for side in [self.ON_LEFT, self.ON_RIGHT]:
+                # print(self.__contour_part)
+                if contour is None: break
+                if contour[side] is None: continue
+                x, y, w, h = self.get_shape_by_contour(contour[side])
+                X = boundary[1] if side == self.ON_LEFT else output_image.shape[1]
+                Y = boundary[0] if part == 'forewings' else output_image.shape[0]
+                if part == 'forewings' and side == self.ON_LEFT:
+                    output_image[Y+5:Y+5+h, X:X+w] = coor[y:y+h, x:x+w]
+                elif part == 'forewings' and side == self.ON_RIGHT:
+                    output_image[Y+5:Y+5+h, X-w:X] = coor[y:y+h, x:x+w]
+                elif part == 'backwings' and side == self.ON_LEFT:
+                    output_image[Y-5-h:Y-5, X:X+w] = coor[y:y+h, x:x+w]
+                elif part == 'backwings' and side == self.ON_RIGHT:
+                    output_image[Y-5-h:Y-5, X-w:X] = coor[y:y+h, x:x+w]
+
+        output_image = np.hstack((self.__panel_img.copy(), output_image))
+        instructions = self.get_instruction(output_image)
+        output_image = np.vstack((output_image, instructions))
+        output_image = output_image.astype('uint8')
+        return output_image
 
     @property
     def mirror_line(self):
@@ -235,8 +257,8 @@ class GraphCut(object):
         fy = [int(y) for y in fy]
         return list(zip(fx, fy))
 
-    def get_instruction(self):
-        h, w, channel = self.__panel_img.shape
+    def get_instruction(self, img):
+        h, w, channel = img.shape
         line_height = 20
         between_line = 5
         key_esc = 'Key "Esc": Exit the image operation'
@@ -314,6 +336,13 @@ class GraphCut(object):
         cond_sequence = [(i ,output[2][i][by]) for i in range(output[0]) if i != 0]
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
         return np.where(output[1] == cond_sequence[nth-1][0])
+
+    def get_shape_by_contour(self, contour):
+        contour = list(zip(contour[1], contour[0]))
+        cnt = np.zeros(shape=(len(contour), 1, 2))
+        for i in range(len(contour)): cnt[i] = contour[i]
+        cnt = cnt.astype('int32')
+        return cv2.boundingRect(cnt)
 
     def fixed(self, image, track, mode):
         fixed_img = image.copy()
@@ -610,7 +639,8 @@ class GraphCut(object):
         cv2.namedWindow('displayed')
 
         if os.name == 'posix':
-            cv2.namedWindow('panel', cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+            cv2.namedWindow('panel',
+                cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         elif os.name == 'nt':
             cv2.namedWindow('panel', cv2.WINDOW_KEEPRATIO)
 
@@ -618,7 +648,7 @@ class GraphCut(object):
         cv2.moveWindow('panel', self.__panel_img.shape[1]+10, 0)
 
         while True:
-            instructions = self.get_instruction()
+            instructions = self.get_instruction(self.__panel_img)
             panel_image = np.vstack((self.__panel_img, instructions))
             panel_image = panel_image.astype('uint8')
             cv2.imshow('displayed', self.show_image)
