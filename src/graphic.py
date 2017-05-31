@@ -345,9 +345,11 @@ class GraphCut(object):
         return np.where(output[1] == cond_sequence[nth-1][0])
 
     def get_shape_by_contour(self, contour):
-        contour = list(zip(contour[1], contour[0]))
-        cnt = np.zeros(shape=(len(contour), 1, 2))
-        for i in range(len(contour)): cnt[i] = contour[i]
+        cnt = list(contour)
+        cnt.reverse()
+        cnt = np.array(cnt)
+        cnt = cnt.transpose()
+        cnt = cnt.reshape((cnt.shape[0], 1, 2))
         cnt = cnt.astype('int32')
         return cv2.boundingRect(cnt)
 
