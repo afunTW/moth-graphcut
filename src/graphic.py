@@ -100,6 +100,12 @@ class GraphCut(object):
     def show_image(self):
         output_image = self.gen_transparent_bg(self.__panel_img)
         parts = ['body','forewings', 'backwings']
+        font = cv2.FONT_HERSHEY_TRIPLEX
+
+        filename = 'filename: {}'.format(self.filename.split(os.sep)[-1])
+        filename_ptx = (15, 25)
+        scale = 0.6
+        fontcolor = self.BLACK
         boundary = None
 
         for part in parts:
@@ -133,6 +139,7 @@ class GraphCut(object):
         output_image = np.hstack((self.__panel_img.copy(), output_image))
         instructions = self.get_instruction(output_image)
         output_image = np.vstack((output_image, instructions))
+        cv2.putText(output_image, filename, filename_ptx, font, scale, fontcolor)
         output_image = output_image.astype('uint8')
         return output_image
 
@@ -617,16 +624,16 @@ class GraphCut(object):
 
         for side, track in self.__tracking_label.items():
             if side in [self.ON_LEFT, self.ON_RIGHT] and track:
-                if len(track) > 10:
-                    track = self.get_smooth_line(track)
+                # if len(track) > 10:
+                #     track = self.get_smooth_line(track)
                 for i, ptx in enumerate(track):
                     if i == 0: continue
                     cv2.line(self.__panel_img, track[i-1], ptx, self.BLACK, 2)
 
             elif side == 'eliminate':
                 for n, block in enumerate(track):
-                    if len(block) > 10:
-                        block = self.get_smooth_line(block)
+                    # if len(block) > 10:
+                    #     block = self.get_smooth_line(block)
                     for i, ptx in enumerate(block):
                         if i == 0: continue
                         pt1 = block[i-1]
