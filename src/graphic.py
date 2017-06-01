@@ -86,6 +86,11 @@ class GraphCut(object):
             'backwings': {'left': None, 'right': None},
             'body': None
         }
+        self.__contour_rect = {
+            'forewings': {'left': None, 'right': None},
+            'backwings': {'left': None, 'right': None},
+            'body': None
+        }
 
         # wings coordinate
         self.__component = {
@@ -389,6 +394,7 @@ class GraphCut(object):
         def save_wings(img, contour, side, part):
             self.__color_part[part][side] = img[contour]
             self.__contour_part[part][side] = contour
+            self.__contour_rect[part][side] = self.get_shape_by_contour(contour)
             self.__component[part][contour] = img[contour]
             self.__component[part] = self.__component[part].astype('uint8')
 
