@@ -628,6 +628,7 @@ class GraphCut(object):
             self.__was_right_draw or
             self.__tracking_label['eliminate']
         ):
+            self.__output_img = None
             self.__was_left_draw = False
             self.__is_left_draw = False
             self.__was_right_draw = False
@@ -643,6 +644,11 @@ class GraphCut(object):
                 'body': None
             }
             self.__contour_part = {
+                'forewings': {'left': None, 'right': None},
+                'backwings': {'left': None, 'right': None},
+                'body': None
+            }
+            self.__contour_rect = {
                 'forewings': {'left': None, 'right': None},
                 'backwings': {'left': None, 'right': None},
                 'body': None
