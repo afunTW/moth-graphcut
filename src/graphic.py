@@ -6,6 +6,8 @@ import numpy as np
 
 from scipy.spatial.distance import cosine
 from src.filter import savitzky_golay
+from math import floor
+from math import ceil
 
 
 class GraphCut(object):
@@ -61,7 +63,8 @@ class GraphCut(object):
             self.__orig_img = orig_image
 
         self.__panel_img = self.__orig_img.copy()
-        self.__show_img = self.gen_transparent_bg(self.__orig_img)
+        self.__output_img = None
+        self.__show_img = self.gen_transparent_bg(self.__orig_img.shape)
 
         # metadata
         self.__mirror_line = self.gen_mirror_line(self.__orig_img)
@@ -103,50 +106,19 @@ class GraphCut(object):
 
     @property
     def show_image(self):
-        output_image = self.__transparent_bg.copy()
-        parts = ['body','forewings', 'backwings']
-        font = cv2.FONT_HERSHEY_TRIPLEX
-
         filename = 'filename: {}'.format(self.filename.split(os.sep)[-1])
-        filename_ptx = (15, 25)
-        scale = 0.6
+        out_image = self.__output_img
+        font = cv2.FONT_HERSHEY_TRIPLEX
         fontcolor = self.BLACK
-        boundary = None
+        scale = 0.6
 
-        for part in parts:
-            coor = self.__component[part]
-            contour = self.__contour_part[part]
-
-            if part == 'body' and coor is not None and contour is not None:
-                x, y, w, h = self.get_shape_by_contour(contour)
-                H = coor.shape[0]
-                output_image[0:H, 5:5+w] = coor[0:H, x:x+w]
-                output_image = output_image.astype('uint8')
-                boundary = (0, 5+w)
-                continue
-
-            for side in [self.ON_LEFT, self.ON_RIGHT]:
-                # print(self.__contour_part)
-                if contour is None: break
-                if contour[side] is None: continue
-                x, y, w, h = self.get_shape_by_contour(contour[side])
-                X = boundary[1] if side == self.ON_LEFT else output_image.shape[1]
-                Y = boundary[0] if part == 'forewings' else output_image.shape[0]
-                if part == 'forewings' and side == self.ON_LEFT:
-                    output_image[Y+5:Y+5+h, X:X+w] = coor[y:y+h, x:x+w]
-                elif part == 'forewings' and side == self.ON_RIGHT:
-                    output_image[Y+5:Y+5+h, X-w:X] = coor[y:y+h, x:x+w]
-                elif part == 'backwings' and side == self.ON_LEFT:
-                    output_image[Y-5-h:Y-5, X:X+w] = coor[y:y+h, x:x+w]
-                elif part == 'backwings' and side == self.ON_RIGHT:
-                    output_image[Y-5-h:Y-5, X-w:X] = coor[y:y+h, x:x+w]
-
-        output_image = np.hstack((self.__panel_img.copy(), output_image))
-        instructions = self.get_instruction(output_image)
-        output_image = np.vstack((output_image, instructions))
-        cv2.putText(output_image, filename, filename_ptx, font, scale, fontcolor)
-        output_image = output_image.astype('uint8')
-        return output_image
+        if out_image is None: out_image = self.__transparent_bg.copy()
+        out_image = np.hstack((self.__panel_img.copy(), out_image))
+        instructions = self.get_instruction(out_image)
+        out_image = np.vstack((out_image, instructions))
+        cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
+        out_image = out_image.astype('uint8')
+        return out_image
 
     @property
     def mirror_line(self):
@@ -217,12 +189,11 @@ class GraphCut(object):
     def components(self):
         return self.__component
 
-    def gen_transparent_bg(self, image):
+    def gen_transparent_bg(self, shape):
         '''
         generate transparents background
         '''
-        h, w, _ = image.shape
-        img = np.zeros(image.shape) * 255
+        img = np.zeros(shape) * 255
         img[::2, ::2] = 255
         img[1::2, 1::2] = 255
         self.__transparent_bg = img
@@ -254,6 +225,52 @@ class GraphCut(object):
 
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
+
+    def gen_output_image(self):
+        out_image = None
+        hsave = lambda x, y: y if x is None else np.hstack((x, y))
+        vsave = lambda x, y: y if x is None else np.vstack((x, y))
+        _coor = lambda x, y: 0 if x is None else x[y]
+        boundary_y = self.__panel_img.shape[0]
+        bar = self.__transparent_bg[0:boundary_y, 0:20]
+
+        # combind body
+        coor = self.__component['body']
+        rect = self.__contour_rect['body']
+        if coor is not None and rect is not None:
+            x, y, w, h = rect
+            out_image = hsave(out_image, bar)
+            out_image = hsave(out_image, coor[0:boundary_y, x:x+w])
+            out_image = hsave(out_image, bar)
+            out_image = out_image.astype('uint8')
+
+        # combine wings
+        alignment_y = max(
+            _coor(self.__contour_rect['forewings'][self.ON_LEFT], -1),
+            _coor(self.__contour_rect['forewings'][self.ON_RIGHT], -1))
+
+        for side in [self.ON_LEFT, self.ON_RIGHT]:
+            wings = None
+            show = False
+            alignment_x = max(
+                _coor(self.__contour_rect['forewings'][side], -2),
+                _coor(self.__contour_rect['backwings'][side], -2))
+
+            for part in ['forewings', 'backwings']:
+                coor = self.__component[part]
+                rect = self.__contour_rect[part][side]
+                if coor is not None and rect is not None:
+                    show = True
+                    x, y, w, h = rect
+                    wing = self.transparent_padding(
+                        alignment_x, alignment_y, coor[y:y+h, x:x+w])
+                    wings = vsave(wings, wing)
+
+            wings = self.transparent_padding(alignment_x, boundary_y, wings)
+            if show:
+                out_image = hsave(out_image, bar)
+                out_image = hsave(out_image, wings)
+        self.__output_img = out_image
 
     def get_smooth_line(self, track):
         fx, fy = zip(*track)
@@ -350,6 +367,37 @@ class GraphCut(object):
         cnt = cnt.reshape((cnt.shape[0], 1, 2))
         cnt = cnt.astype('int32')
         return cv2.boundingRect(cnt)
+
+    def transparent_padding(self, x, y, img):
+        padding = self.__transparent_bg.copy()
+        Y, X, _ = padding.shape
+        gener = lambda x, y: self.gen_transparent_bg((y, x, 3))
+        check = lambda x, y, bg: genre(x, y) if Y < y or X < x else bg
+        if img is None: return check(x, y, padding)
+
+        h, w, _ = img.shape
+        if h >= y and w >= x:
+            logging.warning('Image shape is greater than limited')
+            return img
+
+        if h < y:
+            padding = check(w, ceil((y-h)/2), padding)
+            Y, X, _ = padding.shape
+            img = np.vstack((
+                padding[0:floor((y-h)/2), 0:w],
+                img,
+                padding[0:ceil((y-h)/2), 0:w]))
+            h, w, _ = img.shape
+
+        if w < x:
+            padding = check(ceil((x-w)/2), h, padding)
+            Y, X, _ = padding.shape
+            img = np.hstack((
+                padding[0:h, 0:floor((x-w)/2)],
+                img,
+                padding[0:h, 0:ceil((x-w)/2)]))
+            h, w, _ = img.shape
+        return img
 
     def fixed(self, image, track, mode):
         fixed_img = image.copy()
@@ -463,8 +511,10 @@ class GraphCut(object):
                     bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
                     self.__color_part['body'] = body[bodyparts]
                     self.__contour_part['body'] = bodyparts
+                    self.__contour_rect['body'] = self.get_shape_by_contour(bodyparts)
                     self.__component['body'][bodyparts] = body[bodyparts]
                     self.__component['body'] = self.__component['body'].astype('uint8')
+                self.gen_output_image()
 
     def onmouse(self, event, x, y, flags, params):
         h, w, channels = self.__panel_img.shape
