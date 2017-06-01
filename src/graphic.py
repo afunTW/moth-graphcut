@@ -658,8 +658,11 @@ class GraphCut(object):
             cv2.imshow('panel', self.show_image)
             k = cv2.waitKey(1)
 
-            if k == 27:
-                self.STATE = 'pause'
+            if os.name == 'nt' and cv2.getWindowProperty('panel', 0) == -1:
+                self.STATE = 'quit'
+                break
+            elif k == 27:
+                self.STATE = 'quit'
                 break
             elif k == ord('s'):
                 self.STATE = 'done'

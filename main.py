@@ -107,6 +107,9 @@ def all_to_list(f):
     return f
 
 def saved_metadata(gc, saved_file):
+
+    if gc.STATE == 'quit': exit()
+
     data = {
         'name': gc.filename,
         'state': gc.STATE,
@@ -120,8 +123,7 @@ def saved_metadata(gc, saved_file):
     with open(saved_file, 'w+') as f:
         json.dump(data, f)
 
-    if gc.STATE == 'pause':
-        exit()
+    if gc.STATE == 'pause': exit()
 
 def main(args):
     template_path = 'image/10mm.png'
