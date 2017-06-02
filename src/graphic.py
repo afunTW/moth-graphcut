@@ -11,21 +11,7 @@ from math import ceil
 
 
 class GraphCut(object):
-    '''
-    ===============================================================================
-    Interactive Image Segmentation
 
-    This sample shows interactive image segmentation using grabcut algorithm.
-
-    README FIRST:
-        Two windows will show up, one for input and one for output.
-
-    Key 'Esc' - To exit the program
-    Key 'r' - To reset the setup
-    Key 'a', '->' - Shift mirror line to left side
-    Key 'd', '<-' - Shift mirror line to right side
-    ===============================================================================
-    '''
     def __init__(self, filename, orig_image=None):
         self.filename = filename
         self.BLUE = [255,0,0]
@@ -39,6 +25,7 @@ class GraphCut(object):
         self.ON_LEFT = 'left'
         self.ON_RIGHT = 'right'
         self.STATE = 'none'
+        self.ACTION = 'save'
 
         if os.name == 'posix':
             self.KEY_LEFT = 81
@@ -263,10 +250,18 @@ class GraphCut(object):
                     show = True
                     x, y, w, h = rect
                     wing = self.transparent_padding(
-                        alignment_x, alignment_y, coor[y:y+h, x:x+w])
+                        alignment_x, h, coor[y:y+h, x:x+w])
+                    wings = vsave(wings, self.__transparent_bg[0:20, 0:alignment_x])
                     wings = vsave(wings, wing)
 
             wings = self.transparent_padding(alignment_x, boundary_y, wings)
+            if wings.shape[0] != boundary_y:
+                logging.warning('{} not fit in the shape of output image {}'.format(
+                    wings.shape, out_image.shape))
+                ratio = boundary_y/wings.shape[0]
+                dim = (wings.shape[1], int(wings.shape[0]*ratio))
+                wings = cv2.resize(wings, dim, interpolation=cv2.INTER_AREA)
+
             if show:
                 out_image = hsave(out_image, bar)
                 out_image = hsave(out_image, wings)
@@ -285,7 +280,10 @@ class GraphCut(object):
         between_line = 5
         key_esc = 'Key "Esc": Exit the image operation'
         key_r = 'Key "r": Reset'
-        key_s = 'Ket "s": Save the result of graph cut'
+        key_s = 'Key "s": Save the result of graph cut'
+        key_q = 'Key "q": Save the result and exit the program'
+        key_n = 'Key "n": skip to next picture'
+        key_p = 'Key "p": skip to previous picture'
         key_left = 'Key "a" or "<-": Shifting mirror line to the left'
         key_right = 'Key "d" or "->": Shifting mirror line to the right'
         mouse_left = 'Mouse click left: '
@@ -305,8 +303,12 @@ class GraphCut(object):
             mouse_left += 'Separate fore and back wings'
             mouse_right = 'Mouse click right: Seperate connected component'
 
-        instructions = [(key_esc, key_r), key_s, key_left, key_right, mouse_left]
-        mouse_right and instructions.append(mouse_right)
+        instructions = [
+            (key_esc, key_r), (key_left, key_right),
+            (key_p, key_n), (key_s, key_q)
+        ]
+        instructions.append((mouse_left, mouse_right) if mouse_right else mouse_left)
+        # mouse_right and instructions.append(mouse_right)
         doc_panel = np.zeros(((line_height+between_line)*len(instructions), w, 3))
 
         for i, instra in enumerate(instructions):
@@ -376,9 +378,7 @@ class GraphCut(object):
         if img is None: return check(x, y, padding)
 
         h, w, _ = img.shape
-        if h >= y and w >= x:
-            logging.warning('Image shape is greater than limited')
-            return img
+        if h >= y and w >= x: return img
 
         if h < y:
             padding = check(w, ceil((y-h)/2), padding)
@@ -709,19 +709,33 @@ class GraphCut(object):
             cv2.namedWindow('panel', cv2.WINDOW_KEEPRATIO)
 
         cv2.setMouseCallback('panel', self.onmouse)
+        logging.info('Begin with STATE={}'.format(self.STATE))
 
         while True:
             cv2.imshow('panel', self.show_image)
             k = cv2.waitKey(1)
 
             if os.name == 'nt' and cv2.getWindowProperty('panel', 0) == -1:
-                self.STATE = 'quit'
+                self.STATE = 'exit'
+                self.ACTION = 'quit'
                 break
             elif k == 27:
-                self.STATE = 'quit'
+                self.STATE = 'exit'
+                self.ACTION = 'quit'
                 break
             elif k == ord('s'):
                 self.STATE = 'done'
+                self.ACTION = 'save'
+                break
+            elif k == ord('q'):
+                self.STATE = 'pause'
+                self.ACTION = 'save'
+                break
+            elif k == ord('n'):
+                self.ACTION = 'next'
+                break
+            elif k == ord('p'):
+                self.ACTION = 'previous'
                 break
             elif k == ord('r'):
                 self.reset()
