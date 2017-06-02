@@ -361,7 +361,7 @@ class GraphCut(object):
         assert by in [
             cv2.CC_STAT_LEFT, cv2.CC_STAT_TOP,
             cv2.CC_STAT_WIDTH, cv2.CC_STAT_HEIGHT, cv2.CC_STAT_AREA]
-        assert 0 < nth < output[0]
+        if 0 >= nth or nth >= output[0]: return
 
         cond_sequence = [(i ,output[2][i][by]) for i in range(output[0]) if i != 0]
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
@@ -490,8 +490,8 @@ class GraphCut(object):
 
             forepart = get_wings(forewings)
             backpart = get_wings(backwings)
-            save_wings(forewings, forepart, side, 'forewings')
-            save_wings(backwings, backpart, side, 'backwings')
+            if forepart is not None: save_wings(forewings, forepart, side, 'forewings')
+            if backpart is not None: save_wings(backwings, backpart, side, 'backwings')
 
         if self.__is_body:
             if left_track or right_track:
@@ -516,11 +516,12 @@ class GraphCut(object):
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
                     bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-                    self.__color_part['body'] = body[bodyparts]
-                    self.__contour_part['body'] = bodyparts
-                    self.__contour_rect['body'] = self.get_shape_by_contour(bodyparts)
-                    self.__component['body'][bodyparts] = body[bodyparts]
-                    self.__component['body'] = self.__component['body'].astype('uint8')
+                    if bodyparts is not None:
+                        self.__color_part['body'] = body[bodyparts]
+                        self.__contour_part['body'] = bodyparts
+                        self.__contour_rect['body'] = self.get_shape_by_contour(bodyparts)
+                        self.__component['body'][bodyparts] = body[bodyparts]
+                        self.__component['body'] = self.__component['body'].astype('uint8')
                 self.gen_output_image()
 
     def onmouse(self, event, x, y, flags, params):
@@ -745,15 +746,17 @@ class GraphCut(object):
                 self.ACTION = 'previous'
                 break
             elif k == ord('w'):
+                if self.THRESHOLD + 1 > 255: continue
                 self.THRESHOLD += 1
                 self.split_component()
             elif k == ord('s'):
+                if self.THRESHOLD - 1 < 0: continue
                 self.THRESHOLD -= 1
                 self.split_component()
             elif k == ord('r'):
                 self.reset()
             elif k == self.KEY_LEFT or k == ord('a'):
-                # left
+                if self.__was_left_draw or self.__was_right_draw: continue
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]-1, pt1[1])
                 pt2 = (pt2[0]-1, pt2[1])
@@ -761,7 +764,7 @@ class GraphCut(object):
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
             elif k == self.KEY_RIGHT or k == ord('d'):
-                # right
+                if self.__was_left_draw or self.__was_right_draw: continue
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]+1, pt1[1])
                 pt2 = (pt2[0]+1, pt2[1])
