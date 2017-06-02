@@ -86,6 +86,9 @@ def graph_cut(filename, template=None, last_status=None):
         if any([v for v in last_status['tracking_label']]):
             gc.tracking_label = last_status['tracking_label']
 
+        if last_status['threshold']:
+            gc.THRESHOLD = last_status['threshold']
+
     gc.run()
 
     return gc
@@ -113,6 +116,7 @@ def saved_metadata(gc, saved_file):
         'mirror_line': gc.mirror_line,
         'mirror_shift': gc.mirror_shift,
         'tracking_label': gc.tracking_label,
+        'threshold': gc.THRESHOLD,
         'components_color': all_to_list(gc.components_color.copy()),
         'components_contour': all_to_list(gc.components_contour.copy())
     }

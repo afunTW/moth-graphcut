@@ -26,6 +26,7 @@ class GraphCut(object):
         self.ON_RIGHT = 'right'
         self.STATE = 'none'
         self.ACTION = 'save'
+        self.THRESHOLD = 250
 
         if os.name == 'posix':
             self.KEY_LEFT = 81
@@ -94,7 +95,9 @@ class GraphCut(object):
     @property
     def show_image(self):
         filename = 'filename: {}'.format(self.filename.split(os.sep)[-1])
+        threshold = 'current threshold: {}'.format(self.THRESHOLD)
         out_image = self.__output_img
+        button_y = self.__panel_img.shape[0]-25
         font = cv2.FONT_HERSHEY_TRIPLEX
         fontcolor = self.BLACK
         scale = 0.6
@@ -104,6 +107,7 @@ class GraphCut(object):
         instructions = self.get_instruction(out_image)
         out_image = np.vstack((out_image, instructions))
         cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
+        cv2.putText(out_image, threshold, (15, button_y), font, scale, fontcolor)
         out_image = out_image.astype('uint8')
         return out_image
 
@@ -280,10 +284,12 @@ class GraphCut(object):
         between_line = 5
         key_esc = 'Key "Esc": Exit the image operation'
         key_r = 'Key "r": Reset'
-        key_s = 'Key "s": Save the result of graph cut'
+        space = 'Space: Save the result of graph cut'
         key_q = 'Key "q": Save the result and exit the program'
         key_n = 'Key "n": skip to next picture'
         key_p = 'Key "p": skip to previous picture'
+        key_w = 'Key "w": add threshold'
+        key_s = 'Key "s": subtract threshold'
         key_left = 'Key "a" or "<-": Shifting mirror line to the left'
         key_right = 'Key "d" or "->": Shifting mirror line to the right'
         mouse_left = 'Mouse click left: '
@@ -304,8 +310,8 @@ class GraphCut(object):
             mouse_right = 'Mouse click right: Seperate connected component'
 
         instructions = [
-            (key_esc, key_r), (key_left, key_right),
-            (key_p, key_n), (key_s, key_q)
+            (key_esc, key_r), (key_left, key_right), (key_w, key_s),
+            (key_p, key_n), (key_q, space)
         ]
         instructions.append((mouse_left, mouse_right) if mouse_right else mouse_left)
         # mouse_right and instructions.append(mouse_right)
@@ -435,7 +441,8 @@ class GraphCut(object):
 
         def get_wings(wings):
             part_wings = cv2.cvtColor(wings, cv2.COLOR_BGR2GRAY)
-            ret, threshold = cv2.threshold(part_wings, 250, 255, cv2.THRESH_BINARY_INV)
+            ret, threshold = cv2.threshold(
+                part_wings, self.THRESHOLD, 255, cv2.THRESH_BINARY_INV)
             part_wings = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
             return part_wings
 
@@ -723,7 +730,7 @@ class GraphCut(object):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
-            elif k == ord('s'):
+            elif k == ord(' '):
                 self.STATE = 'done'
                 self.ACTION = 'save'
                 break
@@ -737,6 +744,12 @@ class GraphCut(object):
             elif k == ord('p'):
                 self.ACTION = 'previous'
                 break
+            elif k == ord('w'):
+                self.THRESHOLD += 1
+                self.split_component()
+            elif k == ord('s'):
+                self.THRESHOLD -= 1
+                self.split_component()
             elif k == ord('r'):
                 self.reset()
             elif k == self.KEY_LEFT or k == ord('a'):
