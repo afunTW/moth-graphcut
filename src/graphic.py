@@ -30,10 +30,14 @@ class GraphCut(object):
 
         if os.name == 'posix':
             self.KEY_LEFT = 81
+            self.KEY_UP = 82
             self.KEY_RIGHT = 83
+            self.KEY_DOWN = 84
         elif os.name == 'nt':
             self.KEY_LEFT = 2424832
+            self.KEY_UP = 2490368
             self.KEY_RIGHT = 2555904
+            self.KEY_DOWN = 2621440
 
         # flags & others
         self.__transparent_bg = None
@@ -288,10 +292,10 @@ class GraphCut(object):
         key_q = 'Key "q": Save the result and exit the program'
         key_n = 'Key "n": skip to next picture'
         key_p = 'Key "p": skip to previous picture'
-        key_w = 'Key "w": add threshold'
-        key_s = 'Key "s": subtract threshold'
-        key_left = 'Key "a" or "<-": Shifting mirror line to the left'
-        key_right = 'Key "d" or "->": Shifting mirror line to the right'
+        key_w = 'Key "w" or up arrow: add threshold'
+        key_s = 'Key "s" or down arrow: subtract threshold'
+        key_left = 'Key "a" or left arrow: Shifting mirror line to the left'
+        key_right = 'Key "d" or right arrow: Shifting mirror line to the right'
         mouse_left = 'Mouse click left: '
         mouse_right = None
 
@@ -745,11 +749,11 @@ class GraphCut(object):
             elif k == ord('p'):
                 self.ACTION = 'previous'
                 break
-            elif k == ord('w'):
+            elif k == self.KEY_UP or k == ord('w'):
                 if self.THRESHOLD + 1 > 255: continue
                 self.THRESHOLD += 1
                 self.split_component()
-            elif k == ord('s'):
+            elif k == self.KEY_DOWN or k == ord('s'):
                 if self.THRESHOLD - 1 < 0: continue
                 self.THRESHOLD -= 1
                 self.split_component()
