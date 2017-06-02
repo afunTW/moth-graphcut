@@ -706,7 +706,7 @@ class GraphCut(object):
             cv2.namedWindow('panel',
                 cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         elif os.name == 'nt':
-            cv2.namedWindow('panel', cv2.WINDOW_KEEPRATIO)
+            cv2.namedWindow('panel', cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
 
         cv2.setMouseCallback('panel', self.onmouse)
         logging.info('Begin with STATE={}'.format(self.STATE))
