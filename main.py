@@ -121,6 +121,12 @@ def saved_metadata(gc, saved_file):
         json.dump(data, f)
 
 def main(args):
+    '''
+     - consider moth by parsing argument
+     - load status by moth.STATE
+     - update status by moth.STATE
+     - consider moth by moth.ACTION
+    '''
     template_path = 'image/10mm.png'
     metadata_path = 'metadata/'
     metadata_path = os.path.abspath(metadata_path)
@@ -152,38 +158,53 @@ def main(args):
             exist_data = json.load(f)
 
         # core
-        for i, moth in enumerate(moths):
+        moth_index = 0
+        while True:
+            if moth_index >= len(moths) or moth_index < 0: break
+            moth = moths[moth_index]
             logging.info('({}/{}) Process {}'.format(
-                i+1, len(moths), moth.split('/')[-1]))
+                moth_index+1, len(moths), moth.split(os.sep)[-1]))
 
             key = sha1(moth.encode('utf-8')).hexdigest()
             key_json = ''.join([key, '.json'])
             key_json = os.path.join(metadata_path, key_json)
             result = None
 
-            if args.all:
-                if key in exist_data.keys() and os.path.exists(key_json):
-                    with open(key_json, 'r') as f:
-                        last_status = json.load(f)
-                        result = graph_cut(moth, template_path, last_status)
-            else:
-                if key in exist_data.keys() and os.path.exists(key_json):
-                    if exist_data[key]['state'] == 'done': continue
-                    elif exist_data[key]['state'] == 'pause':
-                        with open(key_json, 'r') as f:
-                            last_status = json.load(f)
-                            result = graph_cut(moth, template_path, last_status)
+            if key in exist_data.keys() and os.path.exists(key_json):
 
-            if result is None:
-                result = graph_cut(moth, template_path)
+                if not args.all and exist_data[key]['state'] == 'done':
+                    moth_index += 1
+                    continue
+
+                with open(key_json, 'r') as f:
+                    last_status = json.load(f)
+                    result = graph_cut(moth, template_path, last_status)
+
+            if result is None: result = graph_cut(moth, template_path)
 
             with open(metadata_map, 'w') as f:
                 exist_data.update({key: {'file': moth, 'state': result.STATE}})
                 json.dump(exist_data, f, indent=4)
 
-            if result.STATE == 'quit': break
-            saved_metadata(result, key_json)
-            if result.STATE == 'pause': break
+            if result.ACTION == 'save':
+                saved_metadata(result, key_json)
+                if result.STATE == 'pause':
+                    break
+            elif result.ACTION == 'quit':
+                break
+            elif result.ACTION == 'next':
+                if moth_index + 1 >= len(moths):
+                    logging.warning('No more moth can be skipped')
+                    continue
+                moth_index += 1
+            elif result.ACTION == 'previous':
+                if moth_index - 1 < 0:
+                    logging.warning('No more moth can be skipped')
+                    continue
+                moth_index -= 1
+            else:
+                logging.warning('No specific action')
+                moth_index += 1
 
     except Exception as e:
         logging.exception(e)
@@ -192,7 +213,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [ %(levelname)8s ] - %(message)s',
+        format='%(asctime)s %(filename)12s:L%(lineno)3s [%(levelname)8s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
         )
