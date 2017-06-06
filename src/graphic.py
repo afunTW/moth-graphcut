@@ -286,36 +286,36 @@ class GraphCut(object):
         h, w, channel = img.shape
         line_height = 20
         between_line = 5
-        key_esc = 'Key "Esc": Exit the image operation'
-        key_r = 'Key "r": Reset'
-        space = 'Space: Save the result of graph cut'
-        key_q = 'Key "q": Save the result and exit the program'
-        key_n = 'Key "n": skip to next picture'
-        key_p = 'Key "p": skip to previous picture'
-        key_w = 'Key "w" or up arrow: add threshold'
-        key_s = 'Key "s" or down arrow: subtract threshold'
-        key_left = 'Key "a" or left arrow: Shifting mirror line to the left'
-        key_right = 'Key "d" or right arrow: Shifting mirror line to the right'
-        mouse_left = 'Mouse click left: '
+        key_esc = 'ESC: Exit'
+        key_r = '"r": Reset'
+        space = 'Space: Save'
+        key_q = '"q": Save and Exit'
+        key_n = '"n": next picture'
+        key_p = '"p": previous picture'
+        key_up = '"w" or UP: increase threshold'
+        key_down = '"s" or DOWN: decrease threshold'
+        key_left = '"a" or LEFT: Shifting line to the left'
+        key_right = '"d" or RIGHT: Shifting line to the right'
+        mouse_left = 'MOUSE LEFT: '
         mouse_right = None
 
         if self.__tracking_label[self.ON_LEFT] or self.__tracking_label[self.ON_RIGHT]:
             key_r += ' all labeling point'
         elif self.__is_body:
-            key_r += ' mirror line'
+            key_r += ' line'
 
         if not self.__is_body:
-            mouse_left += 'Determine the body width'
+            mouse_left += 'Get the body width'
         elif not self.__was_left_draw or not self.__was_right_draw:
-            mouse_left += 'Separate fore and back wings in mirror mode'
-            mouse_right = 'Mouse click right: Seperate connected component'
+            mouse_left += 'Separate wings by mirror mode'
+            mouse_right = 'MOUSE RIGHT: Separate connected component'
         else:
-            mouse_left += 'Separate fore and back wings'
-            mouse_right = 'Mouse click right: Seperate connected component'
+            mouse_left += 'Separate wings'
+            mouse_right = 'MOUSE RIGHT: Seperate connected component'
 
         instructions = [
-            (key_esc, key_r), (key_left, key_right), (key_w, key_s),
-            (key_p, key_n), (key_q, space)
+            (key_left, key_right, key_up, key_down),
+            (key_q, key_r, key_esc, space), (key_n, key_p, '', '')
         ]
         instructions.append((mouse_left, mouse_right) if mouse_right else mouse_left)
         # mouse_right and instructions.append(mouse_right)
@@ -328,8 +328,13 @@ class GraphCut(object):
             fontcolor = self.WHITE
 
             if isinstance(instra, tuple):
-                cv2.putText(doc_panel, instra[0], (10, y), font, scale, fontcolor)
-                cv2.putText(doc_panel, instra[1], (int(w/2), y), font, scale, fontcolor)
+                _w = int(w/len(instra))
+                for i in range(len(instra)):
+                    cv2.putText(
+                        doc_panel, instra[i], (10+_w*i, y),
+                        font, scale, fontcolor)
+                # cv2.putText(doc_panel, instra[0], (10, y), font, scale, fontcolor)
+                # cv2.putText(doc_panel, instra[1], (int(w/2), y), font, scale, fontcolor)
             else:
                 cv2.putText(doc_panel, instra, (10, y), font , scale, fontcolor)
 
