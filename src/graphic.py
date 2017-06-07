@@ -86,6 +86,11 @@ class GraphCut(object):
             'backwings': {'left': None, 'right': None},
             'body': None
         }
+        self.__contour_mask = {
+            'forewings': {'left': None, 'right': None},
+            'backwings': {'left': None, 'right': None},
+            'body': None
+        }
 
         # wings coordinate
         self.__component = {
@@ -183,6 +188,24 @@ class GraphCut(object):
     @property
     def components(self):
         return self.__component
+
+    def __coor_to_contour(self, coor):
+        cnt = list(coor)
+        cnt.reverse()
+        cnt = np.array(cnt)
+        cnt = cnt.transpose()
+        cnt = cnt.reshape((cnt.shape[0], 1, 2))
+        cnt = cnt.astype('int32')
+        return cnt
+
+    def __contour_to_coor(self, contour):
+        coor = contour.reshape(contour.shape[0], 2)
+        coor = coor.transpose()
+        coor = coor.tolist()
+        coor = [np.array(i) for i in coor]
+        coor.reverse()
+        coor = tuple(coor)
+        return coor
 
     def gen_transparent_bg(self, shape):
         '''
@@ -376,14 +399,20 @@ class GraphCut(object):
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
         return np.where(output[1] == cond_sequence[nth-1][0])
 
+    def get_filled_component(self, img, contour):
+        cmp_img = np.zeros_like(img)
+        cmp_img[contour] = img[contour]
+        cmp_img = cv2.cvtColor(cmp_img, cv2.COLOR_BGR2GRAY)
+        cmp_img, cnt, hierarchy = cv2.findContours(
+            cmp_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        cmp_img = np.zeros_like(cmp_img)
+        cv2.drawContours(cmp_img, cnt, -1, 255, -1)
+        return cmp_img, cnt
+
     def get_shape_by_contour(self, contour):
-        cnt = list(contour)
-        cnt.reverse()
-        cnt = np.array(cnt)
-        cnt = cnt.transpose()
-        cnt = cnt.reshape((cnt.shape[0], 1, 2))
-        cnt = cnt.astype('int32')
-        return cv2.boundingRect(cnt)
+        if not isinstance(contour, np.ndarray):
+            contour = self.__coor_to_contour(contour)
+        return cv2.boundingRect(contour)
 
     def transparent_padding(self, x, y, img):
         padding = self.__transparent_bg.copy()
@@ -455,11 +484,27 @@ class GraphCut(object):
             part_wings = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
             return part_wings
 
-        def save_wings(img, contour, side, part):
-            self.__color_part[part][side] = img[contour]
-            self.__contour_part[part][side] = contour
-            self.__contour_rect[part][side] = self.get_shape_by_contour(contour)
-            self.__component[part][contour] = img[contour]
+        def save_parts(img, contour, part, side=None, fill=False):
+
+            if fill:
+                mask, cnt = self.get_filled_component(img, contour)
+                contour = self.__contour_to_coor(cnt[0])
+
+            condition = np.where(mask == 255) if fill else contour
+            rect_cnts = cnt[0] if fill else contour
+
+            if side is not None:
+                self.__color_part[part][side] = img[condition]
+                self.__contour_part[part][side] = contour
+                self.__contour_rect[part][side] = self.get_shape_by_contour(rect_cnts)
+                self.__contour_mask[part][side] = mask if fill else None
+            else:
+                self.__color_part[part] = img[condition]
+                self.__contour_part[part] = contour
+                self.__contour_rect[part] = self.get_shape_by_contour(rect_cnts)
+                self.__contour_mask[part] = mask if fill else None
+
+            self.__component[part][condition] = img[condition]
             self.__component[part] = self.__component[part].astype('uint8')
 
         def init_wings(x, y, side, part):
@@ -478,11 +523,15 @@ class GraphCut(object):
 
             return wings
 
-        def exclude_wings(value):
+        def exclude_wings(value, by_mask=False):
             img = self.__orig_img.copy()
             for part in ['forewings', 'backwings']:
                 for side in [self.ON_LEFT, self.ON_RIGHT]:
-                    img[self.__contour_part[part][side]] = value
+                    if not by_mask and self.__contour_part[part][side]:
+                        img[self.__contour_part[part][side]] = value
+                    elif by_mask and self.__contour_mask[part][side] is not None:
+                        mask = self.__contour_mask[part][side]
+                        img[np.where(mask == 255)] = value
             return img
 
         def process_wings(track, side):
@@ -499,8 +548,11 @@ class GraphCut(object):
 
             forepart = get_wings(forewings)
             backpart = get_wings(backwings)
-            if forepart is not None: save_wings(forewings, forepart, side, 'forewings')
-            if backpart is not None: save_wings(backwings, backpart, side, 'backwings')
+
+            if forepart is not None:
+                save_parts(forewings, forepart, 'forewings', side, True)
+            if backpart is not None:
+                save_parts(backwings, backpart, 'backwings', side, True)
 
         if self.__is_body:
             if left_track or right_track:
@@ -521,16 +573,12 @@ class GraphCut(object):
                     self.__contour_part['backwings']['right']
                 ):
                     self.__component['body'] = self.__transparent_bg.copy()
-                    body = exclude_wings(255)
+                    body = exclude_wings(255, by_mask=True)
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
                     bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
-                    if bodyparts is not None:
-                        self.__color_part['body'] = body[bodyparts]
-                        self.__contour_part['body'] = bodyparts
-                        self.__contour_rect['body'] = self.get_shape_by_contour(bodyparts)
-                        self.__component['body'][bodyparts] = body[bodyparts]
-                        self.__component['body'] = self.__component['body'].astype('uint8')
+
+                    if bodyparts is not None: save_parts(body, bodyparts, 'body')
                 self.gen_output_image()
 
     def onmouse(self, event, x, y, flags, params):
