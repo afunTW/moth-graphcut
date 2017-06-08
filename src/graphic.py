@@ -446,9 +446,13 @@ class GraphCut(object):
     def fixed(self, image, track, mode):
         fixed_img = image.copy()
         erase_img = np.zeros(image.shape)
-        track = self.get_interp_ptx(track)
+        __track = sorted(track, key=lambda x: x[0])
+        if mode is self.CLEAR_DOWNWARD:
+            __track = [(0, __track[0][1])] + __track
+            __track = __track + [(fixed_img.shape[1]-1, __track[-1][1])]
+        __track = self.get_interp_ptx(__track)
 
-        for ptx in track:
+        for ptx in __track:
             x, y = ptx
             if mode is self.CLEAR_UPWARD:
                 erase_img[0:y, x] = image[0:y, x].copy()
