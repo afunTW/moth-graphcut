@@ -578,9 +578,20 @@ class GraphCut(object):
                 ):
                     self.__component['body'] = self.__transparent_bg.copy()
                     body = exclude_wings(255, by_mask=True)
+                    _center = (body.shape[1]/2, body.shape[0]/2)
+                    distance = lambda x: math.hypot(x[0]-_center[0], x[1]-_center[1])
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
-                    bodyparts = self.get_component_by(threshold, 1, cv2.CC_STAT_AREA)
+
+                    output = cv2.connectedComponentsWithStats(threshold, 4, cv2.CV_32S)
+                    area_sequence = [(i ,output[2][i][cv2.CC_STAT_AREA]) for i in range(output[0]) if i != 0]
+                    area_sequence = sorted(area_sequence, key=lambda x: x[1], reverse=True)
+                    area_sequence = area_sequence[:5]
+                    area_sequence = [i[0] for i in area_sequence]
+                    cond_sequence = [(i ,output[-1][i]) for i in area_sequence]
+                    cond_sequence = [(i[0], distance(i[1])) for i in cond_sequence]
+                    cond_sequence = sorted(cond_sequence, key=lambda x: x[1])
+                    bodyparts = np.where(output[1] == cond_sequence[0][0])
 
                     if bodyparts is not None: save_parts(body, bodyparts, 'body')
                 self.gen_output_image()
