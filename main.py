@@ -89,6 +89,8 @@ def graph_cut(filename, template=None, last_status=None):
         if last_status['threshold']:
             gc.THRESHOLD = last_status['threshold']
 
+        gc.STATE = last_status['state']
+
     gc.run()
 
     return gc
@@ -137,6 +139,7 @@ def main(args):
     metadata_map = os.path.join(metadata_path, 'map.json')
     moths_path = os.path.abspath('image/sample')
     moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
+    moths = sorted(moths)
     flatten = lambda l: [item for sublist in l for item in sublist]
 
     if args.image or args.recursive:
@@ -163,6 +166,7 @@ def main(args):
 
         # core
         moth_index = 0
+        navigation = False
         while True:
             if moth_index >= len(moths) or moth_index < 0: break
             moth = moths[moth_index]
@@ -176,7 +180,8 @@ def main(args):
 
             if key in exist_data.keys() and os.path.exists(key_json):
 
-                if not args.all and exist_data[key]['state'] == 'done':
+                is_done = (exist_data[key]['state'] == 'done')
+                if not navigation and not args.all and is_done:
                     moth_index += 1
                     continue
 
@@ -200,11 +205,13 @@ def main(args):
                 if moth_index + 1 >= len(moths):
                     logging.warning('No more moth can be skipped')
                     continue
+                navigation = True
                 moth_index += 1
             elif result.ACTION == 'previous':
                 if moth_index - 1 < 0:
                     logging.warning('No more moth can be skipped')
                     continue
+                navigation = True
                 moth_index -= 1
             else:
                 logging.warning('No specific action')
