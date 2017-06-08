@@ -1,13 +1,14 @@
 import os
 import cv2
-import math
 import logging
 import numpy as np
 
 from scipy.spatial.distance import cosine
+from src.msg_box import MessageBox
 from src.filter import savitzky_golay
 from math import floor
 from math import ceil
+from math import hypot
 
 
 class GraphCut(object):
@@ -41,6 +42,7 @@ class GraphCut(object):
 
         # flags & others
         self.__transparent_bg = None
+        self.__modified = False
         self.__is_body = False
         self.__was_left_draw = False
         self.__is_left_draw = False
@@ -579,7 +581,7 @@ class GraphCut(object):
                     self.__component['body'] = self.__transparent_bg.copy()
                     body = exclude_wings(255, by_mask=True)
                     _center = (body.shape[1]/2, body.shape[0]/2)
-                    distance = lambda x: math.hypot(x[0]-_center[0], x[1]-_center[1])
+                    distance = lambda x: hypot(x[0]-_center[0], x[1]-_center[1])
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
 
@@ -636,6 +638,7 @@ class GraphCut(object):
                 self.split_component()
 
         if event == cv2.EVENT_RBUTTONDOWN:
+            self.__modified = True
             self.__is_eliminate = True
 
         elif event == cv2.EVENT_RBUTTONUP:
@@ -646,6 +649,7 @@ class GraphCut(object):
 
         elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
+                self.__modified = True
                 if side in [self.ON_LEFT, self.ON_RIGHT]:
                     self.__panel_img = self.__orig_img.copy()
                     is_tracking(side)
@@ -813,22 +817,34 @@ class GraphCut(object):
                 break
             elif k == ord('n'):
                 self.ACTION = 'next'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
                 break
             elif k == ord('p'):
                 self.ACTION = 'previous'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
                 break
             elif k == self.KEY_UP or k == ord('w'):
                 if self.THRESHOLD + 1 > 255: continue
+                self.__modified = True
                 self.THRESHOLD += 1
                 self.split_component()
             elif k == self.KEY_DOWN or k == ord('s'):
                 if self.THRESHOLD - 1 < 0: continue
+                self.__modified = True
                 self.THRESHOLD -= 1
                 self.split_component()
             elif k == ord('r'):
+                self.__modified = True
                 self.reset()
             elif k == self.KEY_LEFT or k == ord('a'):
                 if self.__was_left_draw or self.__was_right_draw: continue
+                self.__modified = True
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]-1, pt1[1])
                 pt2 = (pt2[0]-1, pt2[1])
@@ -837,6 +853,7 @@ class GraphCut(object):
                 self.draw()
             elif k == self.KEY_RIGHT or k == ord('d'):
                 if self.__was_left_draw or self.__was_right_draw: continue
+                self.__modified = True
                 pt1, pt2 = self.__mirror_line
                 pt1 = (pt1[0]+1, pt1[1])
                 pt2 = (pt2[0]+1, pt2[1])
