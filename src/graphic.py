@@ -209,13 +209,17 @@ class GraphCut(object):
         coor = tuple(coor)
         return coor
 
-    def gen_transparent_bg(self, shape):
+    def gen_transparent_bg(self, shape, scale=10, color=125):
         '''
         generate transparents background
         '''
         img = np.zeros(shape) * 255
-        img[::2, ::2] = 255
-        img[1::2, 1::2] = 255
+
+        for i in range(scale):
+            for j in range(scale):
+                img[i::scale*2, j::scale*2] = color
+                img[i+scale::scale*2, j+scale::scale*2] = color
+
         self.__transparent_bg = img
         return img
 
