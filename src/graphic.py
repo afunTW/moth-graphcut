@@ -583,7 +583,8 @@ class GraphCut(object):
                     _center = (body.shape[1]/2, body.shape[0]/2)
                     distance = lambda x: hypot(x[0]-_center[0], x[1]-_center[1])
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
-                    ret, threshold = cv2.threshold(bodyparts, 250, 255, cv2.THRESH_BINARY_INV)
+                    ret, threshold = cv2.threshold(
+                        bodyparts, self.THRESHOLD, 255, cv2.THRESH_BINARY_INV)
 
                     output = cv2.connectedComponentsWithStats(threshold, 4, cv2.CV_32S)
                     area_sequence = [(i ,output[2][i][cv2.CC_STAT_AREA]) for i in range(output[0]) if i != 0]
