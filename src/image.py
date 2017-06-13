@@ -59,6 +59,12 @@ class BaseImage(object):
         cv2.drawContours(cmp_img, cnt, -1, threshold, -1)
         return cmp_img, cnt
 
+    def matrix_shifting(self, x, y, mat, threshold=255):
+        coor = np.argwhere(mat == threshold).transpose()
+        col, row = coor[0], coor[1]
+        row_shift, col_shift = row-x, col-y
+        return col_shift, row_shift
+
     def coor_to_contour(self, coor):
         '''
         coor = (array([y_axis], array([x_axis])
