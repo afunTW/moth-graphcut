@@ -1,6 +1,5 @@
 import cv2
 import logging
-import imutils
 import numpy as np
 
 
@@ -58,7 +57,9 @@ class ShapeDetector(object):
         for scale in np.linspace(0.5, 1.0, 32)[::-1]:
             tH, tW = self.__template.shape
             img_w = self.__target_img.shape[1]
-            resized_img = imutils.resize(self.__target_img, width=int(img_w*scale))
+            img_h = self.__target_img.shape[0]
+            dim = (int(img_w*scale), int(img_h*scale))
+            resized_img = cv2.resize(self.__target_img, dim, interpolation=cv2.INTER_AREA)
             ratio = img_w / float(resized_img.shape[1])
 
             if resized_img.shape[0] < tH or resized_img.shape[1] < tW:
