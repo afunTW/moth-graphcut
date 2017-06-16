@@ -208,8 +208,8 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         # body
         coor = self.__component['body']
         rect = self.__contour_rect['body']
-        if coor is not None and rect is not None:
-            shift_ptx = self.centralized_rect(rect, (0, 0, rect[0], out_image_y))
+        shift_ptx = self.centralized_rect(rect, (0, 0, rect[0], out_image_y))
+        if coor is not None and rect is not None and shift_ptx is not None:
             out_image_shift['body'] = (out_image_x + out_image_bar, shift_ptx[-1])
             out_image_x += out_image_bar + shift_ptx[0] + rect[-2]
             out_image_y = max(out_image_y, shift_ptx[-1]+rect[-1])
@@ -737,12 +737,12 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     if want_save: self.STATE = 'pause'
                 break
             elif k == self.KEY_UP or k == ord('w'):
-                if self.THRESHOLD + 1 > 255: continue
+                if self.THRESHOLD + 1 >= 255: continue
                 self.__modified = True
                 self.THRESHOLD += 1
                 self.split_component()
             elif k == self.KEY_DOWN or k == ord('s'):
-                if self.THRESHOLD - 1 < 0: continue
+                if self.THRESHOLD - 1 <= 0: continue
                 self.__modified = True
                 self.THRESHOLD -= 1
                 self.split_component()
