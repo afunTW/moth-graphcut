@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.messagebox import askyesno
+from tkinter.messagebox import askokcancel
 from tkinter.messagebox import showwarning
 
 
@@ -11,7 +12,7 @@ class MessageBox(object):
         self.root = tk.Tk()
         self.center()
         self.root.withdraw()
-        result = askyesno(title, string, icon=icontype)
+        result = askokcancel(title, string, icon=icontype)
         self.root.destroy()
         self.root.mainloop()
         return result
