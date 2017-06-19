@@ -486,7 +486,10 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 ):
                     self.__component['body'] = self.__transparent.copy()
                     body = exclude_wings(255, by_mask=True)
-                    _center = (body.shape[1]/2, body.shape[0]/2)
+                    _left_label_y = self.__tracking_label[self.ON_LEFT][-1]
+                    _right_label_y = self.__tracking_label[self.ON_RIGHT][-1]
+                    _center_y = (_left_label_y[1] + _right_label_y[1])/2
+                    _center = (self.mirror_line[0][0], _center_y)
                     distance = lambda x: hypot(x[0]-_center[0], x[1]-_center[1])
                     bodyparts = cv2.cvtColor(body, cv2.COLOR_BGR2GRAY)
                     ret, threshold = cv2.threshold(
