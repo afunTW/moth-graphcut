@@ -86,6 +86,9 @@ def graph_cut(filename, template=None, last_status=None):
         if last_status['threshold']:
             gc.THRESHOLD = last_status['threshold']
 
+        if last_status['state']:
+            gc.STATE = last_status['state']
+
         if any([v for v in last_status['tracking_label']]):
             gc.tracking_label = last_status['tracking_label']
 
