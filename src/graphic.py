@@ -743,6 +743,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     MBox = MessageBox()
                     want_save = MBox.ask_ques()
                     if want_save: self.STATE = 'pause'
+                    else: continue
                 break
             elif k == ord('p'):
                 self.ACTION = 'previous'
@@ -750,6 +751,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     MBox = MessageBox()
                     want_save = MBox.ask_ques()
                     if want_save: self.STATE = 'pause'
+                    else: continue
                 break
             elif k == self.KEY_UP or k == ord('w'):
                 if self.THRESHOLD + 1 >= 255:
