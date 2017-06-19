@@ -737,12 +737,22 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     if want_save: self.STATE = 'pause'
                 break
             elif k == self.KEY_UP or k == ord('w'):
-                if self.THRESHOLD + 1 >= 255: continue
+                if self.THRESHOLD + 1 >= 255:
+                    MBox = MessageBox()
+                    warn = MBox.alert(
+                        title='Warning',
+                        string='Please set threshold between 1~254')
+                    continue
                 self.__modified = True
                 self.THRESHOLD += 1
                 self.split_component()
             elif k == self.KEY_DOWN or k == ord('s'):
-                if self.THRESHOLD - 1 <= 0: continue
+                if self.THRESHOLD - 1 <= 0:
+                    MBox = MessageBox()
+                    warn = MBox.alert(
+                        title='Warning',
+                        string='Please set threshold between 1~254')
+                    continue
                 self.__modified = True
                 self.THRESHOLD -= 1
                 self.split_component()
