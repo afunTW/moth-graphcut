@@ -197,6 +197,7 @@ def main(args):
 
             if result.ACTION == 'save':
                 saved_metadata(result, key_json)
+                moth_index += 1
                 if result.STATE == 'pause':
                     break
             elif result.ACTION == 'quit':
