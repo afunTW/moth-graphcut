@@ -22,8 +22,8 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
 
         self.CLEAR_UPWARD = {'color': self.BLACK}
         self.CLEAR_DOWNWARD = {'color': self.BLACK}
-        self.ON_LEFT = 'left'
-        self.ON_RIGHT = 'right'
+        self.LEFT = 'left'
+        self.RIGHT = 'right'
         self.STATE = 'none'
         self.ACTION = 'save'
         self.THRESHOLD = 250
@@ -142,13 +142,13 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         assert all([ i in self.__tracking_label.keys() for i in label.keys()])
 
         self.__tracking_label = label
-        if self.__tracking_label[self.ON_LEFT]:
-            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.ON_LEFT]]
-            self.__tracking_label[self.ON_LEFT] = to_tuple
+        if self.__tracking_label[self.LEFT]:
+            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.LEFT]]
+            self.__tracking_label[self.LEFT] = to_tuple
             self.__was_left_draw = True
-        if self.__tracking_label[self.ON_RIGHT]:
-            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.ON_RIGHT]]
-            self.__tracking_label[self.ON_RIGHT] = to_tuple
+        if self.__tracking_label[self.RIGHT]:
+            to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.RIGHT]]
+            self.__tracking_label[self.RIGHT] = to_tuple
             self.__was_right_draw = True
         if self.__tracking_label['eliminate']:
             track = self.__tracking_label['eliminate']
@@ -179,7 +179,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         out_image_shift = {'forewings': {}, 'backwings': {}}
 
         # wings
-        for side in [self.ON_LEFT, self.ON_RIGHT]:
+        for side in [self.LEFT, self.RIGHT]:
             wings = None
             show = False
             merge_y = 0
@@ -191,8 +191,8 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 coor = self.__component[part]
                 rect = self.__contour_rect[part][side]
                 alignment_y = max(
-                    _coor(self.__contour_rect[part][self.ON_LEFT], -1),
-                    _coor(self.__contour_rect[part][self.ON_RIGHT], -1))
+                    _coor(self.__contour_rect[part][self.LEFT], -1),
+                    _coor(self.__contour_rect[part][self.RIGHT], -1))
                 if coor is not None and rect is not None:
                     show = True
                     shift_ptx = self.centralized_rect(
@@ -217,7 +217,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         # combine
         out_image = self.__transparent_2x[:out_image_y, :out_image_x].copy()
         out_image = out_image.astype('uint8')
-        for side in [self.ON_LEFT, self.ON_RIGHT]:
+        for side in [self.LEFT, self.RIGHT]:
             for part in ['forewings', 'backwings']:
                 x, y, w, h = self.__contour_rect[part][side]
                 X, Y = out_image_shift[part][side]
@@ -271,7 +271,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         mouse_left = 'MOUSE LEFT: '
         mouse_right = None
 
-        if self.__tracking_label[self.ON_LEFT] or self.__tracking_label[self.ON_RIGHT]:
+        if self.__tracking_label[self.LEFT] or self.__tracking_label[self.RIGHT]:
             key_r += ' all labeling point'
         elif self.__is_body:
             key_r += ' line'
@@ -377,8 +377,8 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         '''
         get the connected component by current stat
         '''
-        left_track = self.__tracking_label[self.ON_LEFT]
-        right_track = self.__tracking_label[self.ON_RIGHT]
+        left_track = self.__tracking_label[self.LEFT]
+        right_track = self.__tracking_label[self.RIGHT]
         mirror_line_x = self.__mirror_line[0][0]
         bottom_y = lambda track: max([ptx[1] for ptx in track])
 
@@ -423,9 +423,9 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
             wings = self.__orig_img.copy()
             wings = elimination(wings, self.WHITE)
 
-            if side == self.ON_LEFT:
+            if side == self.LEFT:
                 wings[:, x:] = 255
-            elif side == self.ON_RIGHT:
+            elif side == self.RIGHT:
                 wings[:, :x] = 255
 
             if part == 'forewings':
@@ -438,7 +438,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         def exclude_wings(value, by_mask=False):
             img = self.__orig_img.copy()
             for part in ['forewings', 'backwings']:
-                for side in [self.ON_LEFT, self.ON_RIGHT]:
+                for side in [self.LEFT, self.RIGHT]:
                     if not by_mask and self.__contour_part[part][side]:
                         img[self.__contour_part[part][side]] = value
                     elif by_mask and self.__contour_mask[part][side] is not None:
@@ -448,7 +448,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
 
         def process_wings(track, side):
             x = self.__mirror_shift
-            x = x if side == self.ON_RIGHT else -x
+            x = x if side == self.RIGHT else -x
             x += mirror_line_x
             y = bottom_y(track)
 
@@ -473,10 +473,10 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 self.__component['backwings'] = self.__transparent.copy()
 
                 if left_track:
-                    process_wings(left_track, self.ON_LEFT)
+                    process_wings(left_track, self.LEFT)
 
                 if right_track:
-                    process_wings(right_track, self.ON_RIGHT)
+                    process_wings(right_track, self.RIGHT)
 
                 if (
                     self.__contour_part['forewings']['left'] and
@@ -488,14 +488,14 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     body = exclude_wings(255, by_mask=True)
                     _center = [self.mirror_line[0][0], 0]
 
-                    if self.__tracking_label[self.ON_LEFT]:
+                    if self.__tracking_label[self.LEFT]:
                         _left_y = sorted(
-                            self.__tracking_label[self.ON_LEFT].copy(),
+                            self.__tracking_label[self.LEFT].copy(),
                             key=lambda x: x[0])
                         _center[-1] += _left_y[-1][-1]
-                    if self.__tracking_label[self.ON_RIGHT]:
+                    if self.__tracking_label[self.RIGHT]:
                         _right_y = sorted(
-                            self.__tracking_label[self.ON_RIGHT].copy(),
+                            self.__tracking_label[self.RIGHT].copy(),
                             key=lambda x: x[0])
                         _center[-1] += _right_y[0][-1]
                         _center[-1] /= 2 if _center[-1] !=0 else 1
@@ -525,35 +525,35 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         mirror_line_x = self.__mirror_line[0][0]
         point_shift = abs(mirror_line_x - x)
         left_x, right_x = (mirror_line_x - point_shift, mirror_line_x + point_shift)
-        side = self.ON_LEFT if x < mirror_line_x else self.ON_RIGHT
+        side = self.LEFT if x < mirror_line_x else self.RIGHT
         if x > w or y > h: return
 
         def is_tracking(side):
             self.__tracking_label[side] = []
-            if side == self.ON_LEFT:
+            if side == self.LEFT:
                 self.__is_left_draw = True
                 if not self.__was_right_draw:
-                    self.__tracking_label[self.ON_RIGHT] = []
-            elif side == self.ON_RIGHT:
+                    self.__tracking_label[self.RIGHT] = []
+            elif side == self.RIGHT:
                 self.__is_right_draw = True
                 if not self.__was_left_draw:
-                    self.__tracking_label[self.ON_LEFT] = []
+                    self.__tracking_label[self.LEFT] = []
 
         def not_tracking(side):
-            left_track = self.__tracking_label[self.ON_LEFT]
-            right_track = self.__tracking_label[self.ON_RIGHT]
+            left_track = self.__tracking_label[self.LEFT]
+            right_track = self.__tracking_label[self.RIGHT]
 
-            if side == self.ON_LEFT:
+            if side == self.LEFT:
                 self.__was_left_draw = True
                 self.__is_left_draw = False
-            elif side == self.ON_RIGHT:
+            elif side == self.RIGHT:
                 self.__was_right_draw = True
                 self.__is_right_draw = False
 
         def valid_tracking(side):
-            if side == self.ON_LEFT and 0 < left_x < self.mirror_left_x:
+            if side == self.LEFT and 0 < left_x < self.mirror_left_x:
                 self.__tracking_label[side].append((left_x, y))
-            elif side == self.ON_RIGHT and self.mirror_right_x < right_x < w:
+            elif side == self.RIGHT and self.mirror_right_x < right_x < w:
                 self.__tracking_label[side].append((right_x, y))
             else:
                 not_tracking(side)
@@ -572,7 +572,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
         elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
                 self.__modified = True
-                if side in [self.ON_LEFT, self.ON_RIGHT]:
+                if side in [self.LEFT, self.RIGHT]:
                     self.__panel_img = self.__orig_img.copy()
                     is_tracking(side)
                     self.draw()
@@ -605,15 +605,15 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 valid_tracking(side)
 
                 if (
-                    side == self.ON_LEFT and
+                    side == self.LEFT and
                     self.__is_left_draw and not self.__was_right_draw
                 ):
-                    valid_tracking(self.ON_RIGHT)
+                    valid_tracking(self.RIGHT)
                 if (
-                    side == self.ON_RIGHT and
+                    side == self.RIGHT and
                     self.__is_right_draw and not self.__was_left_draw
                 ):
-                    valid_tracking(self.ON_LEFT)
+                    valid_tracking(self.LEFT)
 
                 self.draw()
 
@@ -686,7 +686,7 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 cv2.line(self.__panel_img, (r_x, 0), (r_x, h), self.BLUE, 2)
 
         for side, track in self.__tracking_label.items():
-            if side in [self.ON_LEFT, self.ON_RIGHT] and track:
+            if side in [self.LEFT, self.RIGHT] and track:
                 # if len(track) > 10:
                 #     track = self.get_smooth_line(track)
                 for i, ptx in enumerate(track):
