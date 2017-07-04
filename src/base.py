@@ -1,7 +1,10 @@
+import os
 import cv2
 import logging
 import numpy as np
 
+from src.color import RGB
+from src.keyboard import KeyHandler
 from scipy.spatial.distance import cosine
 
 
@@ -110,3 +113,8 @@ class BaseImage(object):
         cond_sequence = [(i ,output[2][i][by]) for i in range(output[0]) if i != 0]
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
         return np.where(output[1] == cond_sequence[nth-1][0])
+
+
+class BaseGraphCut(RGB, KeyHandler, BaseImage):
+    def __init__(self, filename, image=None):
+        super().__init__()

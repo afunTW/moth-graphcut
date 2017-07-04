@@ -1,4 +1,4 @@
-class ImageColor(object):
+class RGB(object):
     def __init__(self):
         super().__init__()
         self.BLUE = [255,0,0]
