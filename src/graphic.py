@@ -4,20 +4,18 @@ import copy
 import logging
 import numpy as np
 
+from src.base import BaseGraphCut
 from src.filter import savitzky_golay
-from src.keyboard import KeyHandler
 from src.msg_box import MessageBox
-from src.color import ImageColor
-from src.image import BaseImage
 from math import floor
 from math import ceil
 from math import hypot
 
 
-class GraphCut(ImageColor, KeyHandler, BaseImage):
+class GraphCut(BaseGraphCut):
 
     def __init__(self, filename, orig_image=None):
-        super().__init__()
+        super().__init__(filename)
         self.filename = filename
 
         self.CLEAR_UPWARD = {'color': self.BLACK}
@@ -754,6 +752,13 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                     else: continue
                 break
             elif k == self.KEY_UP or k == ord('w'):
+                while True:
+                    check_k = cv2.waitKey(1000)
+                    if check_k == self.KEY_UP or check_k == ord('w'):
+                        self.THRESHOLD = min(self.THRESHOLD+1, 254)
+                        pass
+                    else:
+                        break
                 if self.THRESHOLD + 1 >= 255:
                     MBox = MessageBox()
                     warn = MBox.alert(
@@ -764,6 +769,13 @@ class GraphCut(ImageColor, KeyHandler, BaseImage):
                 self.THRESHOLD += 1
                 self.split_component()
             elif k == self.KEY_DOWN or k == ord('s'):
+                while True:
+                    check_k = cv2.waitKey(1000)
+                    if check_k == self.KEY_DOWN or check_k == ord('s'):
+                        self.THRESHOLD = min(self.THRESHOLD-1, 254)
+                        pass
+                    else:
+                        break
                 if self.THRESHOLD - 1 <= 0:
                     MBox = MessageBox()
                     warn = MBox.alert(
