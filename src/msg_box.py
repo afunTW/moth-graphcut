@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter.messagebox import askyesno
 from tkinter.messagebox import askokcancel
 from tkinter.messagebox import showwarning
@@ -32,3 +33,36 @@ class MessageBox(object):
         x = w/2 - size[0]/2
         y = h/2 - size[1]/2
         self.root.geometry("%dx%d+%d+%d" % (size + (x, y)))
+
+class Instruction(object):
+
+    def __init__(self, title='Settings'):
+        super().__init__()
+        self.title = title
+        self.__hotkey = []
+        self.__action = []
+
+    def reset(self):
+        self.__hotkey = []
+        self.__action = []
+
+    def row_append(self, hotkey, description):
+        self.__hotkey.append(hotkey)
+        self.__action.append(description)
+
+    def show(self):
+        self.window = tk.Tk()
+        self.window.title(self.title)
+        self.window.resizable(0, 0)
+
+        hotkey = ttk.LabelFrame(self.window, text='Hotkey')
+        hotkey.grid(column=0, row=len(self.__hotkey))
+        for i, k in enumerate(self.__hotkey):
+            ttk.Label(hotkey, text=k).grid(column=0, row=i)
+
+        action = ttk.LabelFrame(self.window, text='Action')
+        action.grid(column=1, row=len(self.__action))
+        for i, description in enumerate(self.__action):
+            ttk.Label(action, text=description).grid(column=1, row=i, sticky=tk.W)
+
+        self.window.mainloop()
