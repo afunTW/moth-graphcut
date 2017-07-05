@@ -5,6 +5,7 @@ import numpy as np
 
 from src.color import RGB
 from src.keyboard import KeyHandler
+from src.msg_box import Instruction
 from scipy.spatial.distance import cosine
 
 
@@ -118,3 +119,13 @@ class BaseImage(object):
 class BaseGraphCut(RGB, KeyHandler, BaseImage):
     def __init__(self, filename, image=None):
         super().__init__()
+        self.filename = filename
+        self.instruction = Instruction()
+
+        self.CLEAR_UPWARD = {'color': self.BLACK}
+        self.CLEAR_DOWNWARD = {'color': self.BLACK}
+        self.LEFT = 'left'
+        self.RIGHT = 'right'
+        self.STATE = 'none'
+        self.ACTION = 'save'
+        self.THRESHOLD = 250
