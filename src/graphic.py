@@ -738,6 +738,8 @@ class GraphCut(BaseGraphCut):
         elif os.name == 'nt':
             cv2.namedWindow('panel', cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
 
+        cv2.createTrackbar('Threshold','panel',self.THRESHOLD, 255, self.null_callback)
+        cv2.createTrackbar('Refresh','panel',0, 1, self.null_callback)
         cv2.setMouseCallback('panel', self.onmouse)
         logging.info('Begin with STATE={}'.format(self.STATE))
 
@@ -835,6 +837,18 @@ class GraphCut(BaseGraphCut):
                 self.__mirror_line = (pt1, pt2)
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
+
+            threshold = cv2.getTrackbarPos('Threshold', 'panel')
+            switch = cv2.getTrackbarPos('Refresh', 'panel')
+            if threshold == 0:
+                cv2.setTrackbarPos('Threshold', 'panel', 1)
+            elif threshold == 255:
+                cv2.setTrackbarPos('Threshold', 'panel', 254)
+
+            if switch:
+                if threshold != self.THRESHOLD:
+                    self.THRESHOLD = threshold
+                    self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
             # handle heavy job
             if self.__job_queue:
