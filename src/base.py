@@ -129,3 +129,6 @@ class BaseGraphCut(RGB, KeyHandler, BaseImage):
         self.STATE = 'none'
         self.ACTION = 'save'
         self.THRESHOLD = 250
+
+    def null_callback(self, value):
+        pass
