@@ -17,15 +17,6 @@ class GraphCut(BaseGraphCut):
 
     def __init__(self, filename, orig_image=None):
         super().__init__(filename)
-        self.filename = filename
-
-        self.CLEAR_UPWARD = {'color': self.BLACK}
-        self.CLEAR_DOWNWARD = {'color': self.BLACK}
-        self.LEFT = 'left'
-        self.RIGHT = 'right'
-        self.STATE = 'none'
-        self.ACTION = 'save'
-        self.THRESHOLD = 250
 
         # flags & others
         self.__modified = False
@@ -92,8 +83,8 @@ class GraphCut(BaseGraphCut):
 
         if out_image is None: out_image = self.__transparent.copy()
         out_image = np.hstack((self.__panel_img.copy(), out_image))
-        instructions = self.get_instruction(out_image)
-        out_image = np.vstack((out_image, instructions))
+        # instructions = self.get_instruction(out_image)
+        # out_image = np.vstack((out_image, instructions))
         cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
         cv2.putText(out_image, threshold, (15, button_y), font, scale, fontcolor)
         out_image = out_image.astype('uint8')
@@ -253,6 +244,39 @@ class GraphCut(BaseGraphCut):
         fy = savitzky_golay(fy, window_size=11, order=4)
         fy = [int(y) for y in fy]
         return list(zip(fx, fy))
+
+    def load_current_instruction(self):
+        self.instruction.reset()
+
+        r_description = 'Reset'
+        if self.__tracking_label[self.LEFT] or self.__tracking_label[self.RIGHT]:
+            r_description = 'Reset all labeling point'
+        elif self.__is_body:
+            r_description = 'Reset line'
+
+        mouse_left = ''
+        mouse_right = ''
+        if not self.__is_body:
+            mouse_left = 'Get the body width'
+        elif not self.__was_left_draw or not self.__was_right_draw:
+            mouse_left = 'Separate wings by mirror mode'
+            mouse_right = 'Separate connected component'
+        else:
+            mouse_left = 'Separate wings'
+            mouse_right = 'Seperate connected component'
+
+        self.instruction.row_append('ESC', 'Exit')
+        self.instruction.row_append('Space', 'Save')
+        self.instruction.row_append('r', r_description)
+        self.instruction.row_append('q', 'Save & Exit')
+        self.instruction.row_append('n', 'Next picture')
+        self.instruction.row_append('p', 'Previous picture')
+        self.instruction.row_append('w/UP', 'Increase threshold')
+        self.instruction.row_append('s/DOWN', 'Decrease threshold')
+        self.instruction.row_append('a/LEFT', 'Move line')
+        self.instruction.row_append('d/RIGHT', 'Move line')
+        self.instruction.row_append('MOUSE LEFT', mouse_left)
+        self.instruction.row_append('MOUSE RIGHT', mouse_right)
 
     def get_instruction(self, img):
         h, w, channel = img.shape
@@ -725,6 +749,9 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
+            elif k == ord('h'):
+                self.load_current_instruction()
+                self.instruction.show()
             elif k == 27:
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
