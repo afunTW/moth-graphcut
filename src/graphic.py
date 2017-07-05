@@ -840,13 +840,13 @@ class GraphCut(BaseGraphCut):
 
             threshold = cv2.getTrackbarPos('Threshold', 'panel')
             switch = cv2.getTrackbarPos('Refresh', 'panel')
-            if threshold == 0:
-                cv2.setTrackbarPos('Threshold', 'panel', 1)
-            elif threshold == 255:
-                cv2.setTrackbarPos('Threshold', 'panel', 254)
 
             if switch:
-                if threshold != self.THRESHOLD:
+                if threshold == 0:
+                    cv2.setTrackbarPos('Threshold', 'panel', 1)
+                elif threshold == 255:
+                    cv2.setTrackbarPos('Threshold', 'panel', 254)
+                elif threshold != self.THRESHOLD:
                     self.THRESHOLD = threshold
                     self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
@@ -869,6 +869,9 @@ class GraphCut(BaseGraphCut):
                             date, func, state = idle_obj
                             func()
                             self.__job_queue = [(date, func, 'done')]
+                        else:
+                            date, func, state = idle_obj
+                            self.__job_queue = [done_obj, (datetime.now(), func, state)]
                     elif not done_obj and idle_obj:
                         date, func, state = idle_obj
                         func()
