@@ -7,6 +7,7 @@ import numpy as np
 from src.base import BaseGraphCut
 from src.filter import savitzky_golay
 from src.msg_box import MessageBox
+from datetime import datetime
 from math import floor
 from math import ceil
 from math import hypot
@@ -34,6 +35,7 @@ class GraphCut(BaseGraphCut):
         self.__was_right_draw = False
         self.__is_right_draw = False
         self.__is_eliminate = False
+        self.__job_queue = []
 
         # image
         if orig_image is None:
@@ -555,7 +557,7 @@ class GraphCut(BaseGraphCut):
                 self.__tracking_label[side].append((right_x, y))
             else:
                 not_tracking(side)
-                self.split_component()
+                self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
         if event == cv2.EVENT_RBUTTONDOWN:
             self.__modified = True
@@ -565,7 +567,7 @@ class GraphCut(BaseGraphCut):
             self.__is_eliminate = False
             self.__tracking_label['eliminate'].append(self.__eliminate_block)
             self.__eliminate_block = []
-            self.split_component()
+            self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
         elif event == cv2.EVENT_LBUTTONDOWN:
             if self.__is_body:
@@ -586,7 +588,7 @@ class GraphCut(BaseGraphCut):
             elif self.__is_left_draw or self.__is_right_draw:
                 not_tracking(side)
 
-                self.split_component()
+                self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
                 self.draw()
 
         elif event == cv2.EVENT_MOUSEMOVE:
@@ -753,7 +755,7 @@ class GraphCut(BaseGraphCut):
                 break
             elif k == self.KEY_UP or k == ord('w'):
                 while True:
-                    check_k = cv2.waitKey(1000)
+                    check_k = cv2.waitKey(200)
                     if check_k == self.KEY_UP or check_k == ord('w'):
                         self.THRESHOLD = min(self.THRESHOLD+1, 254)
                         pass
@@ -767,10 +769,10 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD += 1
-                self.split_component()
+                self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == self.KEY_DOWN or k == ord('s'):
                 while True:
-                    check_k = cv2.waitKey(1000)
+                    check_k = cv2.waitKey(200)
                     if check_k == self.KEY_DOWN or check_k == ord('s'):
                         self.THRESHOLD = min(self.THRESHOLD-1, 254)
                         pass
@@ -784,7 +786,7 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD -= 1
-                self.split_component()
+                self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == ord('r'):
                 self.__modified = True
                 self.reset()
@@ -806,5 +808,29 @@ class GraphCut(BaseGraphCut):
                 self.__mirror_line = (pt1, pt2)
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
+
+            # handle heavy job
+            if self.__job_queue:
+                if len(self.__job_queue) == 1:
+                    date, func, state = self.__job_queue[0]
+                    if state == 'idle':
+                        func()
+                        self.__job_queue[0] = (date, func, 'done')
+                else:
+                    done_queue = [ i for i in self.__job_queue if i[-1] == 'done']
+                    done_obj = done_queue[-1] if done_queue else None
+                    idle_queue = [ i for i in self.__job_queue if i[-1] == 'idle']
+                    idle_obj = idle_queue[-1] if idle_queue else None
+
+                    if done_obj and idle_obj:
+                        timedelta = idle_obj[0] - done_obj[0]
+                        if timedelta.total_seconds() > 0.5:
+                            date, func, state = idle_obj
+                            func()
+                            self.__job_queue = [(date, func, 'done')]
+                    elif not done_obj and idle_obj:
+                        date, func, state = idle_obj
+                        func()
+                        self.__job_queue = [(date, func, 'done')]
 
         cv2.destroyAllWindows()
