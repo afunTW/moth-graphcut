@@ -27,6 +27,7 @@ class GraphCut(BaseGraphCut):
         self.__is_right_draw = False
         self.__is_eliminate = False
         self.__job_queue = []
+        self.__contract = False
 
         # image
         if orig_image is None:
@@ -82,9 +83,16 @@ class GraphCut(BaseGraphCut):
         scale = 0.6
 
         if out_image is None: out_image = self.__transparent.copy()
-        out_image = np.hstack((self.__panel_img.copy(), out_image))
-        # instructions = self.get_instruction(out_image)
-        # out_image = np.vstack((out_image, instructions))
+
+        tmp_image = self.__panel_img.copy()
+        if self.__contract:
+            tmp_image = tmp_image.astype('float64')
+            gamma = cv2.getTrackbarPos('Gamma', 'panel')
+            tmp_image[:] /= 255
+            tmp_image[:] = tmp_image[:]**(gamma/100)
+            tmp_image[:] *= 255
+
+        out_image = np.hstack((tmp_image, out_image))
         cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
         cv2.putText(out_image, threshold, (15, button_y), font, scale, fontcolor)
         out_image = out_image.astype('uint8')
@@ -738,6 +746,7 @@ class GraphCut(BaseGraphCut):
         elif os.name == 'nt':
             cv2.namedWindow('panel', cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
 
+        cv2.createTrackbar('Gamma','panel',100, 250, self.null_callback)
         cv2.createTrackbar('Threshold','panel',self.THRESHOLD, 255, self.null_callback)
         cv2.createTrackbar('Refresh','panel',0, 1, self.null_callback)
         cv2.setMouseCallback('panel', self.onmouse)
@@ -751,6 +760,8 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
+            elif k == ord('c'):
+                self.__contract = not self.__contract
             elif k == ord('h'):
                 self.load_current_instruction()
                 self.instruction.show()
