@@ -798,6 +798,7 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD += 1
+                cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == self.KEY_DOWN or k == ord('s'):
                 while True:
@@ -815,6 +816,7 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD -= 1
+                cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == ord('r'):
                 self.__modified = True
