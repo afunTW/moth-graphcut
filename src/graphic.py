@@ -37,9 +37,9 @@ class GraphCut(BaseGraphCut):
 
         h, w, channel = self.orig_image.shape
         self.__panel_img = self.orig_image.copy()
-        self.__output_img = None
         self.__transparent = self.generate_transparent((h, w, channel))
         self.__transparent_2x = self.generate_transparent((h*2, w*2, channel))
+        self.__output_img = self.__transparent.copy()
         self.__show_img = self.__transparent
 
         # metadata
@@ -659,7 +659,7 @@ class GraphCut(BaseGraphCut):
 
                 self.draw()
 
-            if self.__is_eliminate:
+            elif self.__is_eliminate:
                 if self.__eliminate_block:
                     ix, iy = self.__eliminate_block[-1]
                     cv2.line(self.__panel_img, (ix, iy), (x, y), self.RED, 2)
