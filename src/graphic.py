@@ -49,7 +49,7 @@ class GraphCut(BaseGraphCut):
         # tracking label
         self.__eliminate_block = []
         self.__tracking_label = {
-            'left': [], 'right': [], 'eliminate': []
+            'left': [], 'right': [], 'eliminate': [], 'tmp': []
         }
 
         # wings color
@@ -141,6 +141,7 @@ class GraphCut(BaseGraphCut):
         assert all([ i in self.__tracking_label.keys() for i in label.keys()])
 
         self.__tracking_label = label
+        self.__tracking_label['tmp'] = []
         if self.__tracking_label[self.LEFT]:
             to_tuple = [tuple(ptx) for ptx in self.__tracking_label[self.LEFT]]
             self.__tracking_label[self.LEFT] = to_tuple
@@ -288,6 +289,8 @@ class GraphCut(BaseGraphCut):
         self.instruction.row_append('q', 'Save & Exit')
         self.instruction.row_append('n', 'Next picture')
         self.instruction.row_append('p', 'Previous picture')
+        self.instruction.row_append('u', 'undo eliminate line')
+        self.instruction.row_append('y', 'roll back eliminate line')
         self.instruction.row_append('c', 'on/off contract setting')
         self.instruction.row_append('w/UP', 'Increase threshold')
         self.instruction.row_append('s/DOWN', 'Decrease threshold')
@@ -608,6 +611,7 @@ class GraphCut(BaseGraphCut):
         elif event == cv2.EVENT_RBUTTONUP:
             self.__is_eliminate = False
             self.__tracking_label['eliminate'].append(self.__eliminate_block)
+            self.__tracking_label['tmp'] = []
             self.__eliminate_block = []
             self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
@@ -684,23 +688,17 @@ class GraphCut(BaseGraphCut):
 
             self.__eliminate_block = []
             self.__tracking_label = {
-                'left': [], 'right': [], 'eliminate': []
+                'left': [], 'right': [], 'eliminate': [], 'tmp': []
             }
-            self.__color_part = {
+            __component = {
                 'forewings': {'left': None, 'right': None},
                 'backwings': {'left': None, 'right': None},
                 'body': None
             }
-            self.__contour_part = {
-                'forewings': {'left': None, 'right': None},
-                'backwings': {'left': None, 'right': None},
-                'body': None
-            }
-            self.__contour_rect = {
-                'forewings': {'left': None, 'right': None},
-                'backwings': {'left': None, 'right': None},
-                'body': None
-            }
+            self.__color_part = copy.deepcopy(__component)
+            self.__contour_part = copy.deepcopy(__component)
+            self.__contour_rect = copy.deepcopy(__component)
+            self.__contour_mask = copy.deepcopy(__component)
             self.__component = {
                 'forewings': None, 'backwings': None, 'body': None
             }
@@ -770,6 +768,20 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
+            elif k == ord('u'):
+                if len(self.__tracking_label['eliminate']) > 0:
+                    pop_track = self.__tracking_label['eliminate'][-1]
+                    self.__tracking_label['eliminate'] = self.__tracking_label['eliminate'][:-1]
+                    self.__tracking_label['tmp'].append(pop_track)
+                    self.__panel_img = self.__orig_img.copy()
+                    self.draw()
+            elif k == ord('y'):
+                if len(self.__tracking_label['tmp']) > 0:
+                    pop_track = self.__tracking_label['tmp'][-1]
+                    self.__tracking_label['eliminate'].append(pop_track)
+                    self.__tracking_label['tmp'] = self.__tracking_label['tmp'][:-1]
+                    self.__panel_img = self.__orig_img.copy()
+                    self.draw()
             elif k == ord('c'):
                 self.__contract = not self.__contract
             elif k == ord('h'):
