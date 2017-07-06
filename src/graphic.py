@@ -168,83 +168,92 @@ class GraphCut(BaseGraphCut):
         return self.__component
 
     def gen_output_image(self):
-        out_image = None
-        boundary_y = self.__panel_img.shape[0]
-        _coor = lambda x, y: 0 if x is None else x[y]
+        try:
+            out_image = None
+            boundary_y = self.__panel_img.shape[0]
+            _coor = lambda x, y: 0 if x is None else x[y]
 
-        out_image_x = 0
-        out_image_y = boundary_y
-        out_image_bar = 20
-        out_image_shift = {'forewings': {}, 'backwings': {}}
+            out_image_x = 0
+            out_image_y = boundary_y
+            out_image_bar = 20
+            out_image_shift = {'forewings': {}, 'backwings': {}}
 
-        # wings
-        for side in [self.LEFT, self.RIGHT]:
-            wings = None
-            show = False
-            merge_y = 0
-            alignment_x = max(
-                _coor(self.__contour_rect['forewings'][side], -2),
-                _coor(self.__contour_rect['backwings'][side], -2))
+            # wings
+            for side in [self.LEFT, self.RIGHT]:
+                wings = None
+                show = False
+                merge_y = 0
+                alignment_x = max(
+                    _coor(self.__contour_rect['forewings'][side], -2),
+                    _coor(self.__contour_rect['backwings'][side], -2))
 
-            for part in ['forewings', 'backwings']:
-                coor = self.__component[part]
-                rect = self.__contour_rect[part][side]
-                alignment_y = max(
-                    _coor(self.__contour_rect[part][self.LEFT], -1),
-                    _coor(self.__contour_rect[part][self.RIGHT], -1))
-                if coor is not None and rect is not None:
-                    show = True
-                    shift_ptx = self.centralized_rect(
-                        rect, (0, 0, alignment_x, alignment_y), part=part)
-                    out_image_shift[part][side] = (
-                        out_image_x + out_image_bar + shift_ptx[0],
-                        out_image_bar + shift_ptx[-1] + merge_y)
-                    merge_y += alignment_y
+                for part in ['forewings', 'backwings']:
+                    coor = self.__component[part]
+                    rect = self.__contour_rect[part][side]
+                    alignment_y = max(
+                        _coor(self.__contour_rect[part][self.LEFT], -1),
+                        _coor(self.__contour_rect[part][self.RIGHT], -1))
+                    if coor is not None and rect is not None:
+                        show = True
+                        shift_ptx = self.centralized_rect(
+                            rect, (0, 0, alignment_x, alignment_y), part=part)
+                        out_image_shift[part][side] = (
+                            out_image_x + out_image_bar + shift_ptx[0],
+                            out_image_bar + shift_ptx[-1] + merge_y)
+                        merge_y += alignment_y
 
-            out_image_x += out_image_bar + alignment_x + out_image_bar
-            out_image_y = max(out_image_y, merge_y)
+                out_image_x += out_image_bar + alignment_x + out_image_bar
+                out_image_y = max(out_image_y, merge_y)
 
-        # body
-        coor = self.__component['body']
-        rect = self.__contour_rect['body']
-        shift_ptx = self.centralized_rect(rect, (0, 0, rect[0], out_image_y))
-        if coor is not None and rect is not None and shift_ptx is not None:
-            out_image_shift['body'] = (out_image_x + out_image_bar, shift_ptx[-1])
-            out_image_x += out_image_bar + shift_ptx[0] + rect[-2]
-            out_image_y = max(out_image_y, shift_ptx[-1]+rect[-1])
+            # body
+            coor = self.__component['body']
+            rect = self.__contour_rect['body']
+            shift_ptx = self.centralized_rect(rect, (0, 0, rect[0], out_image_y))
+            if coor is not None and rect is not None and shift_ptx is not None:
+                out_image_shift['body'] = (out_image_x + out_image_bar, shift_ptx[-1])
+                out_image_x += out_image_bar + shift_ptx[0] + rect[-2]
+                out_image_y = max(out_image_y, shift_ptx[-1]+rect[-1])
 
-        # combine
-        out_image = self.__transparent_2x[:out_image_y, :out_image_x].copy()
-        out_image = out_image.astype('uint8')
-        for side in [self.LEFT, self.RIGHT]:
-            for part in ['forewings', 'backwings']:
-                x, y, w, h = self.__contour_rect[part][side]
-                X, Y = out_image_shift[part][side]
-                coor = self.__contour_part[part][side]
-                shift_coor = (coor[0]-(y-Y), coor[1]-(x-X))
-                coor_mask, _ = self.filled_component(self.orig_image, coor)
+            # combine
+            out_image = self.__transparent_2x[:out_image_y, :out_image_x].copy()
+            out_image = out_image.astype('uint8')
+            for side in [self.LEFT, self.RIGHT]:
+                for part in ['forewings', 'backwings']:
+                    x, y, w, h = self.__contour_rect[part][side]
+                    X, Y = out_image_shift[part][side]
+                    coor = self.__contour_part[part][side]
+                    shift_coor = (coor[0]-(y-Y), coor[1]-(x-X))
+                    coor_mask, _ = self.filled_component(self.orig_image, coor)
 
-                shift_y, shift_x = self.matrix_shifting(x-X, y-Y, coor_mask)
-                coor_cond = np.where(coor_mask == 255)
-                out_image[shift_y, shift_x] = self.orig_image[coor_cond]
+                    shift_y, shift_x = self.matrix_shifting(x-X, y-Y, coor_mask)
+                    coor_cond = np.where(coor_mask == 255)
+                    out_image[shift_y, shift_x] = self.orig_image[coor_cond]
 
-        x, y, w, h = self.__contour_rect['body']
-        X, Y = out_image_shift['body']
-        coor = self.__contour_part['body']
-        coor_mask, _ = self.filled_component(self.orig_image, coor)
-        shift_y, shift_x = self.matrix_shifting(x-X, y-Y, coor_mask)
-        coor_cond = np.where(coor_mask == 255)
-        out_image[shift_y, shift_x] = self.orig_image[coor_cond]
+            x, y, w, h = self.__contour_rect['body']
+            X, Y = out_image_shift['body']
+            coor = self.__contour_part['body']
+            coor_mask, _ = self.filled_component(self.orig_image, coor)
+            shift_y, shift_x = self.matrix_shifting(x-X, y-Y, coor_mask)
+            coor_cond = np.where(coor_mask == 255)
+            out_image[shift_y, shift_x] = self.orig_image[coor_cond]
 
-        # check over size
-        if out_image.shape[0] > boundary_y:
-            logging.warning('{} not fit in the shape of output image {}'.format(
-                wings.shape, out_image.shape))
-            ratio = boundary_y/out_image.shape[0]
-            dim = (out_image.shape[1], int(out_image.shape[0]*ratio))
-            wings = cv2.resize(wings, dim, interpolation=cv2.INTER_AREA)
+            # check over size
+            if out_image.shape[0] > boundary_y:
+                logging.warning('{} not fit in the shape of output image {}'.format(
+                    wings.shape, out_image.shape))
+                ratio = boundary_y/out_image.shape[0]
+                dim = (out_image.shape[1], int(out_image.shape[0]*ratio))
+                wings = cv2.resize(wings, dim, interpolation=cv2.INTER_AREA)
 
-        self.__output_img = out_image
+            self.__output_img = out_image
+
+        except Exception as e:
+            logging.exception('{}'.format(e))
+            h, w, channel = self.__output_img.shape
+            font = cv2.FONT_HERSHEY_TRIPLEX
+            self.__output_img = self.__output_img.astype('float64')
+            self.__output_img[:] *= 0.22
+            cv2.putText(self.__output_img, 'Error', (int(w/3), int(h/2)), font, 3, self.RED, 3)
 
     def get_smooth_line(self, track):
         fx, fy = zip(*track)
