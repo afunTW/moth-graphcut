@@ -288,6 +288,7 @@ class GraphCut(BaseGraphCut):
         self.instruction.row_append('q', 'Save & Exit')
         self.instruction.row_append('n', 'Next picture')
         self.instruction.row_append('p', 'Previous picture')
+        self.instruction.row_append('c', 'on/off contract setting')
         self.instruction.row_append('w/UP', 'Increase threshold')
         self.instruction.row_append('s/DOWN', 'Decrease threshold')
         self.instruction.row_append('a/LEFT', 'Move line')
