@@ -792,7 +792,7 @@ class GraphCut(BaseGraphCut):
                     MBox = MessageBox()
                     want_save = MBox.ask_ques()
                     if want_save: self.STATE = 'pause'
-                    else: continue
+                    else: break
                 break
             elif k == ord('p'):
                 self.ACTION = 'previous'
@@ -800,7 +800,7 @@ class GraphCut(BaseGraphCut):
                     MBox = MessageBox()
                     want_save = MBox.ask_ques()
                     if want_save: self.STATE = 'pause'
-                    else: continue
+                    else: break
                 break
             elif k == self.KEY_UP or k == ord('w'):
                 while True:
