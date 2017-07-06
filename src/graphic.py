@@ -27,7 +27,7 @@ class GraphCut(BaseGraphCut):
         self.__is_right_draw = False
         self.__is_eliminate = False
         self.__job_queue = []
-        self.__contract = False
+        self.__contract = True
 
         # image
         if orig_image is None:
