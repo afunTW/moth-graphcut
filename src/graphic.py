@@ -755,8 +755,7 @@ class GraphCut(BaseGraphCut):
             cv2.namedWindow(self.filename, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
 
         cv2.createTrackbar('Gamma',self.filename,100, 250, self.null_callback)
-        cv2.createTrackbar('Threshold',self.filename,self.THRESHOLD, 255, self.null_callback)
-        cv2.createTrackbar('Refresh',self.filename,0, 1, self.null_callback)
+        cv2.createTrackbar('Threshold',self.filename, self.THRESHOLD, 255, self.null_callback)
         cv2.setMouseCallback(self.filename, self.onmouse)
         logging.info('Begin with STATE={}'.format(self.STATE))
 
@@ -874,16 +873,15 @@ class GraphCut(BaseGraphCut):
                 self.draw()
 
             threshold = cv2.getTrackbarPos('Threshold', self.filename)
-            switch = cv2.getTrackbarPos('Refresh', self.filename)
 
-            if switch:
-                if threshold == 0:
-                    cv2.setTrackbarPos('Threshold', self.filename, 1)
-                elif threshold == 255:
-                    cv2.setTrackbarPos('Threshold', self.filename, 254)
-                elif threshold != self.THRESHOLD:
-                    self.THRESHOLD = threshold
-                    self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
+            # trackbar
+            if threshold == 0:
+                cv2.setTrackbarPos('Threshold', self.filename, 1)
+            elif threshold == 255:
+                cv2.setTrackbarPos('Threshold', self.filename, 254)
+            elif threshold != self.THRESHOLD:
+                self.THRESHOLD = threshold
+                self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
             # handle heavy job
             if self.__job_queue:
