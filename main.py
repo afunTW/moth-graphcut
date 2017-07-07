@@ -192,6 +192,7 @@ def main(args):
                     if moth_index < 0 and _tmp_index is not None:
                         moth_index = _tmp_index
                         _tmp_index = None
+                        navigation = True
                         next_index = 1
                         moth_index = max(moth_index, 0)
                     continue
