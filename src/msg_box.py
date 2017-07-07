@@ -52,6 +52,24 @@ class Instruction(object):
         self.__hotkey.append(hotkey)
         self.__action.append(description)
 
+    @staticmethod
+    def center(win):
+        """
+        centers a tkinter window
+        :param win: the root or Toplevel window to center
+        """
+        win.update_idletasks()
+        width = win.winfo_width()
+        frm_width = win.winfo_rootx() - win.winfo_x()
+        win_width = width + 2 * frm_width
+        height = win.winfo_height()
+        titlebar_height = win.winfo_rooty() - win.winfo_y()
+        win_height = height + titlebar_height + frm_width
+        x = win.winfo_screenwidth() // 2 - win_width // 2
+        y = win.winfo_screenheight() // 2 - win_height // 2
+        win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+        win.deiconify()
+
     def show(self):
         self.window = tk.Tk()
         self.window.title(self.title)
@@ -70,4 +88,5 @@ class Instruction(object):
         for i, description in enumerate(self.__action):
             ttk.Label(action, text=description, font=self.content_font).grid(column=1, row=i, sticky=tk.W)
 
+        self.center(self.window)
         self.window.mainloop()
