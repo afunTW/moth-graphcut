@@ -169,8 +169,9 @@ def main(args):
 
         # core
         moth_index = 0
-        navigation = False
         next_index = 1
+        _tmp_index = None
+        navigation = False
         while True:
             if moth_index >= len(moths) or moth_index < 0: break
             moth = moths[moth_index]
@@ -188,6 +189,10 @@ def main(args):
                 logging.info('  * STATE = {}'.format(exist_data[key]['state']))
                 if not navigation and not args.all and is_done and not args.image:
                     moth_index += next_index
+                    if moth_index < 0 and not _tmp_index:
+                        moth_index = _tmp_index
+                        _tmp_index = None
+                        moth_index = max(moth_index, 0)
                     continue
 
                 with open(key_json, 'r') as f:
@@ -223,6 +228,7 @@ def main(args):
                     logging.warning('No more moth can be skipped')
                     continue
                 navigation = True if result.ACTION == 'nav_previous' else False
+                _tmp_index = moth_index
                 next_index = -1
                 moth_index += next_index
             else:
