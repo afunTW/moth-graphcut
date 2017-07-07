@@ -184,7 +184,8 @@ def main(args):
             if key in exist_data.keys() and os.path.exists(key_json):
 
                 is_done = (exist_data[key]['state'] == 'done')
-                if not navigation and not args.all and is_done:
+                logging.info('  * STATE = {}'.format(exist_data[key]['state']))
+                if not navigation and not args.all and is_done and not args.image:
                     moth_index += 1
                     continue
 
