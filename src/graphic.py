@@ -87,7 +87,7 @@ class GraphCut(BaseGraphCut):
         tmp_image = self.__panel_img.copy()
         if self.__contract:
             tmp_image = tmp_image.astype('float64')
-            gamma = cv2.getTrackbarPos('Gamma', 'panel')
+            gamma = cv2.getTrackbarPos('Gamma', self.filename)
             tmp_image[:] /= 255
             tmp_image[:] = tmp_image[:]**(gamma/100)
             tmp_image[:] *= 255
@@ -749,22 +749,22 @@ class GraphCut(BaseGraphCut):
         self.draw()
 
         if os.name == 'posix':
-            cv2.namedWindow('panel',
+            cv2.namedWindow(self.filename,
                 cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         elif os.name == 'nt':
-            cv2.namedWindow('panel', cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
+            cv2.namedWindow(self.filename, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
 
-        cv2.createTrackbar('Gamma','panel',100, 250, self.null_callback)
-        cv2.createTrackbar('Threshold','panel',self.THRESHOLD, 255, self.null_callback)
-        cv2.createTrackbar('Refresh','panel',0, 1, self.null_callback)
-        cv2.setMouseCallback('panel', self.onmouse)
+        cv2.createTrackbar('Gamma',self.filename,100, 250, self.null_callback)
+        cv2.createTrackbar('Threshold',self.filename,self.THRESHOLD, 255, self.null_callback)
+        cv2.createTrackbar('Refresh',self.filename,0, 1, self.null_callback)
+        cv2.setMouseCallback(self.filename, self.onmouse)
         logging.info('Begin with STATE={}'.format(self.STATE))
 
         while True:
-            cv2.imshow('panel', self.show_image)
+            cv2.imshow(self.filename, self.show_image)
             k = cv2.waitKey(1)
 
-            if os.name == 'nt' and cv2.getWindowProperty('panel', 0) == -1:
+            if os.name == 'nt' and cv2.getWindowProperty(self.filename, 0) == -1:
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
@@ -831,7 +831,7 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD += 1
-                cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
+                cv2.setTrackbarPos('Threshold', self.filename, self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == self.KEY_DOWN or k == ord('s') or k == ord('S'):
                 while True:
@@ -849,7 +849,7 @@ class GraphCut(BaseGraphCut):
                     continue
                 self.__modified = True
                 self.THRESHOLD -= 1
-                cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
+                cv2.setTrackbarPos('Threshold', self.filename, self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
             elif k == ord('r') or k == ord('R'):
                 self.__modified = True
@@ -873,14 +873,14 @@ class GraphCut(BaseGraphCut):
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
 
-            threshold = cv2.getTrackbarPos('Threshold', 'panel')
-            switch = cv2.getTrackbarPos('Refresh', 'panel')
+            threshold = cv2.getTrackbarPos('Threshold', self.filename)
+            switch = cv2.getTrackbarPos('Refresh', self.filename)
 
             if switch:
                 if threshold == 0:
-                    cv2.setTrackbarPos('Threshold', 'panel', 1)
+                    cv2.setTrackbarPos('Threshold', self.filename, 1)
                 elif threshold == 255:
-                    cv2.setTrackbarPos('Threshold', 'panel', 254)
+                    cv2.setTrackbarPos('Threshold', self.filename, 254)
                 elif threshold != self.THRESHOLD:
                     self.THRESHOLD = threshold
                     self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
