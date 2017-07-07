@@ -779,6 +779,38 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
+            elif os.name == 'nt' and k == self.PAGEUP:
+                self.ACTION = 'previous'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
+                    else: break
+                break
+            elif os.name == 'nt' and k == self.PAGEDOWN:
+                self.ACTION = 'next'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
+                    else: break
+                break
+            elif k == ord('p') or k == ord('P'):
+                self.ACTION = 'nav_previous'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
+                    else: break
+                break
+            elif k == ord('n') or k == ord('N'):
+                self.ACTION = 'nav_next'
+                if self.__modified:
+                    MBox = MessageBox()
+                    want_save = MBox.ask_ques()
+                    if want_save: self.STATE = 'pause'
+                    else: break
+                break
             elif k == ord('u') or k == ord('U'):
                 if len(self.__tracking_label['eliminate']) > 0:
                     pop_track = self.__tracking_label['eliminate'][-1]
@@ -810,22 +842,9 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'pause'
                 self.ACTION = 'save'
                 break
-            elif k == ord('n') or k == ord('N'):
-                self.ACTION = 'next'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
-                break
-            elif k == ord('p') or k == ord('P'):
-                self.ACTION = 'previous'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
-                break
+            elif k == ord('r') or k == ord('R'):
+                self.__modified = True
+                self.reset()
             elif k == self.KEY_UP or k == ord('w') or k == ord('W'):
                 while True:
                     check_k = cv2.waitKey(200)
@@ -862,9 +881,6 @@ class GraphCut(BaseGraphCut):
                 self.THRESHOLD -= 1
                 cv2.setTrackbarPos('Threshold', self.filename, self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
-            elif k == ord('r') or k == ord('R'):
-                self.__modified = True
-                self.reset()
             elif k == self.KEY_LEFT or k == ord('a') or k == ord('A'):
                 if self.__was_left_draw or self.__was_right_draw: continue
                 self.__modified = True

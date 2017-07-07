@@ -206,21 +206,21 @@ def main(args):
                     break
             elif result.ACTION == 'quit':
                 break
-            elif result.ACTION == 'next':
+            elif result.ACTION in ['nav_next', 'next']:
                 if result.STATE == 'pause':
                     saved_metadata(result, key_json)
                 if moth_index + 1 >= len(moths):
                     logging.warning('No more moth can be skipped')
                     continue
-                navigation = True
+                navigation = True if result.ACTION == 'nav_next' else False
                 moth_index += 1
-            elif result.ACTION == 'previous':
+            elif result.ACTION in ['nav_previous', 'previous']:
                 if result.STATE == 'pause':
                     saved_metadata(result, key_json)
                 if moth_index - 1 < 0:
                     logging.warning('No more moth can be skipped')
                     continue
-                navigation = True
+                navigation = True if result.ACTION == 'nav_previous' else False
                 moth_index -= 1
             else:
                 logging.warning('No specific action')
