@@ -616,8 +616,8 @@ class GraphCut(BaseGraphCut):
             self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
 
         elif event == cv2.EVENT_LBUTTONDOWN:
+            self.__modified = True
             if self.__is_body:
-                self.__modified = True
                 if side in [self.LEFT, self.RIGHT]:
                     self.__panel_img = self.__orig_img.copy()
                     is_tracking(side)
@@ -912,4 +912,5 @@ class GraphCut(BaseGraphCut):
                         func()
                         self.__job_queue = [(date, func, 'done')]
 
+        logging.info('End with STATE={}'.format(self.STATE))
         cv2.destroyAllWindows()
