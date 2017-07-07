@@ -93,7 +93,7 @@ class GraphCut(BaseGraphCut):
             tmp_image[:] *= 255
 
         out_image = np.hstack((tmp_image, out_image))
-        cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
+        # cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
         cv2.putText(out_image, threshold, (15, button_y), font, scale, fontcolor)
         out_image = out_image.astype('uint8')
         return out_image
