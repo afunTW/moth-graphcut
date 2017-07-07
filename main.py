@@ -118,6 +118,7 @@ def saved_metadata(gc, saved_file):
     data = {
         'name': gc.filename,
         'state': gc.STATE,
+        'gamma': gc.gamma,
         'mirror_line': gc.mirror_line,
         'mirror_shift': gc.mirror_shift,
         'tracking_label': gc.tracking_label,
@@ -138,10 +139,12 @@ def main(args):
     '''
     template_path = 'image/10mm.png'
     metadata_path = 'metadata/'
+    ext = ['jpg', 'jpeg', 'png']
     metadata_path = os.path.abspath(metadata_path)
     metadata_map = os.path.join(metadata_path, 'map.json')
     moths_path = os.path.abspath('image/sample')
     moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
+    moths = [moth for moth in moths if moth.split('.')[-1] in ext]
     moths = sorted(moths)
     flatten = lambda l: [item for sublist in l for item in sublist]
 
@@ -150,7 +153,6 @@ def main(args):
         if args.image: moths += [os.path.abspath(img) for img in args.image]
         if args.recursive:
             for repo in args.recursive:
-                ext = ['jpg', 'jpeg', 'png']
                 repo = [os.path.abspath(repo) + '/**/*.' + e for e in ext]
                 repo = [glob.glob(r, recursive=True) for r in repo]
                 repo = flatten(repo)
@@ -179,8 +181,9 @@ def main(args):
                 moth_index+1, len(moths), moth.split(os.sep)[-1]))
 
             key = sha1(moth.encode('utf-8')).hexdigest()
-            key_json = ''.join([key, '.json'])
-            key_json = os.path.join(metadata_path, key_json)
+            moth_path_split = moth.split(os.sep)
+            key_json = ''.join([moth_path_split[-1].split('.')[0], '.json'])
+            key_json = os.path.join(os.sep.join(moth_path_split[:-1]), key_json)
             result = None
 
             if key in exist_data.keys() and os.path.exists(key_json):
