@@ -170,6 +170,7 @@ def main(args):
         # core
         moth_index = 0
         navigation = False
+        next_index = 1
         while True:
             if moth_index >= len(moths) or moth_index < 0: break
             moth = moths[moth_index]
@@ -186,7 +187,7 @@ def main(args):
                 is_done = (exist_data[key]['state'] == 'done')
                 logging.info('  * STATE = {}'.format(exist_data[key]['state']))
                 if not navigation and not args.all and is_done and not args.image:
-                    moth_index += 1
+                    moth_index += next_index
                     continue
 
                 with open(key_json, 'r') as f:
@@ -213,7 +214,8 @@ def main(args):
                     logging.warning('No more moth can be skipped')
                     continue
                 navigation = True if result.ACTION == 'nav_next' else False
-                moth_index += 1
+                next_index = 1
+                moth_index += next_index
             elif result.ACTION in ['nav_previous', 'previous']:
                 if result.STATE == 'pause':
                     saved_metadata(result, key_json)
@@ -221,7 +223,8 @@ def main(args):
                     logging.warning('No more moth can be skipped')
                     continue
                 navigation = True if result.ACTION == 'nav_previous' else False
-                moth_index -= 1
+                next_index = -1
+                moth_index += next_index
             else:
                 logging.warning('No specific action')
                 moth_index += 1
