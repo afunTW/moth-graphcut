@@ -17,6 +17,7 @@ class GraphCut(BaseGraphCut):
 
     def __init__(self, filename, orig_image=None):
         super().__init__(filename)
+        self.__gamma = 100
 
         # flags & others
         self.__modified = False
@@ -91,6 +92,7 @@ class GraphCut(BaseGraphCut):
             tmp_image[:] /= 255
             tmp_image[:] = tmp_image[:]**(gamma/100)
             tmp_image[:] *= 255
+            self.__gamma = gamma
 
         out_image = np.hstack((tmp_image, out_image))
         # cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
@@ -170,15 +172,15 @@ class GraphCut(BaseGraphCut):
 
     @property
     def gamma(self):
-        gamma = cv2.getTrackbarPos('Gamma', self.filename)
-        return gamma/100
+        return self.__gamma/100
 
     @gamma.setter
     def gamma(self, g):
         try:
             cv2.setTrackbarPos('Gamma', self.filename, g*100)
+            self.__gamma = g*100
         except:
-            cv2.setTrackbarPos('Gamma', self.filename, 100)
+            cv2.setTrackbarPos('Gamma', self.filename, self.__gamma)
 
     def gen_output_image(self):
         try:
