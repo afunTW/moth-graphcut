@@ -768,23 +768,23 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'exit'
                 self.ACTION = 'quit'
                 break
-            elif k == ord('u'):
+            elif k == ord('u') or k == ord('U'):
                 if len(self.__tracking_label['eliminate']) > 0:
                     pop_track = self.__tracking_label['eliminate'][-1]
                     self.__tracking_label['eliminate'] = self.__tracking_label['eliminate'][:-1]
                     self.__tracking_label['tmp'].append(pop_track)
                     self.__panel_img = self.__orig_img.copy()
                     self.draw()
-            elif k == ord('y'):
+            elif k == ord('y') or k == ord('Y'):
                 if len(self.__tracking_label['tmp']) > 0:
                     pop_track = self.__tracking_label['tmp'][-1]
                     self.__tracking_label['eliminate'].append(pop_track)
                     self.__tracking_label['tmp'] = self.__tracking_label['tmp'][:-1]
                     self.__panel_img = self.__orig_img.copy()
                     self.draw()
-            elif k == ord('c'):
+            elif k == ord('c') or k == ord('C'):
                 self.__contract = not self.__contract
-            elif k == ord('h'):
+            elif k == ord('h') or k == ord('H'):
                 self.load_current_instruction()
                 self.instruction.show()
             elif k == 27:
@@ -795,11 +795,11 @@ class GraphCut(BaseGraphCut):
                 self.STATE = 'done'
                 self.ACTION = 'save'
                 break
-            elif k == ord('q'):
+            elif k == ord('q') or k == ord('Q'):
                 self.STATE = 'pause'
                 self.ACTION = 'save'
                 break
-            elif k == ord('n'):
+            elif k == ord('n') or k == ord('N'):
                 self.ACTION = 'next'
                 if self.__modified:
                     MBox = MessageBox()
@@ -807,7 +807,7 @@ class GraphCut(BaseGraphCut):
                     if want_save: self.STATE = 'pause'
                     else: break
                 break
-            elif k == ord('p'):
+            elif k == ord('p') or k == ord('P'):
                 self.ACTION = 'previous'
                 if self.__modified:
                     MBox = MessageBox()
@@ -815,7 +815,7 @@ class GraphCut(BaseGraphCut):
                     if want_save: self.STATE = 'pause'
                     else: break
                 break
-            elif k == self.KEY_UP or k == ord('w'):
+            elif k == self.KEY_UP or k == ord('w') or k == ord('W'):
                 while True:
                     check_k = cv2.waitKey(200)
                     if check_k == self.KEY_UP or check_k == ord('w'):
@@ -833,7 +833,7 @@ class GraphCut(BaseGraphCut):
                 self.THRESHOLD += 1
                 cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
-            elif k == self.KEY_DOWN or k == ord('s'):
+            elif k == self.KEY_DOWN or k == ord('s') or k == ord('S'):
                 while True:
                     check_k = cv2.waitKey(200)
                     if check_k == self.KEY_DOWN or check_k == ord('s'):
@@ -851,10 +851,10 @@ class GraphCut(BaseGraphCut):
                 self.THRESHOLD -= 1
                 cv2.setTrackbarPos('Threshold', 'panel', self.THRESHOLD)
                 self.__job_queue.append((datetime.now(), self.split_component, 'idle'))
-            elif k == ord('r'):
+            elif k == ord('r') or k == ord('R'):
                 self.__modified = True
                 self.reset()
-            elif k == self.KEY_LEFT or k == ord('a'):
+            elif k == self.KEY_LEFT or k == ord('a') or k == ord('A'):
                 if self.__was_left_draw or self.__was_right_draw: continue
                 self.__modified = True
                 pt1, pt2 = self.__mirror_line
@@ -863,7 +863,7 @@ class GraphCut(BaseGraphCut):
                 self.__mirror_line = (pt1, pt2)
                 self.__panel_img = self.__orig_img.copy()
                 self.draw()
-            elif k == self.KEY_RIGHT or k == ord('d'):
+            elif k == self.KEY_RIGHT or k == ord('d') or k == ord('D'):
                 if self.__was_left_draw or self.__was_right_draw: continue
                 self.__modified = True
                 pt1, pt2 = self.__mirror_line
