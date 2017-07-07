@@ -168,6 +168,18 @@ class GraphCut(BaseGraphCut):
     def components(self):
         return self.__component
 
+    @property
+    def gamma(self):
+        gamma = cv2.getTrackbarPos('Gamma', self.filename)
+        return gamma/100
+
+    @gamma.setter
+    def gamma(self, g):
+        try:
+            cv2.setTrackbarPos('Gamma', self.filename, g*100)
+        except:
+            cv2.setTrackbarPos('Gamma', self.filename, 100)
+
     def gen_output_image(self):
         try:
             out_image = None
