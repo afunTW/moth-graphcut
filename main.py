@@ -231,6 +231,7 @@ def main(args):
                 _tmp_index = moth_index
                 next_index = -1
                 moth_index += next_index
+                moth_index = max(moth_index, 0)
             else:
                 logging.warning('No specific action')
                 moth_index += 1
