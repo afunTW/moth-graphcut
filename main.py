@@ -189,9 +189,10 @@ def main(args):
                 logging.info('  * STATE = {}'.format(exist_data[key]['state']))
                 if not navigation and not args.all and is_done and not args.image:
                     moth_index += next_index
-                    if moth_index < 0 and not _tmp_index:
+                    if moth_index < 0 and _tmp_index is not None:
                         moth_index = _tmp_index
                         _tmp_index = None
+                        next_index = 1
                         moth_index = max(moth_index, 0)
                     continue
 
