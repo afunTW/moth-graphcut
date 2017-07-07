@@ -39,6 +39,8 @@ class Instruction(object):
     def __init__(self, title='Settings'):
         super().__init__()
         self.title = title
+        self.label_font = ('Helvetica', 14, 'bold')
+        self.content_font = ('Helvetica', 12)
         self.__hotkey = []
         self.__action = []
 
@@ -55,14 +57,17 @@ class Instruction(object):
         self.window.title(self.title)
         self.window.resizable(0, 0)
 
-        hotkey = ttk.LabelFrame(self.window, text='Hotkey')
+        s = ttk.Style()
+        s.configure('BLUE.TLabelframe.Label', foreground='blue', font=self.label_font)
+
+        hotkey = ttk.LabelFrame(self.window, text='Hotkey', style='BLUE.TLabelframe')
         hotkey.grid(column=0, row=len(self.__hotkey))
         for i, k in enumerate(self.__hotkey):
-            ttk.Label(hotkey, text=k).grid(column=0, row=i)
+            ttk.Label(hotkey, text=k, font=self.content_font).grid(column=0, row=i)
 
-        action = ttk.LabelFrame(self.window, text='Action')
+        action = ttk.LabelFrame(self.window, text='Action', style='BLUE.TLabelframe')
         action.grid(column=1, row=len(self.__action))
         for i, description in enumerate(self.__action):
-            ttk.Label(action, text=description).grid(column=1, row=i, sticky=tk.W)
+            ttk.Label(action, text=description, font=self.content_font).grid(column=1, row=i, sticky=tk.W)
 
         self.window.mainloop()
