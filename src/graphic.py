@@ -310,6 +310,11 @@ class GraphCut(BaseGraphCut):
         self.instruction.row_append('s/DOWN', 'Decrease threshold')
         self.instruction.row_append('a/LEFT', 'Move line')
         self.instruction.row_append('d/RIGHT', 'Move line')
+
+        if os.name == 'nt':
+            self.instruction.row_append('PAGEUP', 'Previous undone picture')
+            self.instruction.row_append('PAGEDOWN', 'Next undone picture')
+
         self.instruction.row_append('MOUSE LEFT', mouse_left)
         self.instruction.row_append('MOUSE RIGHT', mouse_right)
 
