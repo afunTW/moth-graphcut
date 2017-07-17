@@ -311,22 +311,6 @@ class GraphCut(BaseGraphCut):
         self.instruction.row_append('MOUSE LEFT', mouse_left)
         self.instruction.row_append('MOUSE RIGHT', mouse_right)
 
-    def get_interp_ptx(self, block):
-        block = sorted(block, key=lambda ptx: ptx[0])
-        xp = [p[0] for p in block]
-        fp = [p[1] for p in block]
-
-        # f = interp1d(xp, fp, kind='linear', copy=False)
-        # track = [(
-        #     int(x), int(f(x))
-        #     ) for x in range(min(xp), max(xp)+1)]
-
-        track = [(
-            int(x), int(np.interp(x, xp, fp))
-            ) for x in range(min(xp), max(xp)+1)]
-
-        return track
-
     def get_shape_by_contour(self, contour):
         if not isinstance(contour, np.ndarray):
             contour = self.coor_to_contour(contour)

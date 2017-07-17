@@ -95,6 +95,17 @@ class BaseImage(object):
         coor = tuple(coor)
         return coor
 
+    def get_interp_ptx(self, block):
+        block = sorted(block, key=lambda ptx: ptx[0])
+        xp = [p[0] for p in block]
+        fp = [p[1] for p in block]
+
+        track = [(
+            int(x), int(np.interp(x, xp, fp))
+            ) for x in range(min(xp), max(xp)+1)]
+
+        return track
+
     def get_component_by(self, threshold, nth, by):
         '''
         return nth connected component by the value in stat matrix
