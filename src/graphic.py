@@ -774,7 +774,7 @@ class GraphCut(BaseGraphCut):
         elif os.name == 'nt':
             from tkinter import Tk
             root = Tk()
-            self.root.withdraw()
+            root.withdraw()
             width = root.winfo_screenwidth()
             height = root.winfo_screenheight()
             cv2.namedWindow(self.filename, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
