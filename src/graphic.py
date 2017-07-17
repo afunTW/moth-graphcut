@@ -318,61 +318,6 @@ class GraphCut(BaseGraphCut):
         self.instruction.row_append('MOUSE LEFT', mouse_left)
         self.instruction.row_append('MOUSE RIGHT', mouse_right)
 
-    def get_instruction(self, img):
-        h, w, channel = img.shape
-        line_height = 20
-        between_line = 5
-        key_esc = 'ESC: Exit'
-        key_r = '"r": Reset'
-        space = 'Space: Save'
-        key_q = '"q": Save and Exit'
-        key_n = '"n": next picture'
-        key_p = '"p": previous picture'
-        key_up = '"w" or UP: + threshold'
-        key_down = '"s" or DOWN: - threshold'
-        key_left = '"a" or LEFT: Move line'
-        key_right = '"d" or RIGHT: Move line'
-        mouse_left = 'MOUSE LEFT: '
-        mouse_right = None
-
-        if self.__tracking_label[self.LEFT] or self.__tracking_label[self.RIGHT]:
-            key_r += ' all labeling point'
-        elif self.__is_body:
-            key_r += ' line'
-
-        if not self.__is_body:
-            mouse_left += 'Get the body width'
-        elif not self.__was_left_draw or not self.__was_right_draw:
-            mouse_left += 'Separate wings by mirror mode'
-            mouse_right = 'MOUSE RIGHT: Separate connected component'
-        else:
-            mouse_left += 'Separate wings'
-            mouse_right = 'MOUSE RIGHT: Seperate connected component'
-
-        instructions = [
-            (key_left, key_right, key_up, key_down),
-            (key_q, key_r, key_esc, space), (key_n, key_p, '', '')
-        ]
-        instructions.append((mouse_left, mouse_right) if mouse_right else mouse_left)
-        doc_panel = np.zeros(((line_height+between_line)*len(instructions), w, 3))
-
-        for i, instra in enumerate(instructions):
-            y = line_height*(i+1) + between_line*i
-            font = cv2.FONT_HERSHEY_TRIPLEX
-            scale = 0.5
-            fontcolor = self.WHITE
-
-            if isinstance(instra, tuple):
-                _w = int(w/len(instra))
-                for i in range(len(instra)):
-                    cv2.putText(
-                        doc_panel, instra[i], (10+_w*i, y),
-                        font, scale, fontcolor)
-            else:
-                cv2.putText(doc_panel, instra, (10, y), font , scale, fontcolor)
-
-        return doc_panel
-
     def get_interp_ptx(self, block):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
