@@ -778,6 +778,7 @@ class GraphCut(BaseGraphCut):
             cv2.namedWindow(self.filename, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
             cv2.resizeWindow(self.filename, width, height)
 
+        cv2.setWindowProperty(self.filename,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
         cv2.createTrackbar('Gamma',self.filename,100, 250, self.null_callback)
         cv2.createTrackbar('Threshold',self.filename, self.THRESHOLD, 255, self.null_callback)
         cv2.setMouseCallback(self.filename, self.onmouse)
