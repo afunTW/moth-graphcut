@@ -771,7 +771,12 @@ class GraphCut(BaseGraphCut):
             cv2.namedWindow(self.filename,
                 cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         elif os.name == 'nt':
+            from tkinter import Tk
+            root = Tk()
+            width = root.winfo_screenwidth()
+            height = root.winfo_screenheight()
             cv2.namedWindow(self.filename, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
+            cv2.resizeWindow(self.filename, width, height)
 
         cv2.createTrackbar('Gamma',self.filename,100, 250, self.null_callback)
         cv2.createTrackbar('Threshold',self.filename, self.THRESHOLD, 255, self.null_callback)
