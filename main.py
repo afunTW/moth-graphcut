@@ -166,8 +166,11 @@ def main(args):
             with open(metadata_map, 'w') as f:
                 json.dump({}, f)
 
-        with open(metadata_map, 'r') as f:
-            exist_data = json.load(f)
+        try:
+            with open(metadata_map, 'r') as f:
+                exist_data = json.load(f)
+        except:
+            exist_data = {}
 
         # core
         moth_index = 0
