@@ -270,13 +270,6 @@ class GraphCut(BaseGraphCut):
             self.__output_img[:] *= 0.22
             cv2.putText(self.__output_img, 'Error', (int(w/3), int(h/2)), font, 3, self.RED, 3)
 
-    def get_smooth_line(self, track):
-        fx, fy = zip(*track)
-        fy = np.asarray(fy)
-        fy = savitzky_golay(fy, window_size=11, order=4)
-        fy = [int(y) for y in fy]
-        return list(zip(fx, fy))
-
     def load_current_instruction(self):
         self.instruction.reset()
 
@@ -692,16 +685,12 @@ class GraphCut(BaseGraphCut):
 
         for side, track in self.__tracking_label.items():
             if side in [self.LEFT, self.RIGHT] and track:
-                # if len(track) > 10:
-                #     track = self.get_smooth_line(track)
                 for i, ptx in enumerate(track):
                     if i == 0: continue
                     cv2.line(self.__panel_img, track[i-1], ptx, self.BLACK, 2)
 
             elif side == 'eliminate':
                 for n, block in enumerate(track):
-                    # if len(block) > 10:
-                    #     block = self.get_smooth_line(block)
                     for i, ptx in enumerate(block):
                         if i == 0: continue
                         pt1 = block[i-1]
