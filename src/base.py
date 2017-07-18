@@ -126,8 +126,33 @@ class BaseImage(object):
         cond_sequence = sorted(cond_sequence, key=lambda x: x[1], reverse=True)
         return np.where(output[1] == cond_sequence[nth-1][0])
 
+    def get_rgba_component(self, image, mask):
+        if mask is None: return None
+        _mask = mask/255
+        _mask = np.expand_dims(_mask, axis = 2)
+        _mask = np.concatenate((_mask, _mask, _mask), axis = 2)
+        image = np.multiply(image, _mask).astype('uint8')
+        b, g, r = cv2.split(image)
+        return cv2.merge((b, g, r, mask))
 
-class BaseGraphCut(RGB, KeyHandler, BaseImage):
+class BaseCV(object):
+    def __init__(self):
+        super().__init__()
+
+    @classmethod
+    def draw_line_by_track(cls, image, src, value):
+        for i, ptx in enumerate(src):
+            if i == 0: continue
+            cv2.line(image, src[i-1], src[i], value, 2)
+        return image
+
+    @classmethod
+    def draw_line_by_block(cls, image, src, value):
+        for block in src:
+            image = BaseCV.draw_line_by_track(image, block, value)
+        return image
+
+class BaseGraphCut(RGB, KeyHandler, BaseImage, BaseCV):
     def __init__(self, filename, image=None):
         super().__init__()
         self.filename = filename
