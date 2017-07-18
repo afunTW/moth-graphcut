@@ -242,6 +242,9 @@ def main(args):
             if result.ACTION == 'save':
                 saved_metadata(result, key_json)
                 saved_rgba(result, moth_path_metadata)
+                if result.screenshot is not None:
+                    moth_path_screenshot = os.path.join(metadata_path, moth_path_filename) + '.png'
+                    cv2.imwrite(moth_path_screenshot, result.screenshot)
                 moth_index += 1
                 if result.STATE == 'pause':
                     break

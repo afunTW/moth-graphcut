@@ -17,6 +17,7 @@ class GraphCut(BaseGraphCut):
 
     def __init__(self, filename, orig_image=None):
         super().__init__(filename)
+        self.screenshot = None
         self.__gamma = 100
 
         # flags & others
@@ -98,6 +99,7 @@ class GraphCut(BaseGraphCut):
         # cv2.putText(out_image, filename, (15, 25), font, scale, fontcolor)
         cv2.putText(out_image, threshold, (15, button_y), font, scale, fontcolor)
         out_image = out_image.astype('uint8')
+        self.screenshot = out_image
         return out_image
 
     @property
