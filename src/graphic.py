@@ -182,6 +182,26 @@ class GraphCut(BaseGraphCut):
         except:
             cv2.setTrackbarPos('Gamma', self.filename, self.__gamma)
 
+    @property
+    def body(self):
+        return self.get_rgba_component(self.orig_image, self.__contour_mask['body'])
+
+    @property
+    def left_forewing(self):
+        return self.get_rgba_component(self.orig_image, self.__contour_mask['forewings'][self.LEFT])
+
+    @property
+    def left_backwing(self):
+        return self.get_rgba_component(self.orig_image, self.__contour_mask['backwings'][self.LEFT])
+
+    @property
+    def right_forewing(self):
+        return self.get_rgba_component(self.orig_image, self.__contour_mask['forewings'][self.RIGHT])
+
+    @property
+    def right_backwing(self):
+        return self.get_rgba_component(self.orig_image, self.__contour_mask['backwings'][self.RIGHT])
+
     def gen_output_image(self):
         try:
             out_image = None
@@ -372,13 +392,6 @@ class GraphCut(BaseGraphCut):
         mirror_line_x = self.__mirror_line[0][0]
         bottom_y = lambda track: max([ptx[1] for ptx in track])
 
-        def elimination(image, value):
-            for block in self.__tracking_label['eliminate']:
-                for i, ptx in enumerate(block):
-                    if i == 0: continue
-                    cv2.line(image, block[i-1], block[i], value, 2)
-            return image
-
         def get_wings(wings):
             part_wings = cv2.cvtColor(wings, cv2.COLOR_BGR2GRAY)
             ret, threshold = cv2.threshold(
@@ -411,7 +424,7 @@ class GraphCut(BaseGraphCut):
 
         def init_wings(x, y, side, part):
             wings = self.__orig_img.copy()
-            wings = elimination(wings, self.WHITE)
+            wings = self.draw_line_by_block(wings, self.__tracking_label['eliminate'], self.WHITE)
 
             if side == self.LEFT:
                 wings[:, x:] = 255
@@ -689,7 +702,6 @@ class GraphCut(BaseGraphCut):
         core function to do graph cut
         '''
         self.draw()
-
         if os.name == 'posix':
             cv2.namedWindow(self.filename,
                 cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)

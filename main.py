@@ -115,6 +115,11 @@ def all_to_list(f):
     return f
 
 def saved_metadata(gc, saved_file):
+
+    dirpath = os.path.join(os.sep.join(saved_file.split(os.sep)[:-1]))
+    if not os.path.exists(dirpath):
+        os.makedirs(dirpath)
+
     data = {
         'name': gc.filename,
         'state': gc.STATE,
@@ -129,6 +134,21 @@ def saved_metadata(gc, saved_file):
 
     with open(saved_file, 'w+') as f:
         json.dump(data, f)
+
+def saved_rgba(gc, dirpath):
+    filename = gc.filename.split(os.sep)[-1].split('.')[0]
+    if not os.path.exists(dirpath):
+        os.makedirs(dirpath)
+    if gc.left_backwing is not None:
+        cv2.imwrite(os.sep.join([dirpath, '{}_fore_left.png'.format(filename)]), gc.left_forewing)
+    if gc.left_backwing is not None:
+        cv2.imwrite(os.sep.join([dirpath, '{}_back_left.png'.format(filename)]), gc.left_backwing)
+    if gc.right_forewing is not None:
+        cv2.imwrite(os.sep.join([dirpath, '{}_fore_right.png'.format(filename)]), gc.right_forewing)
+    if gc.right_backwing is not None:
+        cv2.imwrite(os.sep.join([dirpath, '{}_back_right.png'.format(filename)]), gc.right_backwing)
+    if gc.body is not None:
+        cv2.imwrite(os.sep.join([dirpath, '{}_body.png'.format(filename)]), gc.body)
 
 def main(args):
     '''
@@ -185,14 +205,19 @@ def main(args):
 
             key = sha1(moth.encode('utf-8')).hexdigest()
             moth_path_split = moth.split(os.sep)
-            key_json = ''.join([moth_path_split[-1].split('.')[0], '.json'])
-            key_json = os.path.join(os.sep.join(moth_path_split[:-1]), key_json)
+            moth_path_dir = os.sep.join(moth_path_split[:-1])
+            moth_path_filename = moth_path_split[-1].split('.')[0]
+            moth_path_metadata = os.path.join(moth_path_dir, moth_path_filename)
+            key_json = os.path.join(moth_path_metadata, moth_path_filename + '.json')
             result = None
 
+            # get history
             if key in exist_data.keys() and os.path.exists(key_json):
 
                 is_done = (exist_data[key]['state'] == 'done')
                 logging.info('  * STATE = {}'.format(exist_data[key]['state']))
+
+                # check navigation
                 if not navigation and not args.all and is_done and not args.image:
                     moth_index += next_index
                     if moth_index < 0 and _tmp_index is not None:
@@ -213,8 +238,10 @@ def main(args):
                 exist_data.update({key: {'file': moth, 'state': result.STATE}})
                 json.dump(exist_data, f, indent=4)
 
+            # handling action
             if result.ACTION == 'save':
                 saved_metadata(result, key_json)
+                saved_rgba(result, moth_path_metadata)
                 moth_index += 1
                 if result.STATE == 'pause':
                     break
