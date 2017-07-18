@@ -236,9 +236,13 @@ class GraphCut(BaseGraphCut):
                 for part in ['forewings', 'backwings']:
                     x, y, w, h = self.__contour_rect[part][side]
                     X, Y = out_image_shift[part][side]
-                    coor = self.__contour_part[part][side]
-                    shift_coor = (coor[0]-(y-Y), coor[1]-(x-X))
-                    coor_mask, _ = self.filled_component(self.orig_image, coor)
+                    coor_mask = None
+
+                    if self.__contour_mask[part][side] is not None:
+                        coor_mask = self.__contour_mask[part][side]
+                    else:
+                        coor_mask = self.filled_component(
+                            self.orig_image, self.__contour_part[part][side])
 
                     shift_y, shift_x = self.matrix_shifting(x-X, y-Y, coor_mask)
                     coor_cond = np.where(coor_mask == 255)
@@ -752,6 +756,7 @@ class GraphCut(BaseGraphCut):
                     self.__tracking_label['eliminate'] = self.__tracking_label['eliminate'][:-1]
                     self.__tracking_label['tmp'].append(pop_track)
                     self.__panel_img = self.__orig_img.copy()
+                    self.split_component()
                     self.draw()
             elif k == ord('y') or k == ord('Y'):
                 if len(self.__tracking_label['tmp']) > 0:
@@ -759,6 +764,7 @@ class GraphCut(BaseGraphCut):
                     self.__tracking_label['eliminate'].append(pop_track)
                     self.__tracking_label['tmp'] = self.__tracking_label['tmp'][:-1]
                     self.__panel_img = self.__orig_img.copy()
+                    self.split_component()
                     self.draw()
             elif k == ord('c') or k == ord('C'):
                 self.__contract = not self.__contract
