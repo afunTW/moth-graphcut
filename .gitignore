@@ -91,4 +91,5 @@ ENV/
 # user-defined
 metadata/
 image/sample/*.json
+image/sample/*
 *.cprof
