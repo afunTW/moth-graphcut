@@ -734,35 +734,23 @@ class GraphCut(BaseGraphCut):
                 break
             elif os.name == 'nt' and k == self.PAGEUP:
                 self.ACTION = 'previous'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
+                if self.__modified and self.ask_to_save():
+                    self.STATE = 'pause'
                 break
             elif os.name == 'nt' and k == self.PAGEDOWN:
                 self.ACTION = 'next'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
+                if self.__modified and self.ask_to_save():
+                    self.STATE = 'pause'
                 break
             elif k == ord('p') or k == ord('P'):
                 self.ACTION = 'nav_previous'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
+                if self.__modified and self.ask_to_save():
+                    self.STATE = 'pause'
                 break
             elif k == ord('n') or k == ord('N'):
                 self.ACTION = 'nav_next'
-                if self.__modified:
-                    MBox = MessageBox()
-                    want_save = MBox.ask_ques()
-                    if want_save: self.STATE = 'pause'
-                    else: break
+                if self.__modified and self.ask_to_save():
+                    self.STATE = 'pause'
                 break
             elif k == ord('u') or k == ord('U'):
                 if len(self.__tracking_label['eliminate']) > 0:

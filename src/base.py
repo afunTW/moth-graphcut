@@ -5,6 +5,7 @@ import numpy as np
 
 from src.color import RGB
 from src.keyboard import KeyHandler
+from src.msg_box import MessageBox
 from src.msg_box import Instruction
 from scipy.spatial.distance import cosine
 
@@ -168,3 +169,8 @@ class BaseGraphCut(RGB, KeyHandler, BaseImage, BaseCV):
 
     def null_callback(self, value):
         pass
+
+    def ask_to_save(self):
+        MBox = MessageBox()
+        want_save = MBox.ask_ques()
+        return want_save
