@@ -1,6 +1,5 @@
 # moth-graphcut
-An interactive app to do graph cut with moth images
-
+An interactive application for moth graphcut, but only accept the source from [dearlep](http://dearlep.tw/)
 ## Usage
 
 ```
@@ -15,10 +14,23 @@ optional arguments:
 
 **Example input image**
 
-<img src="https://github.com/afunTW/moth-graphcut/raw/master/image/sample/7.jpg" alt="0" width="400">
+<img src="https://github.com/afunTW/moth-graphcut/raw/master/image/sample/3.jpg" alt="0" width="400">
 
 **Example operation window**
-![image](https://user-images.githubusercontent.com/4820492/27267443-fcf0f036-54da-11e7-89ac-1e5145f560e8.png)
+![image/sample/3.jpg](https://user-images.githubusercontent.com/4820492/28349942-5a76d20c-6c78-11e7-92cf-d7141bbb8917.png)
+
+- black tracking label present the seperate part
+- red tracking label present the elimination
+- gamma track bar present the adjustment of image brightness that my useful for light color or transparent moth
+- threshold track bar present the threshold for mask
+- Press 'h' to get others functionalities
+
+Press SPACE to save the image result:
+
+- new directory at the same place of image path
+  - 5 components saved in rgba png with transparent background 
+  - metadata json
+- overview screen shot at the `moth-graphcut/metadata/`
 
 ## Metadata format
 The program will create a metadata directory and save image metadata per image with hash filename. And there will be another file named `map.json` to map the image to hash file name and the state of image. If user run the program again, it will check the image history from map.json then roll back.
