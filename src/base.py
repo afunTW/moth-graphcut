@@ -14,7 +14,8 @@ class BaseImage(object):
     def __init__(self):
         super().__init__()
 
-    def generate_transparent(self, shape, n=10, color=125):
+    @classmethod
+    def generate_transparent(cls, shape, n=10, color=125):
         '''
         generate transparents background
         '''
@@ -27,7 +28,8 @@ class BaseImage(object):
 
         return img
 
-    def generate_mirror_line(self, image, scope=10):
+    @classmethod
+    def generate_mirror_line(cls, image, scope=10):
         '''
         generate mirror line
         '''
@@ -54,7 +56,8 @@ class BaseImage(object):
         logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
 
-    def filled_component(self, img, contour, threshold=255):
+    @classmethod
+    def filled_component(cls, img, contour, threshold=255):
         cmp_img = np.zeros_like(img)
         cmp_img[contour] = img[contour]
         cmp_img = cv2.cvtColor(cmp_img, cv2.COLOR_BGR2GRAY)
@@ -64,13 +67,15 @@ class BaseImage(object):
         cv2.drawContours(cmp_img, cnt, -1, threshold, -1)
         return cmp_img, cnt
 
-    def matrix_shifting(self, x, y, mat, threshold=255):
+    @classmethod
+    def matrix_shifting(cls, x, y, mat, threshold=255):
         coor = np.argwhere(mat == threshold).transpose()
         col, row = coor[0], coor[1]
         row_shift, col_shift = row-x, col-y
         return col_shift, row_shift
 
-    def coor_to_contour(self, coor):
+    @classmethod
+    def coor_to_contour(cls, coor):
         '''
         coor = (array([y_axis], array([x_axis])
         contour = array([
@@ -87,6 +92,7 @@ class BaseImage(object):
         cnt = cnt.astype('int32')
         return cnt
 
+    @classmethod
     def contour_to_coor(self, contour):
         coor = contour.reshape(contour.shape[0], 2)
         coor = coor.transpose()
@@ -96,6 +102,7 @@ class BaseImage(object):
         coor = tuple(coor)
         return coor
 
+    @classmethod
     def get_interp_ptx(self, block):
         block = sorted(block, key=lambda ptx: ptx[0])
         xp = [p[0] for p in block]
@@ -106,6 +113,24 @@ class BaseImage(object):
             ) for x in range(min(xp), max(xp)+1)]
 
         return track
+
+
+class BaseCV(object):
+    def __init__(self):
+        super().__init__()
+
+    @classmethod
+    def draw_line_by_track(cls, image, src, value):
+        for i, ptx in enumerate(src):
+            if i == 0: continue
+            cv2.line(image, src[i-1], src[i], value, 2)
+        return image
+
+    @classmethod
+    def draw_line_by_block(cls, image, src, value):
+        for block in src:
+            image = BaseCV.draw_line_by_track(image, block, value)
+        return image
 
     def get_component_by(self, threshold, nth, by):
         '''
@@ -136,22 +161,6 @@ class BaseImage(object):
         b, g, r = cv2.split(image)
         return cv2.merge((b, g, r, mask))
 
-class BaseCV(object):
-    def __init__(self):
-        super().__init__()
-
-    @classmethod
-    def draw_line_by_track(cls, image, src, value):
-        for i, ptx in enumerate(src):
-            if i == 0: continue
-            cv2.line(image, src[i-1], src[i], value, 2)
-        return image
-
-    @classmethod
-    def draw_line_by_block(cls, image, src, value):
-        for block in src:
-            image = BaseCV.draw_line_by_track(image, block, value)
-        return image
 
 class BaseGraphCut(RGB, KeyHandler, BaseImage, BaseCV):
     def __init__(self, filename, image=None):
