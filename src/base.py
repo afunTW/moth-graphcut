@@ -1,14 +1,17 @@
-import os
-import cv2
 import logging
+import os
+import time
+
+import cv2
 import numpy as np
 
+from scipy.spatial.distance import cosine
 from src.color import RGB
 from src.keyboard import KeyHandler
-from src.msg_box import MessageBox
-from src.msg_box import Instruction
-from scipy.spatial.distance import cosine
+from src.msg_box import Instruction, MessageBox
 
+
+LOGGER = logging.getLogger(__name__)
 
 class BaseImage(object):
     def __init__(self):
@@ -53,7 +56,7 @@ class BaseImage(object):
             if max_similarity[0] == line_x: break
             else: line_x = max_similarity[0]
 
-        logging.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
+        LOGGER.info('generate mirror line {0}'.format(((line_x, 0), (line_x, h))))
         return ((line_x, 0), (line_x, h))
 
     @classmethod
@@ -153,7 +156,8 @@ class BaseCV(object):
         return np.where(output[1] == cond_sequence[nth-1][0])
 
     def get_rgba_component(self, image, mask):
-        if mask is None: return None
+        if mask is None:
+            return None
         _mask = mask/255
         _mask = np.expand_dims(_mask, axis = 2)
         _mask = np.concatenate((_mask, _mask, _mask), axis = 2)
@@ -161,6 +165,19 @@ class BaseCV(object):
         b, g, r = cv2.split(image)
         return cv2.merge((b, g, r, mask))
 
+    @staticmethod
+    def show_image_by_cv2(img, exit_code=27):
+        """
+        show image by cv2
+        """
+        winname = str(hash(time.time()))
+        cv2.namedWindow(winname)
+        while True:
+            cv2.imshow(winname, img)
+            k = cv2.waitKey(0)
+            if k == exit_code:
+                break
+        cv2.destroyAllWindows()
 
 class BaseGraphCut(RGB, KeyHandler, BaseImage, BaseCV):
     def __init__(self, filename, image=None):
