@@ -1,15 +1,15 @@
+import argparse
+import glob
+import json
+import logging
 import os
 import sys
+from hashlib import sha1
+
 import cv2
-import json
-import glob
-import logging
-import argparse
 import numpy as np
 
-from hashlib import sha1
-from src import detector
-from src import graphic
+from src import detector, graphic
 
 
 def argparser():
@@ -28,15 +28,17 @@ def filter_rects(rects, ignore_rect):
 
     for rect in rects:
         x, y, w, h = rect
-        if ix<x<x+w<ix+iw and iy<y<y+h<iy+ih: continue
-        else: result.append(rect)
+        if ix<x<x+w<ix+iw and iy<y<y+h<iy+ih:
+            continue
+        else:
+            result.append(rect)
 
     return result
 
 def is_bottom_right(rects):
     result = None
     for rect in rects:
-        if not result or (rect[0]+rect[2]) >= (result[0]+result[2]):
+        if result is None or (rect[0]+rect[2]) >= (result[0]+result[2]):
             result = rect
             continue
     return result
@@ -46,13 +48,13 @@ def graph_cut(filename, template=None, last_status=None):
     # filter
     orig_image = None
     if template:
-        logging.info(' Process scale filter')
+        LOGGER.info(' Process scale filter')
         scale_detector = detector.ShapeDetector(template, filename)
         scale_detector.detect_template()
         orig_image = scale_detector.output
 
         if scale_detector.template_result:
-            logging.info('  * Filter template')
+            LOGGER.info('  * Filter template')
             tx, ty, tw, th = scale_detector.template_result
             H, W, channels = scale_detector.output.shape
             scale_detector.detect_retangle(focus_rect=(0, ty, W, H-ty))
@@ -65,16 +67,16 @@ def graph_cut(filename, template=None, last_status=None):
             orig_image[y:y+h, x:x+w, :] = 255
 
             if rect:
-                logging.info('  * Filter scale')
+                LOGGER.info('  * Filter scale')
                 x, y, w, h = rect
                 orig_image[y-5:y+h+5, x-5:x+w+5, :] = 255
 
     # graphic
     gc = graphic.GraphCut(filename, orig_image=orig_image)
-    logging.info(' Process graph cut')
+    LOGGER.info(' Process graph cut')
 
     if last_status:
-        logging.info(' Rollback to last status')
+        LOGGER.info(' Rollback to last status')
 
         if last_status['mirror_line']:
             pt1 , pt2 = last_status['mirror_line']
@@ -157,12 +159,12 @@ def main(args):
      - update status by moth.STATE
      - consider moth by moth.ACTION
     '''
-    template_path = 'image/10mm.png'
-    metadata_path = 'metadata/'
+    template_path = os.path.join(os.path.dirname(__file__), 'image/10mm.png')
+    metadata_path = os.path.join(os.path.dirname(__file__), 'metadata/')
     ext = ['jpg', 'jpeg', 'png']
     metadata_path = os.path.abspath(metadata_path)
     metadata_map = os.path.join(metadata_path, 'map.json')
-    moths_path = os.path.abspath('image/sample')
+    moths_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'image/sample'))
     moths = [os.path.join(moths_path, moth) for moth in os.listdir(moths_path)]
     moths = [moth for moth in moths if moth.split('.')[-1] in ext]
     moths = sorted(moths)
@@ -200,7 +202,7 @@ def main(args):
         while True:
             if moth_index >= len(moths) or moth_index < 0: break
             moth = moths[moth_index]
-            logging.info('({}/{}) Process {}'.format(
+            LOGGER.info('({}/{}) Process {}'.format(
                 moth_index+1, len(moths), moth.split(os.sep)[-1]))
 
             key = sha1(moth.encode('utf-8')).hexdigest()
@@ -215,7 +217,7 @@ def main(args):
             if key in exist_data.keys() and os.path.exists(key_json):
 
                 is_done = (exist_data[key]['state'] == 'done')
-                logging.info('  * STATE = {}'.format(exist_data[key]['state']))
+                LOGGER.info('  * STATE = {}'.format(exist_data[key]['state']))
 
                 # check navigation
                 if not navigation and not args.all and is_done and not args.image:
@@ -254,7 +256,7 @@ def main(args):
                 if result.STATE == 'pause':
                     saved_metadata(result, key_json)
                 if moth_index + 1 >= len(moths):
-                    logging.warning('No more moth can be skipped')
+                    LOGGER.warning('No more moth can be skipped')
                     continue
                 navigation = True if result.ACTION == 'nav_next' else False
                 next_index = 1
@@ -263,7 +265,7 @@ def main(args):
                 if result.STATE == 'pause':
                     saved_metadata(result, key_json)
                 if moth_index - 1 < 0:
-                    logging.warning('No more moth can be skipped')
+                    LOGGER.warning('No more moth can be skipped')
                     continue
                 navigation = True if result.ACTION == 'nav_previous' else False
                 _tmp_index = moth_index
@@ -271,11 +273,11 @@ def main(args):
                 moth_index += next_index
                 moth_index = max(moth_index, 0)
             else:
-                logging.warning('No specific action')
+                LOGGER.warning('No specific action')
                 moth_index += 1
 
     except Exception as e:
-        logging.exception(e)
+        LOGGER.exception(e)
 
 if __name__ == '__main__':
 
@@ -285,6 +287,8 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
         )
+
+    LOGGER = logging.getLogger(__name__)
 
     parser = argparser()
     main(parser.parse_args())
