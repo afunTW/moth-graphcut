@@ -1,17 +1,17 @@
-import os
-import cv2
 import copy
 import logging
+import os
+from datetime import datetime
+from math import ceil, floor, hypot
+
+import cv2
 import numpy as np
 
 from src.base import BaseGraphCut
 from src.filter import savitzky_golay
 from src.msg_box import MessageBox
-from datetime import datetime
-from math import floor
-from math import ceil
-from math import hypot
 
+LOGGER = logging.getLogger(__name__)
 
 class GraphCut(BaseGraphCut):
 
@@ -245,7 +245,7 @@ class GraphCut(BaseGraphCut):
             # body
             coor = self.__component['body']
             rect = self.__contour_rect['body']
-            shift_ptx = self.centralized_rect(rect, (0, 0, rect[0], out_image_y))
+            shift_ptx = self.centralized_rect(rect, (0, 0, rect[2], out_image_y))
             if coor is not None and rect is not None and shift_ptx is not None:
                 out_image_shift['body'] = (out_image_x + out_image_bar, shift_ptx[-1])
                 out_image_x += out_image_bar + shift_ptx[0] + rect[-2]
@@ -280,7 +280,7 @@ class GraphCut(BaseGraphCut):
 
             # check over size
             if out_image.shape[0] > boundary_y:
-                logging.warning('{} not fit in the shape of output image {}'.format(
+                LOGGER.warning('{} not fit in the shape of output image {}'.format(
                     wings.shape, out_image.shape))
                 ratio = boundary_y/out_image.shape[0]
                 dim = (out_image.shape[1], int(out_image.shape[0]*ratio))
@@ -289,7 +289,7 @@ class GraphCut(BaseGraphCut):
             self.__output_img = out_image
 
         except Exception as e:
-            logging.exception('{}'.format(e))
+            LOGGER.exception('{}'.format(e))
             h, w, channel = self.__output_img.shape
             font = cv2.FONT_HERSHEY_TRIPLEX
             self.__output_img = self.__output_img.astype('float64')
@@ -583,7 +583,7 @@ class GraphCut(BaseGraphCut):
                     is_tracking(side)
                     self.draw()
                 else:
-                    logging.warning('Not valid region for labeling')
+                    LOGGER.warning('Not valid region for labeling')
 
         elif event == cv2.EVENT_LBUTTONUP:
             if not self.__is_body:
@@ -722,7 +722,7 @@ class GraphCut(BaseGraphCut):
         cv2.createTrackbar('Gamma',self.filename,100, 250, self.null_callback)
         cv2.createTrackbar('Threshold',self.filename, self.THRESHOLD, 255, self.null_callback)
         cv2.setMouseCallback(self.filename, self.onmouse)
-        logging.info('Begin with STATE={}'.format(self.STATE))
+        LOGGER.info('Begin with STATE={}'.format(self.STATE))
 
         while True:
             cv2.imshow(self.filename, self.show_image)
@@ -881,5 +881,5 @@ class GraphCut(BaseGraphCut):
                         func()
                         self.__job_queue = [(date, func, 'done')]
 
-        logging.info('End with STATE={}'.format(self.STATE))
+        LOGGER.info('End with STATE={}'.format(self.STATE))
         cv2.destroyAllWindows()
