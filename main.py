@@ -1,5 +1,6 @@
 import argparse
 import glob
+import inspect
 import json
 import logging
 import os
@@ -11,6 +12,7 @@ import numpy as np
 
 from src import detector, graphic
 
+__file__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
 
 def argparser():
     parser = argparse.ArgumentParser(description='interactive graph cut for moth image')
@@ -244,9 +246,13 @@ def main(args):
             if result.ACTION == 'save':
                 saved_metadata(result, key_json)
                 saved_rgba(result, moth_path_metadata)
+                LOGGER.info('Test to save screenshot')
                 if result.screenshot is not None:
                     moth_path_screenshot = os.path.join(metadata_path, moth_path_filename) + '.png'
+                    LOGGER.info('Save screenshot {}'.format(moth_path_screenshot))
                     cv2.imwrite(moth_path_screenshot, result.screenshot)
+                else:
+                    LOGGER.info('No screenshot')
                 moth_index += 1
                 if result.STATE == 'pause':
                     break
