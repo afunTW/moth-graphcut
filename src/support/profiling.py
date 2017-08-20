@@ -16,7 +16,7 @@ def func_profiling(func):
         result = func(*args, **kwargs)
         time_spent = time.time() - start_time
         fullname = '{}.{}'.format(func.__module__, func.__name__)
-        LOGGER.info('{}[args={}, kwargs={}] completed in {}'.format(
+        LOGGER.debug('{}[args={}, kwargs={}] completed in {}'.format(
             fullname, args, kwargs, time_spent
         ))
         return result
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     """testing"""
     import sys
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s %(filename)12s:L%(lineno)3s [%(levelname)8s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
