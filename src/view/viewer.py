@@ -11,8 +11,10 @@ sys.path.append('../..')
 
 from PIL import Image, ImageTk
 
-from tkconvert import TkConverter
 from src.image.imnp import ImageNP
+from tkconvert import TkConverter
+from tkfonts import TkFonts
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +25,14 @@ class MothViewerTemplate(object):
         """windows"""
         self.root = tkinter.Tk()
         self.root.wm_title(winname)
+
+        """label"""
+        from tkinter import ttk
+        self._moth_label = TkFonts()
+        self.label_panel = ttk.Label(self.root, text='Input Panel', background='white', font=self._moth_label.h1())
+        self.label_panel.grid(row=0, column=0, sticky='wens')
+        self.label_display = ttk.Label(self.root, text='Display', background="white", font=self._moth_label.h1())
+        self.label_display.grid(row=0, column=1, sticky='wens')
 
         """canvas"""
         try:
@@ -38,11 +48,13 @@ class MothViewerTemplate(object):
 
         self.canvas_panel = tkinter.Canvas(self.root, width=self._image_w, height=self._image_h)
         self.canvas_panel.create_image(0, 0, anchor='nw', image=self.image_panel)
-        self.canvas_panel.pack(padx=10, fill='x', side='left')
+        # self.canvas_panel.pack(padx=10, fill='x', side='left')
+        self.canvas_panel.grid(row=1, column=0, sticky='wens')
 
         self.canvas_display = tkinter.Canvas(self.root, width=self._image_w, height=self._image_h)
         self.canvas_display.create_image(0, 0, anchor='nw', image=self.image_display)
-        self.canvas_display.pack(padx=10, fill='x', side='right')
+        # self.canvas_display.pack(padx=10, fill='x', side='right')
+        self.canvas_display.grid(row=1, column=1, sticky='wens')
 
     def mainloop(self):
         self.root.mainloop()
