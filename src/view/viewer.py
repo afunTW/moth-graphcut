@@ -12,6 +12,7 @@ sys.path.append('../')
 from PIL import Image, ImageTk
 
 from image.imnp import ImageNP
+from callbacks import mouse
 from tkconvert import TkConverter
 from tkfonts import TkFonts
 from tkframe import TkFrame
@@ -19,6 +20,22 @@ from tkframe import TkFrame
 LOGGER = logging.getLogger(__name__)
 
 class MothViewerTemplate(object):
+    MOUSE_BUTTON = '<Button>'
+    MOUSE_BUTTON_LEFT = '<Button-1>'
+    MOUSE_BUTTON_RIGHT = '<Button-3>'
+    MOUSE_BUTTON_SCROLL_UP = '<Button-4>'
+    MOUSE_BUTTON_SCROLL_DOWN = '<Button-5>'
+    MOUSE_MOTION = '<Motion>'
+    MOUSE_MOTION_LEFT = '<Motion-1>'
+    MOUSE_MOTION_RIGHT = '<Motion-3>'
+    MOUSE_RELEASE_LEFT = '<ButtonRelease-1>'
+    MOUSE_RELEASE_RIGHT = '<ButtonRelease-3>'
+    MOUSE_ENTER_WIDGET = '<Enter>'
+    MOUSE_LEAVE_WIDGET = '<Leave>'
+    MOUSE_FOCUSIN_WIDGET = '<FocusIn>'
+    MOUSE_FOCUSOUT_WIDGET = '<FocusOut>'
+    RECONFIGURE = '<Configure>'
+
     def __init__(self, image, winname=time.ctime()):
         super().__init__()
         self.root = tkinter.Tk()
@@ -66,19 +83,23 @@ class MothViewerTemplate(object):
 
         """Canvas"""
         try:
-            self.image_panel = tkinter.PhotoImage(file=image)
-            self._image_w, self._image_h = self.image_panel.width(), self.image_panel.height()
+            self.photo_panel = tkinter.PhotoImage(file=image)
+            self._image_w, self._image_h = self.photo_panel.width(), self.photo_panel.height()
         except Exception as identifier:
             LOGGER.warning('Input Image not in the format of .gif, .pgm, .ppm')
-            _im = Image.open(image)
-            self._image_w, self._image_h = _im.size
-            self.image_panel = ImageTk.PhotoImage(_im)
-            self.image_display = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
-            self.image_display = TkConverter.ndarray_to_photo(self.image_display)
+            self.image_panel = Image.open(image)
+            self._image_w, self._image_h = self.image_panel.size
+            self.photo_panel = ImageTk.PhotoImage(self.image_panel)
+            self.photo_display = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
+            self.photo_display = TkConverter.ndarray_to_photo(self.photo_display)
 
-        self.label_panel_image = ttk.Label(self.frame_label_panel_image, image=self.image_panel)
+        self.label_panel_image = ttk.Label(self.frame_label_panel_image, image=self.photo_panel)
         self.label_panel_image.grid(row=0, column=0, sticky='news')
-        self.label_display_image = ttk.Label(self.frame_label_display_image, image=self.image_display)
+        self.label_panel_image.bind(self.MOUSE_MOTION,
+                                    lambda x: mouse.draw_symmetric_line_by_cv2(x,
+                                                                                widget=self.label_panel_image,
+                                                                                image=self.image_panel))
+        self.label_display_image = ttk.Label(self.frame_label_display_image, image=self.photo_display)
         self.label_display_image.grid(row=0, column=0, sticky='news')
 
     def mainloop(self):
