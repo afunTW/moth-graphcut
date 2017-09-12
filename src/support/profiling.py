@@ -23,8 +23,12 @@ def func_profiling(func):
     return wrapped
 
 @func_profiling
-def test_func_profiling(sec):
-    time.sleep(sec)
+def test_func_profiling():
+    import random
+    sleep_sec = random.randrange(1,3)
+    LOGGER.debug('random sleep in {} sec'.format(sleep_sec))
+    time.sleep(sleep_sec)
+    LOGGER.debug('Wake up')
 
 if __name__ == '__main__':
     """testing"""
@@ -35,4 +39,4 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
         )
-    test_func_profiling(1)
+    test_func_profiling()
