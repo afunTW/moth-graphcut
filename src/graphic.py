@@ -393,6 +393,7 @@ class GraphCut(BaseGraphCut):
         right_track = self.__tracking_label[self.RIGHT]
         mirror_line_x = self.__mirror_line[0][0]
         bottom_y = lambda track: max([ptx[1] for ptx in track])
+        top_y = lambda track: min([ptx[1] for ptx in track])
 
         def get_wings(wings):
             part_wings = cv2.cvtColor(wings, cv2.COLOR_BGR2GRAY)
@@ -427,6 +428,7 @@ class GraphCut(BaseGraphCut):
         def init_wings(x, y, side, part):
             wings = self.__orig_img.copy()
             wings = self.draw_line_by_block(wings, self.__tracking_label['eliminate'], self.WHITE)
+            wings = self.draw_line_by_track(wings, self.__tracking_label[side], self.WHITE)
 
             if side == self.LEFT:
                 wings[:, x:] = 255
@@ -455,13 +457,14 @@ class GraphCut(BaseGraphCut):
             x = self.__mirror_shift
             x = x if side == self.RIGHT else -x
             x += mirror_line_x
-            y = bottom_y(track)
+            # y = bottom_y(track)
 
-            forewings = init_wings(x, y, side, 'forewings')
-            forewings, remained = self.fixed(forewings, track, self.CLEAR_DOWNWARD)
-            backwings = init_wings(x, y, side, 'backwings')
-            padding = np.where(remained != [0])
-            backwings[padding] += remained[padding] - 255
+            forewings = init_wings(x, bottom_y(track), side, 'forewings')
+            # forewings, remained = self.fixed(forewings, track, self.CLEAR_DOWNWARD)
+            backwings = init_wings(x, top_y(track), side, 'backwings')
+            # padding = np.where(remained != [0])
+            # backwings[padding] += remained[padding] - 255
+
 
             forepart = get_wings(forewings)
             backpart = get_wings(backwings)
@@ -492,6 +495,9 @@ class GraphCut(BaseGraphCut):
                     self.__component['body'] = self.__transparent.copy()
                     body = exclude_wings(255, by_mask=True)
                     _center = [self.mirror_line[0][0], 0]
+
+                    body = self.draw_line_by_track(body, self.__tracking_label[self.LEFT], self.WHITE)
+                    body = self.draw_line_by_track(body, self.__tracking_label[self.RIGHT], self.WHITE)
 
                     if self.__tracking_label[self.LEFT]:
                         _left_y = sorted(
@@ -529,7 +535,7 @@ class GraphCut(BaseGraphCut):
         h, w, channels = self.__panel_img.shape
         mirror_line_x = self.__mirror_line[0][0]
         point_shift = abs(mirror_line_x - x)
-        left_x, right_x = (mirror_line_x - point_shift, mirror_line_x + point_shift)
+        left_x, right_x = (mirror_line_x - point_shift - 1, mirror_line_x + point_shift + 1)
         side = self.LEFT if x < mirror_line_x else self.RIGHT
         if x > w or y > h: return
 
@@ -556,9 +562,9 @@ class GraphCut(BaseGraphCut):
                 self.__is_right_draw = False
 
         def valid_tracking(side):
-            if side == self.LEFT and 0 < left_x < self.mirror_left_x:
+            if side == self.LEFT and 0 < left_x <= self.mirror_left_x:
                 self.__tracking_label[side].append((left_x, y))
-            elif side == self.RIGHT and self.mirror_right_x < right_x < w:
+            elif side == self.RIGHT and self.mirror_right_x <= right_x < w:
                 self.__tracking_label[side].append((right_x, y))
             else:
                 not_tracking(side)

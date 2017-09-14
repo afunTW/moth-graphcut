@@ -1,7 +1,9 @@
-import cv2
 import logging
+
+import cv2
 import numpy as np
 
+LOGGER = logging.getLogger(__name__)
 
 class ShapeDetector(object):
     def __init__(self, template, target):
