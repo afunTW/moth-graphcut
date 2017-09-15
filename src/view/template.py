@@ -127,8 +127,7 @@ if __name__ == '__main__':
         )
     _FILE = abspath(getframeinfo(currentframe()).filename)
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
-    SAMPLE_IMG2 = abspath('../../image/sample/1.jpg')
 
     viewer = MothViewerTemplate()
-    # viewer._update_image(SAMPLE_IMG)
+    viewer.input_image(SAMPLE_IMG)
     viewer.mainloop()
