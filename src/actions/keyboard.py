@@ -16,7 +16,6 @@ class MothKeyboardHandler(MothViewerTemplate):
 
     # press UP and switch to previous image in image queue
     def switch_to_previous_image(self, event=None, step=1):
-        LOGGER.info('step = {}'.format(step))
         if self.current_image_path and self.current_image_path in self.image_queue:
             current_index = self.image_queue.index(self.current_image_path)
             if current_index == 0:
@@ -27,7 +26,7 @@ class MothKeyboardHandler(MothViewerTemplate):
                 ))
             else:
                 self.current_image_path = self.image_queue[max(0, current_index-step)]
-                LOGGER.info('Ready to process {}/{} image {}'.format(
+                LOGGER.info('({}/{}) Ready to process image {}'.format(
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
                 self._update_image(self.current_image_path)
@@ -36,7 +35,6 @@ class MothKeyboardHandler(MothViewerTemplate):
 
     # press DOWN and switch to next image in image queue
     def switch_to_next_image(self, event=None, step=1):
-        LOGGER.info('step = {}'.format(step))
         if self.current_image_path and self.current_image_path in self.image_queue:
             current_index = self.image_queue.index(self.current_image_path)
             if current_index == len(self.image_queue) - 1:
@@ -47,7 +45,7 @@ class MothKeyboardHandler(MothViewerTemplate):
                 ))
             else:
                 self.current_image_path = self.image_queue[min(current_index+step, len(self.image_queue)-1)]
-                LOGGER.info('Ready to process {}/{} image {}'.format(
+                LOGGER.info('({}/{}) Ready to process image {}'.format(
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
                 self._update_image(self.current_image_path)

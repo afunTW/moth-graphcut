@@ -15,8 +15,8 @@ class MothActionsTemplate(MothKeyboardHandler):
     def __init__(self):
         # default binding
         super().__init__()
-        self.root.bind('<Up>', self.switch_to_previous_image)
-        self.root.bind('<Down>', self.switch_to_next_image)
+        self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
+        self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
 
 if __name__ == '__main__':
     """testing"""
