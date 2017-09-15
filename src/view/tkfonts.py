@@ -27,7 +27,8 @@ class TkFonts(object):
         return self.font
 
     def h3(self):
-        self.size = 18.72
+        # self.size = 18.72
+        self.size = 18
         self.weight = 'bold'
         return self.font
 
@@ -37,11 +38,13 @@ class TkFonts(object):
         return self.font
 
     def h5(self):
-        self.size = 13.28
+        # self.size = 13.28
+        self.size = 13
         self.weight = 'bold'
         return self.font
 
     def h6(self):
-        self.size = 10.72
+        # self.size = 10.72
+        self.size = 10
         self.weight = 'bold'
         return self.font
