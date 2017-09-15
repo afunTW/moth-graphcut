@@ -4,11 +4,11 @@ Using OpenCv to handle the Image operation
 import logging
 import sys
 import time
-sys.path.append('../..')
 
 import numpy as np
 import cv2
 
+sys.path.append('../..')
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)

@@ -3,11 +3,11 @@ Using Numpy to handle the Image operation
 """
 import logging
 import sys
-sys.path.append('../..')
 
 import numpy as np
 from scipy.spatial.distance import cosine
 
+sys.path.append('../..')
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
