@@ -51,88 +51,69 @@ class MothViewerTemplate(object):
         self.frame_body = TkFrame(self.frame_root, bg='black')
         self.frame_body.grid(row=1, column=0, sticky='news')
         self.frame_body.grid_columnconfigure(0, weight=1)
+        self.frame_body.grid_columnconfigure(1, weight=1)
         self.frame_body.grid_rowconfigure(0, weight=1)
-        self.frame_body.grid_rowconfigure(1, weight=1)
 
         """Frame init - root.body.frane_panel"""
         self.frame_panel = TkFrame(self.frame_body, bg='red')
-        self.frame_panel.grid(row=0, column=0)
+        self.frame_panel.grid(row=0, column=0, sticky='news')
         self.frame_panel.grid_columnconfigure(0, weight=1)
         self.frame_panel.grid_rowconfigure(0, weight=1)
         self.frame_panel.grid_rowconfigure(1, weight=1)
 
         """Frame init - root.body.frame_display"""
         self.frame_display = TkFrame(self.frame_body, bg='blue')
-        self.frame_display.grid(row=0, column=1)
+        self.frame_display.grid(row=0, column=1, sticky='news')
         self.frame_display.grid_columnconfigure(0, weight=1)
         self.frame_display.grid_rowconfigure(0, weight=1)
         self.frame_display.grid_rowconfigure(1, weight=1)
-        # self.frame_label_panel_text = TkFrame(self.frame_panel)
-        # self.frame_label_panel_image = TkFrame(self.frame_panel)
-        # self.frame_label_display_text = TkFrame(self.frame_display)
-        # self.frame_label_display_image = TkFrame(self.frame_display)
 
         """Frame init - root.footer"""
         self.frame_footer = TkFrame(self.frame_root, bg='yellow')
         self.frame_footer.grid(row=2, column=0, sticky='news')
-        # self.frame_trackbar_gamma = TkFrame(self.frame_footer)
-        # self.frame_label_gamma = TkFrame(self.frame_trackbar_gamma, bg='light pink')
-        # self.frame_scale_gamma = TkFrame(self.frame_trackbar_gamma, bg='light blue')
-        # self.frame_trackbar_threshold = TkFrame(self.frame_footer)
-        # self.frame_label_threshold = TkFrame(self.frame_trackbar_threshold, bg='light pink')
-        # self.frame_scale_threshold = TkFrame(self.frame_trackbar_threshold, bg='light blue')
+        self.frame_footer.grid_columnconfigure(0, weight=1)
+        self.frame_footer.grid_columnconfigure(1, weight=1)
+        self.frame_footer.grid_rowconfigure(0, weight=1)
+        self.frame_footer.grid_rowconfigure(1, weight=1)
 
-        """Widget manager"""
-        # self.frame_label_panel_text.grid(row=0, column=0)
-        # self.frame_label_panel_image.grid(row=1, column=0)
-        # self.frame_label_display_text.grid(row=0, column=0)
-        # self.frame_label_display_image.grid(row=1, column=0)
-        # self.frame_trackbar_gamma.grid(row=0, column=0)
-        # self.frame_label_gamma.grid(row=0, column=0)
-        # self.frame_scale_gamma.grid(row=0, column=1)
-        # self.frame_trackbar_threshold.grid(row=1, column=0)
-        # self.frame_label_threshold.grid(row=0, column=0)
-        # self.frame_scale_threshold.grid(row=0, column=1)
-
-        """Nav - Label for text"""
+        """Body - Panel/Display label"""
         self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', font=self._font.h2())
         self.label_display = ttk.Label(self.frame_display, text='Display', font=self._font.h2())
-        self.label_panel.grid(row=0, column=0, sticky='news')
-        self.label_display.grid(row=0, column=0, sticky='news')
+        self.label_panel.grid(row=0, column=0)
+        self.label_display.grid(row=0, column=0)
 
-        """Nav - Label for image"""
+        """Body - Panel/Display image"""
         # default output
         self._image_w, self._image_h = 800, 533
-        self.photo_display = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
-        self.photo_display = TkConverter.ndarray_to_photo(self.photo_display)
-        self.photo_panel = self.photo_display
+        self.photo_panel = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
+        self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
+        self.photo_display = self.photo_panel
 
         self.label_panel_image = ttk.Label(self.frame_panel, image=self.photo_panel)
-        self.label_panel_image.grid(row=1, column=0, sticky='news')
+        self.label_panel_image.grid(row=1, column=0)
         self.label_display_image = ttk.Label(self.frame_display, image=self.photo_display)
-        self.label_display_image.grid(row=1, column=0, sticky='news')
+        self.label_display_image.grid(row=1, column=0)
 
-        # """Footer - Scale bar"""
-        # self.label_gamma = ttk.Label(self.frame_label_gamma, text='Gamma: ', font=self._font.h5())
-        # self.label_gamma.grid(sticky='news')
-        # self.label_threshold = ttk.Label(self.frame_label_threshold, text='Threshold: ', font=self._font.h5())
-        # self.label_threshold.grid(sticky='news')
+        """Footer - Scale bar"""
+        self.label_gamma = ttk.Label(self.frame_footer, text='Gamma: ', font=self._font.h5())
+        self.label_threshold = ttk.Label(self.frame_footer, text='Threshold: ', font=self._font.h5())
+        self.scale_gamma = ttk.Scale(self.frame_footer,\
+                                     orient=tkinter.HORIZONTAL,\
+                                     length=self._image_w*2,
+                                     from_=0.01, to=2.5,\
+                                     variable=tkinter.DoubleVar,\
+                                     value=1)
+        self.scale_threshold = ttk.Scale(self.frame_footer,\
+                                         orient=tkinter.HORIZONTAL,\
+                                         length=self._image_w*2,\
+                                         from_=1, to=255,\
+                                         variable=tkinter.IntVar,\
+                                         value=250)
 
-        # """Footer - Scale bar"""
-        # self.scale_gamma = ttk.Scale(self.frame_scale_gamma,\
-        #                              orient=tkinter.HORIZONTAL,\
-        #                              length=self._image_w*2,
-        #                              from_=0.01, to=2.5,\
-        #                              variable=tkinter.DoubleVar,\
-        #                              value=1)
-        # self.scale_gamma.grid(sticky='news')
-        # self.scale_threshold = ttk.Scale(self.frame_scale_threshold,\
-        #                                  orient=tkinter.HORIZONTAL,\
-        #                                  length=self._image_w*2,\
-        #                                  from_=1, to=255,\
-        #                                  variable=tkinter.IntVar,\
-        #                                  value=250)
-        # self.scale_threshold.grid(sticky='news')
+        self.label_gamma.grid(row=0, column=0, sticky='news')
+        self.scale_gamma.grid(row=0, column=1, sticky='news')
+        self.label_threshold.grid(row=1, column=0, sticky='news')
+        self.scale_threshold.grid(row=1, column=1, sticky='news')
 
     def mainloop(self):
         self._sync_image()
