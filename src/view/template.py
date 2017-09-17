@@ -28,6 +28,7 @@ class MothViewerTemplate(object):
         super().__init__()
         self.image_queue = None
         self.current_image_path = None
+        self.image_panel = None
         self._font = TkFonts()
 
         """Windows init - root"""
@@ -69,12 +70,27 @@ class MothViewerTemplate(object):
         self.frame_display.grid_rowconfigure(1, weight=1)
 
         """Frame init - root.footer"""
-        self.frame_footer = TkFrame(self.frame_root, bg='yellow')
+        self.frame_footer = TkFrame(self.frame_root, bg='white')
         self.frame_footer.grid(row=2, column=0, sticky='news')
         self.frame_footer.grid_columnconfigure(0, weight=1)
-        self.frame_footer.grid_columnconfigure(1, weight=1)
+        # self.frame_footer.grid_columnconfigure(1, weight=1)
         self.frame_footer.grid_rowconfigure(0, weight=1)
         self.frame_footer.grid_rowconfigure(1, weight=1)
+
+        """Frame init - root.footer.scalebar"""
+        self.frame_scale = TkFrame(self.frame_footer, bg='orange')
+        self.frame_scale.grid(row=0, column=0, sticky='news')
+        self.frame_scale.grid_columnconfigure(0, weight=1)
+        self.frame_scale.grid_columnconfigure(1, weight=1)
+        self.frame_scale.grid_rowconfigure(0, weight=1)
+        self.frame_scale.grid_rowconfigure(1, weight=1)
+
+        """Frame init - root.footer.option"""
+        self.frame_option = TkFrame(self.frame_footer, bg='light blue')
+        self.frame_option.grid(row=1, column=0, sticky='news')
+        self.frame_option.grid_columnconfigure(0, weight=1)
+        self.frame_option.grid_rowconfigure(0, weight=1)
+        self.frame_option.grid_rowconfigure(1, weight=1)
 
         """Body - Panel/Display label"""
         self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', font=self._font.h2())
@@ -95,15 +111,15 @@ class MothViewerTemplate(object):
         self.label_display_image.grid(row=1, column=0)
 
         """Footer - Scale bar"""
-        self.label_gamma = ttk.Label(self.frame_footer, text='Gamma: ', font=self._font.h5())
-        self.label_threshold = ttk.Label(self.frame_footer, text='Threshold: ', font=self._font.h5())
-        self.scale_gamma = ttk.Scale(self.frame_footer,\
+        self.label_gamma = ttk.Label(self.frame_scale, text='Gamma: ', font=self._font.h5())
+        self.label_threshold = ttk.Label(self.frame_scale, text='Threshold: ', font=self._font.h5())
+        self.scale_gamma = ttk.Scale(self.frame_scale,\
                                      orient=tkinter.HORIZONTAL,\
                                      length=self._image_w*2,
                                      from_=0.01, to=2.5,\
                                      variable=tkinter.DoubleVar,\
                                      value=1)
-        self.scale_threshold = ttk.Scale(self.frame_footer,\
+        self.scale_threshold = ttk.Scale(self.frame_scale,\
                                          orient=tkinter.HORIZONTAL,\
                                          length=self._image_w*2,\
                                          from_=1, to=255,\
@@ -114,6 +130,13 @@ class MothViewerTemplate(object):
         self.scale_gamma.grid(row=0, column=1, sticky='news')
         self.label_threshold.grid(row=1, column=0, sticky='news')
         self.scale_threshold.grid(row=1, column=1, sticky='news')
+
+        """Footer - option"""
+        self.checkbtn_template = tkinter.Checkbutton(self.frame_option,
+                                                     text='detect template',
+                                                     font=self._font.h5(),
+                                                     variable=tkinter.BooleanVar())
+        self.checkbtn_template.grid(row=0, column=0, sticky='w')
 
     def mainloop(self):
         self._sync_image()
