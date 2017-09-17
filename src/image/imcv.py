@@ -19,14 +19,14 @@ class ImageCV(object):
 
     @staticmethod
     @func_profiling
-    def get_grayscale_image(image_path):
+    def read_and_convert_to_gray_image(image_path):
         img = cv2.imread(image_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return img
 
     @staticmethod
     @func_profiling
-    def get_edge_image(image_path, threshold1=50, threshold2=100):
+    def read_and_convert_to_edge_image(image_path, threshold1=50, threshold2=100):
         img = ImageCV.get_grayscale_image(image_path)
         img = cv2.Canny(img, threshold1, threshold2)
         return img
