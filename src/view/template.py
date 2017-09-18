@@ -46,6 +46,16 @@ class MothViewerTemplate(object):
         self._init_widget_body()
         self._init_widget_footer()
 
+    # set grid all column configure
+    def _set_all_grid_columnconfigure(self, widget, *cols):
+        for col in cols:
+            widget.grid_columnconfigure(col, weight=1)
+
+    # set grid all row comfigure
+    def _set_all_grid_rowconfigure(self, widget, *rows):
+        for row in rows:
+            widget.grid_rowconfigure(row, weight=1)
+
     # init root window
     def _init_window(self):
         """Windows init - root"""
@@ -63,9 +73,8 @@ class MothViewerTemplate(object):
         """root"""
         self.frame_root = TkFrame(self.root, bg='white')
         self.frame_root.grid(row=0, column=0)
-        self.frame_root.grid_columnconfigure(0, weight=1)
-        for i in range(3):
-            self.frame_root.grid_rowconfigure(i, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_root, 0)
+        self._set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
 
         """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
@@ -74,43 +83,38 @@ class MothViewerTemplate(object):
         """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
         self.frame_body.grid(row=1, column=0, sticky='news')
-        self.frame_body.grid_columnconfigure(0, weight=1)
-        self.frame_body.grid_columnconfigure(1, weight=1)
-        self.frame_body.grid_rowconfigure(0, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_body, 0, 1)
+        self._set_all_grid_rowconfigure(self.frame_body, 0)
 
-        """root.body.frane_panel"""
+        """root.body.frame_panel"""
         self.frame_panel = TkFrame(self.frame_body, bg='red')
         self.frame_panel.grid(row=0, column=0, sticky='news')
-        self.frame_panel.grid_columnconfigure(0, weight=1)
-        self.frame_panel.grid_rowconfigure(0, weight=1)
-        self.frame_panel.grid_rowconfigure(1, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_panel, 0)
+        self._set_all_grid_rowconfigure(self.frame_panel, 0, 1)
 
         """root.body.frame_display"""
         self.frame_display = TkFrame(self.frame_body, bg='blue')
         self.frame_display.grid(row=0, column=1, sticky='news')
-        self.frame_display.grid_columnconfigure(0, weight=1)
-        self.frame_display.grid_rowconfigure(0, weight=1)
-        self.frame_display.grid_rowconfigure(1, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_display, 0)
+        self._set_all_grid_rowconfigure(self.frame_display, 0, 1)
 
         """root.footer"""
         self.frame_footer = TkFrame(self.frame_root, bg='white')
         self.frame_footer.grid(row=2, column=0, sticky='news')
-        self.frame_footer.grid_columnconfigure(0, weight=1)
-        self.frame_footer.grid_rowconfigure(0, weight=1)
-        self.frame_footer.grid_rowconfigure(1, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_footer, 0)
+        self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
 
         """root.footer.scalebar"""
-        self.frame_scale = TkFrame(self.frame_footer, bg='orange')
+        self.frame_scale = TkLabelFrame(self.frame_footer, text=u'顯示選項', font=self._font.h5(), bg='orange')
         self.frame_scale.grid(row=0, column=0, sticky='news')
-        self.frame_scale.grid_columnconfigure(0, weight=1)
-        self.frame_scale.grid_columnconfigure(1, weight=1)
-        self.frame_scale.grid_rowconfigure(0, weight=1)
-        self.frame_scale.grid_rowconfigure(1, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_scale, 0, 1)
+        self._set_all_grid_rowconfigure(self.frame_scale, 0, 1)
 
         """root.footer.option"""
-        self.frame_option = TkLabelFrame(self.frame_footer, text='Detector', bg='light blue')
+        self.frame_option = TkLabelFrame(self.frame_footer, text=u'偵測選項', font=self._font.h5(), bg='light blue')
         self.frame_option.grid(row=1, column=0, sticky='news')
-        self.frame_option.grid_rowconfigure(0, weight=1)
+        self._set_all_grid_columnconfigure(self.frame_option, 0)
+        self._set_all_grid_rowconfigure(self.frame_option, 0)
 
     # init header widget
     def _init_widget_head(self):
@@ -133,9 +137,9 @@ class MothViewerTemplate(object):
 
         self.label_panel_image = ttk.Label(self.frame_panel, image=self.photo_panel)
         self.label_panel_image.image = self.photo_panel
-        self.label_panel_image.grid(row=1, column=0)
+        self.label_panel_image.grid(row=2, column=0)
         self.label_display_image = ttk.Label(self.frame_display, image=self.photo_display)
-        self.label_display_image.grid(row=1, column=0)
+        self.label_display_image.grid(row=2, column=0)
 
     # init footer widget
     def _init_widget_footer(self):
@@ -168,7 +172,7 @@ class MothViewerTemplate(object):
                                                          image=self.checkbtn_template_image,
                                                          font=self._font.h5(),
                                                          variable=tkinter.BooleanVar())
-            self.checkbtn_template.grid(row=0, column=0)
+            self.checkbtn_template.grid(row=1, column=0, sticky='w')
         else:
             LOGGER.warning('No template image given')
 
