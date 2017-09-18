@@ -63,6 +63,7 @@ class MothViewerTemplate(object):
         self.root.wm_title(time.ctime())
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
+        self.root.attributes('-zoomed', True)
 
     # init ttk widget style
     def _init_style(self):
@@ -87,34 +88,38 @@ class MothViewerTemplate(object):
         self._set_all_grid_rowconfigure(self.frame_body, 0)
 
         """root.body.frame_panel"""
-        self.frame_panel = TkFrame(self.frame_body, bg='red')
+        self.frame_panel = TkFrame(self.frame_body, bg='light pink')
         self.frame_panel.grid(row=0, column=0, sticky='news')
         self._set_all_grid_columnconfigure(self.frame_panel, 0)
         self._set_all_grid_rowconfigure(self.frame_panel, 0, 1)
 
         """root.body.frame_display"""
-        self.frame_display = TkFrame(self.frame_body, bg='blue')
+        self.frame_display = TkFrame(self.frame_body, bg='royal blue')
         self.frame_display.grid(row=0, column=1, sticky='news')
         self._set_all_grid_columnconfigure(self.frame_display, 0)
         self._set_all_grid_rowconfigure(self.frame_display, 0, 1)
 
         """root.footer"""
-        self.frame_footer = TkFrame(self.frame_root, bg='white')
+        self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
         self.frame_footer.grid(row=2, column=0, sticky='news')
         self._set_all_grid_columnconfigure(self.frame_footer, 0)
         self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
 
-        """root.footer.scalebar"""
-        self.frame_scale = TkLabelFrame(self.frame_footer, text=u'顯示選項', font=self._font.h5(), bg='orange')
-        self.frame_scale.grid(row=0, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_scale, 0, 1)
-        self._set_all_grid_rowconfigure(self.frame_scale, 0, 1)
+        """root.footer.input_option"""
+        self.frame_input_option = TkLabelFrame(self.frame_footer, text=u'Input 調整參數', font=self._font.h4(), bg='gray86')
+        self.frame_input_option.grid(row=0, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_input_option, 0)
+        self._set_all_grid_rowconfigure(self.frame_input_option, 0, 1)
 
-        """root.footer.option"""
-        self.frame_option = TkLabelFrame(self.frame_footer, text=u'偵測選項', font=self._font.h5(), bg='light blue')
-        self.frame_option.grid(row=1, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_option, 0)
-        self._set_all_grid_rowconfigure(self.frame_option, 0)
+        """root.footer.input_option.detect_options"""
+        self.frame_detect_options = TkFrame(self.frame_input_option, padx=0, pady=0)
+        self.frame_detect_options.grid(row=0, column=1, sticky='news')
+
+        """root.footer.output_option"""
+        self.frame_output_option = TkLabelFrame(self.frame_footer, text=u'Output 調整參數', font=self._font.h4(), bg='gray86')
+        self.frame_output_option.grid(row=1, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_output_option, 0)
+        self._set_all_grid_rowconfigure(self.frame_output_option, 0)
 
     # init header widget
     def _init_widget_head(self):
@@ -123,8 +128,8 @@ class MothViewerTemplate(object):
     # init body widget
     def _init_widget_body(self):
         """Panel/Display label"""
-        self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', font=self._font.h2())
-        self.label_display = ttk.Label(self.frame_display, text='Display', font=self._font.h2())
+        self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', style='H2.TLabel')
+        self.label_display = ttk.Label(self.frame_display, text='Display', style='H2.TLabel')
         self.label_panel.grid(row=0, column=0)
         self.label_display.grid(row=0, column=0)
 
@@ -143,53 +148,53 @@ class MothViewerTemplate(object):
 
     # init footer widget
     def _init_widget_footer(self):
-        """Scale bar"""
-        self.label_gamma = ttk.Label(self.frame_scale, text='Gamma: ', font=self._font.h5())
-        self.label_threshold = ttk.Label(self.frame_scale, text='Threshold: ', font=self._font.h5())
-        self.scale_gamma = ttk.Scale(self.frame_scale,\
-                                     orient=tkinter.HORIZONTAL,\
-                                     length=self._image_w*2,
-                                     from_=0.01, to=2.5,\
-                                     variable=tkinter.DoubleVar,\
-                                     value=1)
-        self.scale_threshold = ttk.Scale(self.frame_scale,\
-                                         orient=tkinter.HORIZONTAL,\
-                                         length=self._image_w*2,\
-                                         from_=1, to=255,\
-                                         variable=tkinter.IntVar,\
-                                         value=250)
+        """Input option"""
+        self.label_detector = ttk.Label(self.frame_input_option, text=u'偵測設定: ', style='H5.TLabel')
+        self.label_detector.grid(row=0, column=0, sticky='w')
 
-        self.label_gamma.grid(row=0, column=0, sticky='news')
-        self.scale_gamma.grid(row=0, column=1, sticky='news')
-        self.label_threshold.grid(row=1, column=0, sticky='news')
-        self.scale_threshold.grid(row=1, column=1, sticky='news')
+        self.checkbtn_manual_detect = ttk.Checkbutton(self.frame_detect_options,
+                                                      text=u'手動清除',
+                                                      style='H5.TCheckbutton',
+                                                      variable=tkinter.BooleanVar)
+        self.checkbtn_manual_detect.grid(row=0, column=0, sticky='w')
+
+        self.checkbtn_template_detect = ttk.Checkbutton(self.frame_detect_options,
+                                                        text=u'自動清除',
+                                                        style='H5.TCheckbutton',
+                                                        variable=tkinter.BooleanVar)
+        self.checkbtn_template_detect.configure(state='disabled')
+        self.checkbtn_template_detect.grid(row=0, column=1, sticky='w')
+
+        self.label_gamma = ttk.Label(self.frame_input_option, text=u'圖片對比: ', style='H5.TLabel')
+        self.label_gamma.grid(row=1, column=0, sticky='news')
+        self.scale_gamma = ttk.Scale(self.frame_input_option,
+                                     orient=tkinter.HORIZONTAL,
+                                     length=self._image_w*2,
+                                     from_=0.01, to=2.5,
+                                     variable=tkinter.DoubleVar,
+                                     style='White.Horizontal.TScale',
+                                     value=1)
+        self.scale_gamma.grid(row=1, column=1, sticky='news')
+
+        """Output option"""
+        self.label_threshold = ttk.Label(self.frame_output_option, text=u'門檻值: ', style='H5.TLabel')
+        self.scale_threshold = ttk.Scale(self.frame_output_option,
+                                         orient=tkinter.HORIZONTAL,
+                                         length=self._image_w*2,
+                                         from_=1, to=255,
+                                         variable=tkinter.IntVar,
+                                         style='White.Horizontal.TScale',
+                                         value=250)
+        self.label_threshold.grid(row=0, column=0, sticky='news')
+        self.scale_threshold.grid(row=0, column=1, sticky='news')
 
     # update detector option
-    def _update_detector(self):
+    def _enable_detector(self):
         if self.image_template is not None:
             self.checkbtn_template_image = TkConverter.read(self.image_template)
-            self.checkbtn_template = tkinter.Checkbutton(self.frame_option,
-                                                         image=self.checkbtn_template_image,
-                                                         font=self._font.h5(),
-                                                         variable=tkinter.BooleanVar())
-            self.checkbtn_template.grid(row=1, column=0, sticky='w')
+            self.checkbtn_template_detect.configure(state='normal')
         else:
             LOGGER.warning('No template image given')
-
-    # inherit tkinter mainloop
-    def mainloop(self):
-        self._sync_image()
-        self.root.mainloop()
-
-    # input template image
-    def input_template(self, template_path):
-        self.image_template = template_path
-        self._update_detector()
-
-    # input all image path to queue
-    def input_image(self, *image_paths):
-        self.image_queue = image_paths
-        self._update_image(self.image_queue[0])
 
     # read a new image and update to panel
     def _update_image(self, image_path=None):
@@ -214,6 +219,21 @@ class MothViewerTemplate(object):
         self.root.wm_title(self.current_image_path)
         self.label_panel_image.config(image=self.photo_panel)
         self.label_panel_image.after(100, self._sync_image)
+
+    # input template image
+    def input_template(self, template_path):
+        self.image_template = template_path
+        self._enable_detector()
+
+    # input all image path to queue
+    def input_image(self, *image_paths):
+        self.image_queue = image_paths
+        self._update_image(self.image_queue[0])
+
+    # inherit tkinter mainloop
+    def mainloop(self):
+        self._sync_image()
+        self.root.mainloop()
 
 if __name__ == '__main__':
     """testing"""
