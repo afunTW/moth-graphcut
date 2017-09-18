@@ -14,6 +14,12 @@ class TkConverter(object):
         super().__init__()
 
     @staticmethod
+    def read(image_path):
+        img = Image.open(image_path)
+        photo = ImageTk.PhotoImage(img)
+        return photo
+
+    @staticmethod
     def ndarray_to_photo(arr):
         h, w = arr.shape[0], arr.shape[1]
         byte_photo = Image.frombytes('L', (w, h), arr.astype('b').tostring())
