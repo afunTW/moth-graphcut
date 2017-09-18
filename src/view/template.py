@@ -25,11 +25,17 @@ class MothViewerTemplate(object):
     def __init__(self):
         """
         Assume all image paths in self.image_queue are unique
+        Argument:
+            @image_queue        a queue of image path
+            @current_image_path
+            @image_panel        the image in panel
+            @image_template     the template image for detection
         """
         super().__init__()
         self.image_queue = None
         self.current_image_path = None
         self.image_panel = None
+        self.image_template = None
         self._font = TkFonts()
 
         # init windows, widget and layout
@@ -153,17 +159,27 @@ class MothViewerTemplate(object):
         self.label_threshold.grid(row=1, column=0, sticky='news')
         self.scale_threshold.grid(row=1, column=1, sticky='news')
 
-        """Detector"""
-        self.checkbtn_template = tkinter.Checkbutton(self.frame_option,
-                                                     text='detect template',
-                                                     font=self._font.h5(),
-                                                     variable=tkinter.BooleanVar())
-        self.checkbtn_template.grid(row=0, column=0)
+    # update detector option
+    def _update_detector(self):
+        if self.image_template is not None:
+            self.checkbtn_template_image = TkConverter.read(self.image_template)
+            self.checkbtn_template = tkinter.Checkbutton(self.frame_option,
+                                                         image=self.checkbtn_template_image,
+                                                         font=self._font.h5(),
+                                                         variable=tkinter.BooleanVar())
+            self.checkbtn_template.grid(row=0, column=0)
+        else:
+            LOGGER.warning('No template image given')
 
     # inherit tkinter mainloop
     def mainloop(self):
         self._sync_image()
         self.root.mainloop()
+
+    # input template image
+    def input_template(self, template_path):
+        self.image_template = template_path
+        self._update_detector()
 
     # input all image path to queue
     def input_image(self, *image_paths):
@@ -203,8 +219,10 @@ if __name__ == '__main__':
         stream=sys.stdout
         )
     _FILE = abspath(getframeinfo(currentframe()).filename)
+    TEMPLATE_IMG = abspath('../../image/10mm.png')
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
 
     viewer = MothViewerTemplate()
+    viewer.input_template(TEMPLATE_IMG)
     viewer.input_image(SAMPLE_IMG)
     viewer.mainloop()
