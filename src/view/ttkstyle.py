@@ -15,17 +15,17 @@ class TTKStyle(ttk.Style):
 def init_css():
     TTKStyle('H1.TLabel', font=('',32, 'bold'), background='white')
     TTKStyle('H2.TLabel', font=('',24, 'bold'), background='white')
-    TTKStyle('H3.TLabel', font=('',18), background='white')
-    TTKStyle('H4.TLabel', font=('',16), background='white')
-    TTKStyle('H5.TLabel', font=('',13), background='white')
-    TTKStyle('H6.TLabel', font=('',10), background='white')
-    TTKStyle('H1.TCheckbutton', font=('',32,'bold'), background='white')
-    TTKStyle('H2.TCheckbutton', font=('',24,'bold'), background='white')
-    TTKStyle('H3.TCheckbutton', font=('',18), background='white')
-    TTKStyle('H4.TCheckbutton', font=('',16), background='white')
-    TTKStyle('H5.TCheckbutton', font=('',13), background='white')
-    TTKStyle('H6.TCheckbutton', font=('',10), background='white')
-    TTKStyle('White.Horizontal.TScale', background='white')
+    TTKStyle('H3.TLabel', font=('',18), background='gray86')
+    TTKStyle('H4.TLabel', font=('',16), background='gray86')
+    TTKStyle('H5.TLabel', font=('',13), background='gray86')
+    TTKStyle('H6.TLabel', font=('',10), background='gray86')
+    TTKStyle('H1.TCheckbutton', font=('',32,'bold'), background='gray86')
+    TTKStyle('H2.TCheckbutton', font=('',24,'bold'), background='gray86')
+    TTKStyle('H3.TCheckbutton', font=('',18), background='gray86')
+    TTKStyle('H4.TCheckbutton', font=('',16), background='gray86')
+    TTKStyle('H5.TCheckbutton', font=('',13), background='gray86')
+    TTKStyle('H6.TCheckbutton', font=('',10), background='gray86')
+    TTKStyle('White.Horizontal.TScale', padding=20, background='gray86')
 
 if __name__ == '__main__':
     import tkinter
