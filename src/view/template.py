@@ -185,7 +185,6 @@ class MothViewerTemplate(object):
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
-            # self._sync_image()
         else:
             LOGGER.warning('No image_path')
 
