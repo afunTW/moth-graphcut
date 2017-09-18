@@ -15,7 +15,8 @@ sys.path.append('../..')
 from src.image.imnp import ImageNP
 from src.support.tkconvert import TkConverter
 from src.view.tkfonts import TkFonts
-from src.view.tkframe import TkFrame
+from src.view.tkframe import TkFrame, TkLabelFrame
+from src.view.ttkstyle import TTKStyle
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,53 +32,67 @@ class MothViewerTemplate(object):
         self.image_panel = None
         self._font = TkFonts()
 
+        # init windows, widget and layout
+        self._init_window()
+        self._init_style()
+        self._init_frame()
+        self._init_widget_head()
+        self._init_widget_body()
+        self._init_widget_footer()
+
+    # init root window
+    def _init_window(self):
         """Windows init - root"""
         self.root = tkinter.Tk()
         self.root.wm_title(time.ctime())
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
-        """Frame init - root"""
+    # init ttk widget style
+    def _init_style(self):
+        pass
+    # init tk frame and grid layout
+    def _init_frame(self):
+        """root"""
         self.frame_root = TkFrame(self.root, bg='white')
         self.frame_root.grid(row=0, column=0)
         self.frame_root.grid_columnconfigure(0, weight=1)
         for i in range(3):
             self.frame_root.grid_rowconfigure(i, weight=1)
 
-        """Frame init - root.header"""
+        """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
         self.frame_nav.grid(row=0, column=0)
 
-        """Frame init - root.body"""
+        """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
         self.frame_body.grid(row=1, column=0, sticky='news')
         self.frame_body.grid_columnconfigure(0, weight=1)
         self.frame_body.grid_columnconfigure(1, weight=1)
         self.frame_body.grid_rowconfigure(0, weight=1)
 
-        """Frame init - root.body.frane_panel"""
+        """root.body.frane_panel"""
         self.frame_panel = TkFrame(self.frame_body, bg='red')
         self.frame_panel.grid(row=0, column=0, sticky='news')
         self.frame_panel.grid_columnconfigure(0, weight=1)
         self.frame_panel.grid_rowconfigure(0, weight=1)
         self.frame_panel.grid_rowconfigure(1, weight=1)
 
-        """Frame init - root.body.frame_display"""
+        """root.body.frame_display"""
         self.frame_display = TkFrame(self.frame_body, bg='blue')
         self.frame_display.grid(row=0, column=1, sticky='news')
         self.frame_display.grid_columnconfigure(0, weight=1)
         self.frame_display.grid_rowconfigure(0, weight=1)
         self.frame_display.grid_rowconfigure(1, weight=1)
 
-        """Frame init - root.footer"""
+        """root.footer"""
         self.frame_footer = TkFrame(self.frame_root, bg='white')
         self.frame_footer.grid(row=2, column=0, sticky='news')
         self.frame_footer.grid_columnconfigure(0, weight=1)
-        # self.frame_footer.grid_columnconfigure(1, weight=1)
         self.frame_footer.grid_rowconfigure(0, weight=1)
         self.frame_footer.grid_rowconfigure(1, weight=1)
 
-        """Frame init - root.footer.scalebar"""
+        """root.footer.scalebar"""
         self.frame_scale = TkFrame(self.frame_footer, bg='orange')
         self.frame_scale.grid(row=0, column=0, sticky='news')
         self.frame_scale.grid_columnconfigure(0, weight=1)
@@ -85,20 +100,24 @@ class MothViewerTemplate(object):
         self.frame_scale.grid_rowconfigure(0, weight=1)
         self.frame_scale.grid_rowconfigure(1, weight=1)
 
-        """Frame init - root.footer.option"""
-        self.frame_option = TkFrame(self.frame_footer, bg='light blue')
+        """root.footer.option"""
+        self.frame_option = TkLabelFrame(self.frame_footer, text='Detector', bg='light blue')
         self.frame_option.grid(row=1, column=0, sticky='news')
-        self.frame_option.grid_columnconfigure(0, weight=1)
         self.frame_option.grid_rowconfigure(0, weight=1)
-        self.frame_option.grid_rowconfigure(1, weight=1)
 
-        """Body - Panel/Display label"""
+    # init header widget
+    def _init_widget_head(self):
+        pass
+
+    # init body widget
+    def _init_widget_body(self):
+        """Panel/Display label"""
         self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', font=self._font.h2())
         self.label_display = ttk.Label(self.frame_display, text='Display', font=self._font.h2())
         self.label_panel.grid(row=0, column=0)
         self.label_display.grid(row=0, column=0)
 
-        """Body - Panel/Display image"""
+        """Panel/Display image"""
         # default output
         self._image_w, self._image_h = 800, 533
         self.photo_panel = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
@@ -106,11 +125,14 @@ class MothViewerTemplate(object):
         self.photo_display = self.photo_panel
 
         self.label_panel_image = ttk.Label(self.frame_panel, image=self.photo_panel)
+        self.label_panel_image.image = self.photo_panel
         self.label_panel_image.grid(row=1, column=0)
         self.label_display_image = ttk.Label(self.frame_display, image=self.photo_display)
         self.label_display_image.grid(row=1, column=0)
 
-        """Footer - Scale bar"""
+    # init footer widget
+    def _init_widget_footer(self):
+        """Scale bar"""
         self.label_gamma = ttk.Label(self.frame_scale, text='Gamma: ', font=self._font.h5())
         self.label_threshold = ttk.Label(self.frame_scale, text='Threshold: ', font=self._font.h5())
         self.scale_gamma = ttk.Scale(self.frame_scale,\
@@ -131,13 +153,14 @@ class MothViewerTemplate(object):
         self.label_threshold.grid(row=1, column=0, sticky='news')
         self.scale_threshold.grid(row=1, column=1, sticky='news')
 
-        """Footer - option"""
+        """Detector"""
         self.checkbtn_template = tkinter.Checkbutton(self.frame_option,
                                                      text='detect template',
                                                      font=self._font.h5(),
                                                      variable=tkinter.BooleanVar())
-        self.checkbtn_template.grid(row=0, column=0, sticky='w')
+        self.checkbtn_template.grid(row=0, column=0)
 
+    # inherit tkinter mainloop
     def mainloop(self):
         self._sync_image()
         self.root.mainloop()
