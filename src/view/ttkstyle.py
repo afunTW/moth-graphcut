@@ -7,9 +7,9 @@ from tkinter import ttk
 LOGGER = logging.getLogger(__name__)
 
 class TTKStyle(ttk.Style):
-    def __init__(self, style_name, **kwargs):
+    def __init__(self, style_name, theme='alt', **kwargs):
         super().__init__()
-        self.theme_use('alt')
+        self.theme_use(theme)
         self.configure(style_name, **kwargs)
 
 def init_css():
