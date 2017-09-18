@@ -152,40 +152,46 @@ class MothViewerTemplate(object):
         # detector
         self.label_detector = ttk.Label(self.frame_input_option, text=u'偵測設定: ', style='H5.TLabel')
         self.label_detector.grid(row=0, column=0, sticky='w')
+        self.val_manual_detect = tkinter.BooleanVar()
+        self.val_template_detect = tkinter.BooleanVar()
+        self.val_manual_detect.set(False)
+        self.val_template_detect.set(False)
         self.checkbtn_manual_detect = ttk.Checkbutton(self.frame_detect_options,
                                                       text=u'手動清除',
                                                       style='H5.TCheckbutton',
-                                                      variable=tkinter.BooleanVar)
+                                                      variable=self.val_manual_detect)
         self.checkbtn_template_detect = ttk.Checkbutton(self.frame_detect_options,
                                                         text=u'自動清除',
                                                         style='H5.TCheckbutton',
-                                                        variable=tkinter.BooleanVar)
+                                                        variable=self.val_template_detect)
         self.checkbtn_template_detect.configure(state='disabled')
         self.checkbtn_manual_detect.grid(row=0, column=0, sticky='w')
         self.checkbtn_template_detect.grid(row=0, column=1, sticky='w')
 
         # scale bar
         self.label_gamma = ttk.Label(self.frame_input_option, text=u'圖片對比: ', style='H5.TLabel')
+        self.val_gamma = tkinter.DoubleVar()
+        self.val_gamma.set(1.0)
         self.scale_gamma = ttk.Scale(self.frame_input_option,
                                      orient=tkinter.HORIZONTAL,
                                      length=self._image_w*2,
                                      from_=0.01, to=2.5,
-                                     variable=tkinter.DoubleVar,
-                                     style='White.Horizontal.TScale',
-                                     value=1)
+                                     variable=self.val_gamma,
+                                     style='White.Horizontal.TScale')
         self.label_gamma.grid(row=1, column=0, sticky='news')
         self.scale_gamma.grid(row=1, column=1, sticky='news')
 
         """Output option"""
         # scale bar
         self.label_threshold = ttk.Label(self.frame_output_option, text=u'門檻值: ', style='H5.TLabel')
+        self.val_threshold = tkinter.IntVar()
+        self.val_threshold.set(250)
         self.scale_threshold = ttk.Scale(self.frame_output_option,
                                          orient=tkinter.HORIZONTAL,
                                          length=self._image_w*2,
                                          from_=1, to=255,
-                                         variable=tkinter.IntVar,
-                                         style='White.Horizontal.TScale',
-                                         value=250)
+                                         variable=self.val_threshold,
+                                         style='White.Horizontal.TScale')
         self.label_threshold.grid(row=0, column=0, sticky='news')
         self.scale_threshold.grid(row=0, column=1, sticky='news')
 
