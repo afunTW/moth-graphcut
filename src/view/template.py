@@ -200,6 +200,7 @@ class MothViewerTemplate(object):
         if self.image_template is not None:
             self.checkbtn_template_image = TkConverter.read(self.image_template)
             self.checkbtn_template_detect.configure(state='normal')
+            self.val_template_detect.set(True)
         else:
             LOGGER.warning('No template image given')
 
