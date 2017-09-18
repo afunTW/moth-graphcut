@@ -11,18 +11,20 @@ class TTKStyle(ttk.Style):
         super().__init__()
         self.configure(style_name, **kwargs)
 
-
-if __name__ == '__main__':
-    import tkinter
-
-    root = tkinter.Tk()
-    root.wm_title('DEMO - {}'.format(__file__))
+def init_css():
     TTKStyle('H1.TLabel', font=('Helvetica',32))
     TTKStyle('H2.TLabel', font=('Helvetica',24))
     TTKStyle('H3.TLabel', font=('Helvetica',18))
     TTKStyle('H4.TLabel', font=('Helvetica',16))
     TTKStyle('H5.TLabel', font=('Helvetica',13))
     TTKStyle('H6.TLabel', font=('Helvetica',10))
+
+if __name__ == '__main__':
+    import tkinter
+
+    root = tkinter.Tk()
+    root.wm_title('DEMO - {}'.format(__file__))
+    init_css()
     ttk.Label(root, text='H1 header - text size 32', style='H1.TLabel').grid(row=0, column=0, sticky='w')
     ttk.Label(root, text='H2 header - text size 24', style='H2.TLabel').grid(row=1, column=0, sticky='w')
     ttk.Label(root, text='H3 header - text size 18', style='H3.TLabel').grid(row=2, column=0, sticky='w')

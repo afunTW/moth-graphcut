@@ -16,7 +16,7 @@ from src.image.imnp import ImageNP
 from src.support.tkconvert import TkConverter
 from src.view.tkfonts import TkFonts
 from src.view.tkframe import TkFrame, TkLabelFrame
-from src.view.ttkstyle import TTKStyle
+from src.view.ttkstyle import TTKStyle, init_css
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +56,8 @@ class MothViewerTemplate(object):
 
     # init ttk widget style
     def _init_style(self):
-        pass
+        init_css()
+
     # init tk frame and grid layout
     def _init_frame(self):
         """root"""
