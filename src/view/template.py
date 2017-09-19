@@ -19,6 +19,7 @@ from src.view.tkframe import TkFrame, TkLabelFrame
 from src.view.ttkstyle import TTKStyle, init_css
 
 LOGGER = logging.getLogger(__name__)
+STATE = ['view', 'erase', 'mirror', 'seperate']
 
 class MothViewerTemplate(object):
 
@@ -81,7 +82,7 @@ class MothViewerTemplate(object):
 
         """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
-        self.frame_nav.grid(row=0, column=0)
+        self.frame_nav.grid(row=0, column=0, sticky='news')
 
         """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
@@ -127,7 +128,7 @@ class MothViewerTemplate(object):
     def _init_widget_head(self):
         """State"""
         self.label_state = ttk.Label(self.frame_nav, text='', style='H1.TLabel')
-        self.label_state.grid(row=0, column=0)
+        self.label_state.grid(row=0, column=0, sticky='w')
         self._sync_state()
 
     # init body widget
@@ -235,8 +236,16 @@ class MothViewerTemplate(object):
 
     # render the lastest state
     def _sync_state(self):
-        if self.state is None:
+        if self.state not in STATE:
             self.label_state.configure(text=u'現在模式: {}'.format(u'無'))
+        elif self.state == 'view':
+            self.label_state.configure(text=u'現在模式: {}'.format(u'瀏覽'))
+        elif self.state == 'erase':
+            self.label_state.configure(text=u'現在模式: {}'.format(u'手動消除'))
+        elif self.state == 'mirror':
+            self.label_state.configure(text=u'現在模式: {}'.format(u'鏡像'))
+        elif self.state == 'seperate':
+            self.label_state.configure(text=u'現在模式: {}'.format(u'切割'))
 
         self.label_state.after(100, self._sync_state)
 
