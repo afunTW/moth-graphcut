@@ -26,16 +26,18 @@ class MothViewerTemplate(object):
         """
         Assume all image paths in self.image_queue are unique
         Argument:
-            @image_queue        a queue of image path
             @current_image_path
+            @image_queue        a queue of image path
             @image_panel        the image in panel
             @image_template     the template image for detection
+            @state              the state to determine the operation
         """
         super().__init__()
-        self.image_queue = None
         self.current_image_path = None
+        self.image_queue = None
         self.image_panel = None
         self.image_template = None
+        self.state = None
         self._font = TkFonts()
 
         # init windows, widget and layout
@@ -123,7 +125,10 @@ class MothViewerTemplate(object):
 
     # init header widget
     def _init_widget_head(self):
-        pass
+        """State"""
+        self.label_state = ttk.Label(self.frame_nav, text='', style='H1.TLabel')
+        self.label_state.grid(row=0, column=0)
+        self._sync_state()
 
     # init body widget
     def _init_widget_body(self):
@@ -227,6 +232,13 @@ class MothViewerTemplate(object):
         self.root.wm_title(self.current_image_path)
         self.label_panel_image.config(image=self.photo_panel)
         self.label_panel_image.after(100, self._sync_image)
+
+    # render the lastest state
+    def _sync_state(self):
+        if self.state is None:
+            self.label_state.configure(text=u'現在模式: {}'.format(u'無'))
+
+        self.label_state.after(100, self._sync_state)
 
     # input template image
     def input_template(self, template_path):
