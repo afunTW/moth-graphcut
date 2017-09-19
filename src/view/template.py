@@ -37,7 +37,7 @@ class MothViewerTemplate(object):
         self.current_image_path = None
         self.image_queue = None
         self.image_panel = None
-        self.image_template = None
+        self.image_path_template = None
         self.state = None
         self._font = TkFonts()
 
@@ -203,8 +203,8 @@ class MothViewerTemplate(object):
 
     # update detector option
     def _enable_detector(self):
-        if self.image_template is not None:
-            self.checkbtn_template_image = TkConverter.read(self.image_template)
+        if self.image_path_template is not None:
+            self.image_template = TkConverter.read(self.image_path_template)
             self.checkbtn_template_detect.configure(state='normal')
             self.val_template_detect.set(True)
         else:
@@ -251,7 +251,7 @@ class MothViewerTemplate(object):
 
     # input template image
     def input_template(self, template_path):
-        self.image_template = template_path
+        self.image_path_template = template_path
         self._enable_detector()
 
     # input all image path to queue
