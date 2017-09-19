@@ -27,7 +27,7 @@ class ImageCV(object):
     @staticmethod
     @func_profiling
     def read_and_convert_to_edge_image(image_path, threshold1=50, threshold2=100):
-        img = ImageCV.get_grayscale_image(image_path)
+        img = ImageCV.read_and_convert_to_gray_image(image_path)
         img = cv2.Canny(img, threshold1, threshold2)
         return img
 
