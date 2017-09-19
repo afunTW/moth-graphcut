@@ -30,6 +30,7 @@ class MothKeyboardHandler(MothViewerTemplate):
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
                 self._update_image(self.current_image_path)
+                self.state = 'view'
         else:
             LOGGER.warning('No given image')
 
@@ -49,6 +50,7 @@ class MothKeyboardHandler(MothViewerTemplate):
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
                 self._update_image(self.current_image_path)
+                self.state = 'view'
         else:
             LOGGER.warning('No given image')
 
