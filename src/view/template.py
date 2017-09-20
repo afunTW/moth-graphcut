@@ -9,6 +9,7 @@ from inspect import currentframe, getframeinfo
 from os.path import abspath
 from tkinter import ttk
 
+import cv2
 from PIL import Image, ImageTk
 
 sys.path.append('../..')
@@ -204,7 +205,7 @@ class MothViewerTemplate(object):
     # update detector option
     def _enable_detector(self):
         if self.image_path_template is not None:
-            self.image_template = TkConverter.read(self.image_path_template)
+            self.image_template = cv2.imread(self.image_path_template)
             self.checkbtn_template_detect.configure(state='normal')
             self.val_template_detect.set(True)
         else:
@@ -219,14 +220,15 @@ class MothViewerTemplate(object):
             except tkinter.TclError as loaderr:
                 # log level should be warning in this block
                 LOGGER.debug(loaderr)
-                self.image_panel = Image.open(image_path)
-                self._image_h, self._image_w = self.image_panel.size
-                self.photo_panel = ImageTk.PhotoImage(self.image_panel)
+                self.image_panel = cv2.imread(image_path)
+                self._image_h, self._image_w, _ = self.image_panel.shape
+                self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
         else:
-            LOGGER.warning('No image_path')
+            # LOGGER.warning('No image_path')
+            self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
 
     # render the lastest panel image
     def _sync_image(self):
