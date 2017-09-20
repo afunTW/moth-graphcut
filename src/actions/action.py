@@ -36,18 +36,20 @@ class MothActionsTemplate(MothKeyboardHandler):
     # render manual detector option
     def _invoke_manual_detect(self):
         if self.checkbtn_manual_detect.instate(['selected']):
+            LOGGER.info('manual detect mode')
             self.val_template_detect.set(False)
-            self._sync_detection()
+            # self._sync_detection()
         elif self.checkbtn_manual_detect.instate(['!selected']):
-            pass
+            self.val_manual_detect.set(False)
 
     # render template detector option
     def _invoke_template_detect(self):
         if self.checkbtn_template_detect.instate(['selected']):
+            LOGGER.info('auto detect mode')
             self.val_manual_detect.set(False)
-            self._sync_detection()
+            # self._sync_detection()
         elif self.checkbtn_template_detect.instate(['!selected']):
-            pass
+            self.val_template_detect.set(False)
 
     # detect and clear image when detect option was selected
     def _sync_detection(self):
@@ -67,6 +69,8 @@ class MothActionsTemplate(MothKeyboardHandler):
                 for rect in possible_rects:
                     _x, _y, _w, _h = rect
                     self.image_panel[_y:_y+_h, _x:_x+_w, :] = 255
+                LOGGER.info('detect the template and clear')
+                self.panel_image_state.append(STATE_DETECTED)
 
                 # # visualize template
                 # cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0,0,255),2)
@@ -74,7 +78,13 @@ class MothActionsTemplate(MothKeyboardHandler):
                 #     _x, _y, _w, _h = rect
                 #     cv2.rectangle(self.image_panel, (_x, _y), (_x+_w, _y+_h), (255,0,0),2)
 
-                self._update_image()
+            self._update_image()
+
+        elif not is_manual and not is_template and STATE_DETECTED in self.panel_image_state:
+            self.image_panel = cv2.imread(self.current_image_path)
+            LOGGER.info('reset to original image')
+            self.panel_image_state.remove(STATE_DETECTED)
+            self._update_image()
 
         self.root.after(100, self._sync_detection)
 
