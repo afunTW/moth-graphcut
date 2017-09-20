@@ -19,7 +19,6 @@ STATE_AUTO_DETECT = 'auto'
 class MothActionsTemplate(MothKeyboardHandler):
     def __init__(self):
         super().__init__()
-        self.panel_image_state = []
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
@@ -62,33 +61,33 @@ class MothActionsTemplate(MothKeyboardHandler):
                        STATE_AUTO_DETECT in self.panel_image_state)
         nor_detection = not in_manual and not in_template
 
+        if self.detector is None and self.image_template is not None:
+            self._init_detector()
+
         if is_template and STATE_AUTO_DETECT not in self.panel_image_state:
             if STATE_MANUAL_DETECT in self.panel_image_state:
                 self.panel_image_state.remove(STATE_MANUAL_DETECT)
-            if self.image_template is not None:
-                if self.detector is None:
-                    self.detector = TemplateDetector(self.image_path_template, self.current_image_path)
 
-                target_h, target_w, _ = self.image_panel.shape
-                x, y, w, h = self.detector.detect_template()
-                self.image_panel[y:y+h, x:x+w, :] = 255
+            target_h, target_w, _ = self.image_panel.shape
+            x, y, w, h = self.detector.detect_template()
+            self.image_panel[y:y+h, x:x+w, :] = 255
 
-                possible_rects = self.detector.detect_rectangle((0, y, target_w, target_h-y))
-                for rect in possible_rects:
-                    _x, _y, _w, _h = rect
-                    self.image_panel[_y:_y+_h, _x:_x+_w, :] = 255
-                self.panel_image_state.append(STATE_AUTO_DETECT)
+            possible_rects = self.detector.detect_rectangle((0, y, target_w, target_h-y))
+            for rect in possible_rects:
+                _x, _y, _w, _h = rect
+                self.image_panel[_y:_y+_h, _x:_x+_w, :] = 255
+            self.panel_image_state.append(STATE_AUTO_DETECT)
 
-                # # DEBUG MODE: visualize
-                # cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0,0,255),2)
-                # for rect in possible_rects:
-                #     _x, _y, _w, _h = rect
-                #     cv2.rectangle(self.image_panel, (_x, _y), (_x+_w, _y+_h), (255,0,0),2)
+            # # DEBUG MODE: visualize
+            # cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0,0,255),2)
+            # for rect in possible_rects:
+            #     _x, _y, _w, _h = rect
+            #     cv2.rectangle(self.image_panel, (_x, _y), (_x+_w, _y+_h), (255,0,0),2)
 
-                self._update_image()
-                LOGGER.info('In template detection, current state: {}'.format(
-                    self.panel_image_state
-                ))
+            self._update_image()
+            LOGGER.info('In template detection, current state: {}'.format(
+                self.panel_image_state
+            ))
 
         elif is_manual and STATE_MANUAL_DETECT not in self.panel_image_state:
             # reset the image_panel then manual clear
