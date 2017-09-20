@@ -10,7 +10,6 @@ sys.path.append('../..')
 from src import tkconfig
 from src.actions.keyboard import MothKeyboardHandler
 from src.actions.detector import TemplateDetector
-from src.actions.detector_test import ShapeDetector
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
