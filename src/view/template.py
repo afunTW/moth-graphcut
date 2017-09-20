@@ -15,6 +15,7 @@ from PIL import Image, ImageTk
 sys.path.append('../..')
 from src.image.imnp import ImageNP
 from src.support.tkconvert import TkConverter
+from src.actions.detector import TemplateDetector
 from src.view.tkfonts import TkFonts
 from src.view.tkframe import TkFrame, TkLabelFrame
 from src.view.ttkstyle import TTKStyle, init_css
@@ -31,16 +32,22 @@ class MothViewerTemplate(object):
             @current_image_path
             @image_queue        a queue of image path
             @image_panel        the image in panel
+            @image_path_template
             @image_template     the template image for detection
-            @state              the state to determine the operation
+            @detector           a TemplateDetector() instance or None
+            @state              application state
+            @panel_image_state  panel image state
         """
         super().__init__()
         self.current_image_path = None
         self.image_queue = None
         self.image_panel = None
         self.image_path_template = None
+        self.image_template = None
         self.detector = None
         self.state = None
+        self.panel_image_state = []
+
         self._font = TkFonts()
 
         # init windows, widget and layout
@@ -63,8 +70,9 @@ class MothViewerTemplate(object):
 
     # init all state when image changed
     def _init_state(self):
-        self.detector = None
         self.state = 'view'
+        self.panel_image_state = []
+        self._init_detector()
 
     # init root window
     def _init_window(self):
@@ -207,6 +215,11 @@ class MothViewerTemplate(object):
                                          style='White.Horizontal.TScale')
         self.label_threshold.grid(row=0, column=0, sticky='news')
         self.scale_threshold.grid(row=0, column=1, sticky='news')
+
+    # init detector
+    def _init_detector(self):
+        self.detector = TemplateDetector(self.image_path_template,
+                                         self.current_image_path)
 
     # update detector option
     def _enable_detector(self):
