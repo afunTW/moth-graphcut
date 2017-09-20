@@ -4,6 +4,7 @@ Some support function for tkinter
 import logging
 import tkinter
 
+import cv2
 import numpy as np
 from PIL import Image, ImageTk
 
@@ -25,3 +26,10 @@ class TkConverter(object):
         byte_photo = Image.frombytes('L', (w, h), arr.astype('b').tostring())
         tk_photo = ImageTk.PhotoImage(byte_photo)
         return tk_photo
+
+    @staticmethod
+    def cv2_to_photo(img):
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        arr = Image.fromarray(img)
+        photo = ImageTk.PhotoImage(arr)
+        return photo
