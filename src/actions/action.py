@@ -19,7 +19,6 @@ class MothActionsTemplate(MothKeyboardHandler):
     def __init__(self):
         super().__init__()
         self.panel_image_state = []
-        self.detector = None
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
@@ -59,8 +58,22 @@ class MothActionsTemplate(MothKeyboardHandler):
             if self.image_template is not None:
                 if self.detector is None:
                     self.detector = TemplateDetector(self.image_path_template, self.current_image_path)
+
+                target_h, target_w, _ = self.image_panel.shape
                 x, y, w, h = self.detector.detect_template()
-                cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                self.image_panel[y:y+h, x:x+w, :] = 255
+
+                possible_rects = self.detector.detect_rectangle((0, y, target_w, target_h-y))
+                for rect in possible_rects:
+                    _x, _y, _w, _h = rect
+                    self.image_panel[_y:_y+_h, _x:_x+_w, :] = 255
+
+                # # visualize template
+                # cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0,0,255),2)
+                # for rect in possible_rects:
+                #     _x, _y, _w, _h = rect
+                #     cv2.rectangle(self.image_panel, (_x, _y), (_x+_w, _y+_h), (255,0,0),2)
+
                 self._update_image()
 
         self.root.after(100, self._sync_detection)
