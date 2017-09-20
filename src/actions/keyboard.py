@@ -29,8 +29,8 @@ class MothKeyboardHandler(MothViewerTemplate):
                 LOGGER.info('({}/{}) Ready to process image {}'.format(
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
+                self._init_state()
                 self._update_image(self.current_image_path)
-                self.state = 'view'
         else:
             LOGGER.warning('No given image')
 
@@ -49,8 +49,8 @@ class MothKeyboardHandler(MothViewerTemplate):
                 LOGGER.info('({}/{}) Ready to process image {}'.format(
                     current_index+1, len(self.image_queue), self.current_image_path
                 ))
+                self._init_state()
                 self._update_image(self.current_image_path)
-                self.state = 'view'
         else:
             LOGGER.warning('No given image')
 
