@@ -4,6 +4,8 @@ Based on src.view.template.MothViewerTemplate() to bind the action and widget
 import logging
 import sys
 
+import cv2
+
 sys.path.append('../..')
 from src import tkconfig
 from src.actions.keyboard import MothKeyboardHandler
@@ -57,10 +59,10 @@ class MothActionsTemplate(MothKeyboardHandler):
         if (is_manual or is_template) and STATE_DETECTED not in self.panel_image_state:
             if self.image_template is not None:
                 if self.detector is None:
-                    # self.detector = TemplateDetector(self.image_path_template, self.current_image_path)
-                    self.detector = ShapeDetector(self.image_path_template, self.current_image_path)
+                    self.detector = TemplateDetector(self.image_path_template, self.current_image_path)
                 x, y, w, h = self.detector.detect_template()
                 cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                self._update_image()
 
         self.root.after(100, self._sync_detection)
 
