@@ -13,7 +13,8 @@ from src.actions.detector import TemplateDetector
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
-STATE_DETECTED = 'detected'
+STATE_MANUAL_DETECT = 'manual'
+STATE_AUTO_DETECT = 'auto'
 
 class MothActionsTemplate(MothKeyboardHandler):
     def __init__(self):
@@ -36,7 +37,7 @@ class MothActionsTemplate(MothKeyboardHandler):
     # render manual detector option
     def _invoke_manual_detect(self):
         if self.checkbtn_manual_detect.instate(['selected']):
-            LOGGER.info('manual detect mode')
+            LOGGER.info('detect mode: manual')
             self.val_template_detect.set(False)
             # self._sync_detection()
         elif self.checkbtn_manual_detect.instate(['!selected']):
@@ -45,7 +46,7 @@ class MothActionsTemplate(MothKeyboardHandler):
     # render template detector option
     def _invoke_template_detect(self):
         if self.checkbtn_template_detect.instate(['selected']):
-            LOGGER.info('auto detect mode')
+            LOGGER.info('detect mode: auto')
             self.val_manual_detect.set(False)
             # self._sync_detection()
         elif self.checkbtn_template_detect.instate(['!selected']):
@@ -53,10 +54,17 @@ class MothActionsTemplate(MothKeyboardHandler):
 
     # detect and clear image when detect option was selected
     def _sync_detection(self):
-        is_manual = self.checkbtn_manual_detect.instate(['selected'])
-        is_template = self.checkbtn_template_detect.instate(['selected'])
+        in_manual = self.checkbtn_manual_detect.instate(['selected'])
+        in_template = self.checkbtn_template_detect.instate(['selected'])
+        is_manual = not in_template and in_manual
+        is_template = not in_manual and in_template
+        is_detected = (STATE_MANUAL_DETECT in self.panel_image_state or
+                       STATE_AUTO_DETECT in self.panel_image_state)
+        nor_detection = not in_manual and not in_template
 
-        if (is_manual or is_template) and STATE_DETECTED not in self.panel_image_state:
+        if is_template and STATE_AUTO_DETECT not in self.panel_image_state:
+            if STATE_MANUAL_DETECT in self.panel_image_state:
+                self.panel_image_state.remove(STATE_MANUAL_DETECT)
             if self.image_template is not None:
                 if self.detector is None:
                     self.detector = TemplateDetector(self.image_path_template, self.current_image_path)
@@ -69,22 +77,41 @@ class MothActionsTemplate(MothKeyboardHandler):
                 for rect in possible_rects:
                     _x, _y, _w, _h = rect
                     self.image_panel[_y:_y+_h, _x:_x+_w, :] = 255
-                LOGGER.info('detect the template and clear')
-                self.panel_image_state.append(STATE_DETECTED)
+                self.panel_image_state.append(STATE_AUTO_DETECT)
 
-                # # visualize template
+                # # DEBUG MODE: visualize
                 # cv2.rectangle(self.image_panel, (x, y), (x+w, y+h), (0,0,255),2)
                 # for rect in possible_rects:
                 #     _x, _y, _w, _h = rect
                 #     cv2.rectangle(self.image_panel, (_x, _y), (_x+_w, _y+_h), (255,0,0),2)
 
-            self._update_image()
+                self._update_image()
+                LOGGER.info('In template detection, current state: {}'.format(
+                    self.panel_image_state
+                ))
 
-        elif not is_manual and not is_template and STATE_DETECTED in self.panel_image_state:
+        elif is_manual and STATE_MANUAL_DETECT not in self.panel_image_state:
+            # reset the image_panel then manual clear
             self.image_panel = cv2.imread(self.current_image_path)
-            LOGGER.info('reset to original image')
-            self.panel_image_state.remove(STATE_DETECTED)
+            if STATE_AUTO_DETECT in self.panel_image_state:
+                self.panel_image_state.remove(STATE_AUTO_DETECT)
+            self.panel_image_state.append(STATE_MANUAL_DETECT)
             self._update_image()
+            LOGGER.info('In manual detection, current state: {}'.format(
+                self.panel_image_state
+            ))
+            pass
+
+        elif nor_detection and is_detected:
+            self.image_panel = cv2.imread(self.current_image_path)
+            if STATE_MANUAL_DETECT in self.panel_image_state:
+                self.panel_image_state.remove(STATE_MANUAL_DETECT)
+            if STATE_AUTO_DETECT in self.panel_image_state:
+                self.panel_image_state.remove(STATE_AUTO_DETECT)
+            self._update_image()
+            LOGGER.info('Reset, current state: {}'.format(
+                self.panel_image_state
+            ))
 
         self.root.after(100, self._sync_detection)
 
