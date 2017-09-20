@@ -20,8 +20,8 @@ class TemplateDetector(object):
     """
     def __init__(self, template, target):
         super().__init__()
-        self._template = template
-        self._target = target
+        self.template = template
+        self.target = target
         self._template_canny = ImageCV.read_and_convert_to_edge_image(template)
         self._target_gray = ImageCV.read_and_convert_to_gray_image(target)
         self._found = None
@@ -71,6 +71,25 @@ class TemplateDetector(object):
 
         else:
             LOGGER.error('INput method {} is not defined'.format(method))
+
+    def detect_rectangle(self, focus_rect=None):
+        self._target_gray[np.where(self._target_gray > [5])] = 120
+        target_threshold = cv2.threshold(self._target_gray, 60, 255, cv2.THRESH_BINARY)[1]
+        cnts = cv2.findContours(target_threshold, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+        possible_rects = []
+
+        for i, cnt in enumerate(cnts):
+            perimeter = cv2.arcLength(cnt, True)
+            approx = cv2.approxPolyDP(cnt, 0.003*perimeter, True)
+            x, y, w, h = cv2.boundingRect(approx)
+
+            if focus_rect is not None and isinstance(focus_rect, tuple) and len(focus_rect) == 4:
+                X, Y, W, H = focus_rect
+                if X<x<x+w<X+W and Y<y<y+h<Y+H:
+                    possible_rects.append((x, y, w, h))
+            else:
+                possible_rects.append((x, y, w, h))
+        return possible_rects
 
 if __name__ == '__main __':
     """testing"""
