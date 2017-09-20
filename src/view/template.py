@@ -39,6 +39,7 @@ class MothViewerTemplate(object):
         self.image_queue = None
         self.image_panel = None
         self.image_path_template = None
+        self.detector = None
         self.state = None
         self._font = TkFonts()
 
@@ -59,6 +60,11 @@ class MothViewerTemplate(object):
     def _set_all_grid_rowconfigure(self, widget, *rows):
         for row in rows:
             widget.grid_rowconfigure(row, weight=1)
+
+    # init all state when image changed
+    def _init_state(self):
+        self.detector = None
+        self.state = 'view'
 
     # init root window
     def _init_window(self):
