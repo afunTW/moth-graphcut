@@ -1,12 +1,12 @@
 import logging
 import sys
-sys.path.append('../..')
-
-import numpy as np
 
 import cv2
-from src.support.profiling import func_profiling
+import numpy as np
+
+sys.path.append('../..')
 from src.image.imcv import ImageCV
+from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
 DETECT_METHOD = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,\
@@ -42,7 +42,7 @@ class TemplateDetector(object):
             # multiscale
             for scale in np.linspace(0.5, 1.0, 32)[::-1]:
                 template_h, template_w = self._template_canny.shape
-                target_h, target_w = self._target.shape
+                target_h, target_w = self._target_gray.shape
                 dimention = (int(target_w*scale), int(target_h*scale))
                 resized_target = cv2.resize(self._target_gray, dimention, interpolation=cv2.INTER_AREA)
                 ratio = target_w / float(resized_target.shape[1])
