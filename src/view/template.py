@@ -21,7 +21,7 @@ from src.view.tkframe import TkFrame, TkLabelFrame
 from src.view.ttkstyle import TTKStyle, init_css
 
 LOGGER = logging.getLogger(__name__)
-STATE = ['view', 'erase', 'mirror', 'seperate']
+STATE = ['view', 'erase', 'edit', 'mirror', 'seperate']
 
 class MothViewerTemplate(object):
 
@@ -35,7 +35,8 @@ class MothViewerTemplate(object):
             @image_path_template
             @image_template     the template image for detection
             @detector           a TemplateDetector() instance or None
-            @state              application state
+            @state              corresponding message with application state
+            @root_state         application state
             @panel_image_state  panel image state
         """
         super().__init__()
@@ -45,7 +46,8 @@ class MothViewerTemplate(object):
         self.image_path_template = None
         self.image_template = None
         self.detector = None
-        self.state = None
+        self.state_message = None
+        self.root_state = []
         self.panel_image_state = []
 
         self._font = TkFonts()
@@ -70,7 +72,7 @@ class MothViewerTemplate(object):
 
     # init all state when image changed
     def _init_state(self):
-        self.state = 'view'
+        self.state_message = 'view'
         self.panel_image_state = []
         self._init_detector()
 
@@ -258,18 +260,19 @@ class MothViewerTemplate(object):
     # render the lastest state
     def _sync_state(self):
         msg = ''
-        if self.state not in STATE:
+        if self.state_message not in STATE:
             msg = u'無'
-        elif self.state == 'view':
-            msg = u'瀏覽'
-        elif self.state == 'erase':
-            msg = u'手動消除'
-        elif self.state == 'mirror':
+        elif self.state_message == 'view':
+            msg = u'瀏覽 (按下 ENTER 進入編輯模式)'
+        elif self.state_message == 'erase':
+            msg = u'手動消除 (按下 ENTER 進入編輯模式)'
+        elif self.state_message == 'edit':
+            msg = u'編輯'
+        elif self.state_message == 'mirror':
             msg = u'鏡像'
-        elif self.state == 'seperate':
+        elif self.state_message == 'seperate':
             msg = u'切割'
-        self.label_state.configure(text=u'現在模式: {} ({})'.format(
-            msg, u'按下 ENTER 進入編輯模式'))
+        self.label_state.configure(text=u'現在模式: {}'.format(msg))
         self.label_state.after(100, self._sync_state)
 
     # input template image

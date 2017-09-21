@@ -54,5 +54,10 @@ class MothKeyboardHandler(MothViewerTemplate):
         else:
             LOGGER.warning('No given image')
 
+    # press ENTER and switch appication state into EDIT
+    def enter_edit_mode(self, event=None):
+        self.state_message = 'edit'
+        self.root_state.append('edit')
+
 if __name__ == '__main__':
     pass

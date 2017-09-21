@@ -23,6 +23,7 @@ class MothActionsTemplate(MothKeyboardHandler):
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
+        self.root.bind(tkconfig.KEY_ENTER, self.enter_edit_mode)
 
         # default binding: detector
         self.checkbtn_manual_detect.configure(command=self._invoke_manual_detect)
