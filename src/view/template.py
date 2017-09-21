@@ -80,6 +80,7 @@ class MothViewerTemplate(object):
     # init all state when image changed
     def _init_state(self):
         self.state_message = 'view'
+        self.root_state = ['view']
         self.panel_image_state = []
         self._init_detector()
 
