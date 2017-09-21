@@ -83,6 +83,7 @@ class MothViewerTemplate(object):
         self.root_state = ['view']
         self.panel_image_state = []
         self._init_detector()
+        self._enable_detector()
 
     # init root window
     def _init_window(self):
@@ -233,6 +234,7 @@ class MothViewerTemplate(object):
 
     # update detector option
     def _enable_detector(self):
+        self.checkbtn_manual_detect.configure(state='normal')
         if self.image_path_template is not None:
             self.image_template = cv2.imread(self.image_path_template)
             self.checkbtn_template_detect.configure(state='normal')
