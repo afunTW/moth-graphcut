@@ -257,17 +257,19 @@ class MothViewerTemplate(object):
 
     # render the lastest state
     def _sync_state(self):
+        msg = ''
         if self.state not in STATE:
-            self.label_state.configure(text=u'現在模式: {}'.format(u'無'))
+            msg = u'無'
         elif self.state == 'view':
-            self.label_state.configure(text=u'現在模式: {}'.format(u'瀏覽'))
+            msg = u'瀏覽'
         elif self.state == 'erase':
-            self.label_state.configure(text=u'現在模式: {}'.format(u'手動消除'))
+            msg = u'手動消除'
         elif self.state == 'mirror':
-            self.label_state.configure(text=u'現在模式: {}'.format(u'鏡像'))
+            msg = u'鏡像'
         elif self.state == 'seperate':
-            self.label_state.configure(text=u'現在模式: {}'.format(u'切割'))
-
+            msg = u'切割'
+        self.label_state.configure(text=u'現在模式: {} ({})'.format(
+            msg, u'按下 ENTER 進入編輯模式'))
         self.label_state.after(100, self._sync_state)
 
     # input template image
