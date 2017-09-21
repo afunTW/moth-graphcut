@@ -31,18 +31,22 @@ class MothViewerTemplate(object):
         Argument:
             @current_image_path
             @image_queue        a queue of image path
-            @image_panel        the image in panel
+            @image_panel        the image in panel before edit mode
+            @image_panel_tmp    the image in panel after edit mode
             @image_path_template
             @image_template     the template image for detection
             @detector           a TemplateDetector() instance or None
             @state              corresponding message with application state
             @root_state         application state
             @panel_image_state  panel image state
+
+            @symmetric_line     mirror line for moth
         """
         super().__init__()
         self.current_image_path = None
         self.image_queue = None
         self.image_panel = None
+        self.image_panel_tmp = None
         self.image_path_template = None
         self.image_template = None
         self.detector = None
@@ -51,6 +55,9 @@ class MothViewerTemplate(object):
         self.panel_image_state = []
 
         self._font = TkFonts()
+
+        # meta data
+        self.symmetric_line = None
 
         # init windows, widget and layout
         self._init_window()
@@ -233,7 +240,7 @@ class MothViewerTemplate(object):
             LOGGER.warning('No template image given')
 
     # read a new image and update to panel
-    def _update_image(self, image_path=None):
+    def _update_image(self, image_path=None, edit_mode=False):
         if image_path is not None:
             try:
                 self.photo_panel = tkinter.PhotoImage(file=image_path)
@@ -247,8 +254,9 @@ class MothViewerTemplate(object):
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
+        elif edit_mode:
+            self.photo_panel = TkConverter.cv2_to_photo(self.image_panel_tmp)
         else:
-            # LOGGER.warning('No image_path')
             self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
 
     # render the lastest panel image
