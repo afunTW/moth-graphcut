@@ -17,6 +17,7 @@ class MothKeyboardHandler(MothViewerTemplate):
         super().__init__()
 
     # press UP and switch to previous image in image queue
+    @func_profiling
     def switch_to_previous_image(self, event=None, step=1):
         if self.current_image_path and self.current_image_path in self.image_queue:
             current_index = self.image_queue.index(self.current_image_path)
@@ -37,6 +38,7 @@ class MothKeyboardHandler(MothViewerTemplate):
             LOGGER.warning('No given image')
 
     # press DOWN and switch to next image in image queue
+    @func_profiling
     def switch_to_next_image(self, event=None, step=1):
         if self.current_image_path and self.current_image_path in self.image_queue:
             current_index = self.image_queue.index(self.current_image_path)
@@ -57,19 +59,53 @@ class MothKeyboardHandler(MothViewerTemplate):
             LOGGER.warning('No given image')
 
     # press ENTER and switch appication state into EDIT
+    @func_profiling
     def enter_edit_mode(self, event=None):
         self.state_message = 'edit'
         self.root_state.append('edit')
+
+        # init tmp panel image
+        self.image_panel_tmp = self.image_panel.copy()
 
         # disable detector option
         self.checkbtn_manual_detect.configure(state='disabled')
         self.checkbtn_template_detect.configure(state='disabled')
 
         # draw symmetric line
-        pt1, pt2 = ImageNP.generate_symmetric_line(self.image_panel)
-        cv2.line(self.image_panel, pt1, pt2, (0, 0, 0), 2)
-        print(pt1, pt2)
-        self._update_image()
+        self.symmetric_line = ImageNP.generate_symmetric_line(self.image_panel_tmp)
+        cv2.line(self.image_panel_tmp,
+                 self.symmetric_line[0], self.symmetric_line[1],
+                 (0, 0, 0), 2)
+        self._update_image(edit_mode=True)
+
+    # press LEFT and move symmetric line to left [step] px
+    @func_profiling
+    def move_symmetric_to_left(self, event=None, step=1):
+        LOGGER.info('Move symmetric line to left: {}'.format(self.symmetric_line))
+        pt1, pt2 = self.symmetric_line
+        pt1 = (max(0, pt1[0]-step), pt1[1])
+        pt2 = (max(0, pt2[0]-step), pt2[1])
+        self.symmetric_line = (pt1, pt2)
+        self.image_panel_tmp = self.image_panel.copy()
+        cv2.line(self.image_panel_tmp,
+                 self.symmetric_line[0], self.symmetric_line[1],
+                 (0, 0, 0), 2)
+        self._update_image(edit_mode=True)
+
+    # press RIGHT and move symmetric line to right [step] px
+    @func_profiling
+    def move_symmetric_to_right(self, event=None, step=1):
+        LOGGER.info('Move symmetric line to right: {}'.format(self.symmetric_line))
+        bound_h, bound_w, _ = self.image_panel_tmp.shape
+        pt1, pt2 = self.symmetric_line
+        pt1 = (min(bound_w, pt1[0]+step), pt1[1])
+        pt2 = (min(bound_w, pt2[0]+step), pt2[1])
+        self.symmetric_line = (pt1, pt2)
+        self.image_panel_tmp = self.image_panel.copy()
+        cv2.line(self.image_panel_tmp,
+                 self.symmetric_line[0], self.symmetric_line[1],
+                 (0, 0, 0), 2)
+        self._update_image(edit_mode=True)
 
 if __name__ == '__main__':
     pass

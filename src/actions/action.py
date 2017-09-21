@@ -24,6 +24,7 @@ class MothActionsTemplate(MothKeyboardHandler, MothMouseHandler):
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
         self.root.bind(tkconfig.KEY_ENTER, self.enter_edit_mode)
+        self._sync_panel_mouse_event()
 
         # default binding: detector
         self.checkbtn_manual_detect.configure(command=self._invoke_manual_detect)
@@ -115,11 +116,16 @@ class MothActionsTemplate(MothKeyboardHandler, MothMouseHandler):
 
         self.root.after(100, self._sync_detection)
 
-    #
+    # determine the mouse event in each state
     def _sync_panel_mouse_event(self):
         # edit mode
         if 'edit' in self.root_state:
-            self.root.bind(tkconfig.MOUSE_MOTION)
+            self.root.bind(tkconfig.KEY_LEFT, self.move_symmetric_to_left)
+            self.root.bind(tkconfig.KEY_RIGHT, self.move_symmetric_to_right)
+            # self.root.bind(tkconfig.MOUSE_MOTION,)
+
+        self.root_state = self._unique(self.root_state)
+        self.root.after(100, self._sync_panel_mouse_event)
 
 if __name__ == '__main__':
     """testing"""
