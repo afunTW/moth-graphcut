@@ -8,15 +8,15 @@ import cv2
 
 sys.path.append('../..')
 from src import tkconfig
-from src.actions.keyboard import MothKeyboardHandler
 from src.actions.detector import TemplateDetector
-from src.support.profiling import func_profiling
+from src.actions.keyboard import MothKeyboardHandler
+from src.actions.mouse import MothMouseHandler
 
 LOGGER = logging.getLogger(__name__)
 STATE_MANUAL_DETECT = 'manual'
 STATE_AUTO_DETECT = 'auto'
 
-class MothActionsTemplate(MothKeyboardHandler):
+class MothActionsTemplate(MothKeyboardHandler, MothMouseHandler):
     def __init__(self):
         super().__init__()
 
@@ -114,6 +114,12 @@ class MothActionsTemplate(MothKeyboardHandler):
             ))
 
         self.root.after(100, self._sync_detection)
+
+    #
+    def _sync_panel_mouse_event(self):
+        # edit mode
+        if 'edit' in self.root_state:
+            self.root.bind(tkconfig.MOUSE_MOTION)
 
 if __name__ == '__main__':
     """testing"""
