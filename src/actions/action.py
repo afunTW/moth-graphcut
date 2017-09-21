@@ -122,7 +122,7 @@ class MothActionsTemplate(MothKeyboardHandler, MothMouseHandler):
         if 'edit' in self.root_state:
             self.root.bind(tkconfig.KEY_LEFT, self.move_symmetric_to_left)
             self.root.bind(tkconfig.KEY_RIGHT, self.move_symmetric_to_right)
-            # self.root.bind(tkconfig.MOUSE_MOTION,)
+            # self.root.bind(tkconfig.MOUSE_MOTION, self.draw_symmetric_line)
 
         self.root_state = self._unique(self.root_state)
         self.root.after(100, self._sync_panel_mouse_event)

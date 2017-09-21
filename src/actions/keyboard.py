@@ -3,6 +3,7 @@ Defined callback functions of keyboard event
 """
 import logging
 import sys
+
 import cv2
 
 sys.path.append('../')
