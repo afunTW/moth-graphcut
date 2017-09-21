@@ -3,9 +3,11 @@ Defined callback functions of keyboard event
 """
 import logging
 import sys
+import cv2
 
 sys.path.append('../')
 from src.view.template import MothViewerTemplate
+from src.image.imnp import ImageNP
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
@@ -58,6 +60,12 @@ class MothKeyboardHandler(MothViewerTemplate):
     def enter_edit_mode(self, event=None):
         self.state_message = 'edit'
         self.root_state.append('edit')
+
+        # draw symmetric line
+        pt1, pt2 = ImageNP.generate_symmetric_line(self.image_panel)
+        cv2.line(self.image_panel, pt1, pt2, (0, 0, 0), 2)
+        print(pt1, pt2)
+        self._update_image()
 
 if __name__ == '__main__':
     pass
