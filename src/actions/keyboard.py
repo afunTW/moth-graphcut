@@ -61,6 +61,10 @@ class MothKeyboardHandler(MothViewerTemplate):
         self.state_message = 'edit'
         self.root_state.append('edit')
 
+        # disable detector option
+        self.checkbtn_manual_detect.configure(state='disabled')
+        self.checkbtn_template_detect.configure(state='disabled')
+
         # draw symmetric line
         pt1, pt2 = ImageNP.generate_symmetric_line(self.image_panel)
         cv2.line(self.image_panel, pt1, pt2, (0, 0, 0), 2)
