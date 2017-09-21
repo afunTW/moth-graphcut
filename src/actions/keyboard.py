@@ -81,31 +81,33 @@ class MothKeyboardHandler(MothViewerTemplate):
     # press LEFT and move symmetric line to left [step] px
     @func_profiling
     def move_symmetric_to_left(self, event=None, step=1):
-        LOGGER.info('Move symmetric line to left: {}'.format(self.symmetric_line))
-        pt1, pt2 = self.symmetric_line
-        pt1 = (max(0, pt1[0]-step), pt1[1])
-        pt2 = (max(0, pt2[0]-step), pt2[1])
-        self.symmetric_line = (pt1, pt2)
-        self.image_panel_tmp = self.image_panel.copy()
-        cv2.line(self.image_panel_tmp,
-                 self.symmetric_line[0], self.symmetric_line[1],
-                 (0, 0, 0), 2)
-        self._update_image(edit_mode=True)
+        if 'edit' in self.root_state and 'mirror' not in self.root_state:
+            LOGGER.info('Move symmetric line to left: {}'.format(self.symmetric_line))
+            pt1, pt2 = self.symmetric_line
+            pt1 = (max(0, pt1[0]-step), pt1[1])
+            pt2 = (max(0, pt2[0]-step), pt2[1])
+            self.symmetric_line = (pt1, pt2)
+            self.image_panel_tmp = self.image_panel.copy()
+            cv2.line(self.image_panel_tmp,
+                    self.symmetric_line[0], self.symmetric_line[1],
+                    (0, 0, 0), 2)
+            self._update_image(edit_mode=True)
 
     # press RIGHT and move symmetric line to right [step] px
     @func_profiling
     def move_symmetric_to_right(self, event=None, step=1):
-        LOGGER.info('Move symmetric line to right: {}'.format(self.symmetric_line))
-        bound_h, bound_w, _ = self.image_panel_tmp.shape
-        pt1, pt2 = self.symmetric_line
-        pt1 = (min(bound_w, pt1[0]+step), pt1[1])
-        pt2 = (min(bound_w, pt2[0]+step), pt2[1])
-        self.symmetric_line = (pt1, pt2)
-        self.image_panel_tmp = self.image_panel.copy()
-        cv2.line(self.image_panel_tmp,
-                 self.symmetric_line[0], self.symmetric_line[1],
-                 (0, 0, 0), 2)
-        self._update_image(edit_mode=True)
+        if 'edit' in self.root_state and 'mirror' not in self.root_state:
+            LOGGER.info('Move symmetric line to right: {}'.format(self.symmetric_line))
+            bound_h, bound_w, _ = self.image_panel_tmp.shape
+            pt1, pt2 = self.symmetric_line
+            pt1 = (min(bound_w, pt1[0]+step), pt1[1])
+            pt2 = (min(bound_w, pt2[0]+step), pt2[1])
+            self.symmetric_line = (pt1, pt2)
+            self.image_panel_tmp = self.image_panel.copy()
+            cv2.line(self.image_panel_tmp,
+                    self.symmetric_line[0], self.symmetric_line[1],
+                    (0, 0, 0), 2)
+            self._update_image(edit_mode=True)
 
 if __name__ == '__main__':
     pass
