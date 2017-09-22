@@ -23,30 +23,112 @@ from src.view.ttkstyle import TTKStyle, init_css
 LOGGER = logging.getLogger(__name__)
 STATE = ['view', 'erase', 'edit', 'mirror', 'seperate']
 
-class MothGraphCutViewer(object):
+# the basic template for image application
+class MothImageViewer(object):
+    """
+    Assume all image paths in self.image_queue are unique,
+    show the image on ttk.Label named panel and sync the image to photo
 
+    Argument:
+        @current_image_path
+        @image_queue        a queue of image path
+        @image_panel        a image ready to display on panel
+        @photo_panel        a photo to display on ttk widget (label)
+    """
     def __init__(self):
-        """
-        Assume all image paths in self.image_queue are unique
-        Argument:
-            @current_image_path
-            @image_queue        a queue of image path
-            @image_panel        the image in panel before edit mode
-            @image_panel_tmp    the image in panel after edit mode
-            @image_path_template
-            @image_template     the template image for detection
-            @detector           a TemplateDetector() instance or None
-            @state              corresponding message with application state
-            @root_state         application state
-            @panel_image_state  panel image state
-
-            @symmetric_line     mirror line for moth
-            @body_width         body width of moth
-        """
         super().__init__()
         self.current_image_path = None
         self.image_queue = None
         self.image_panel = None
+        self.photo_panel = None
+
+        # ready to deprecated for tk widget, using ttk style after new version
+        self._font = TkFonts()
+
+    # set grid all column configure
+    def _set_all_grid_columnconfigure(self, widget, *cols):
+        for col in cols:
+            widget.grid_columnconfigure(col, weight=1)
+
+    # set grid all row comfigure
+    def _set_all_grid_rowconfigure(self, widget, *rows):
+        for row in rows:
+            widget.grid_rowconfigure(row, weight=1)
+
+    # init root window
+    def _init_window(self):
+        """Windows init - root"""
+        self.root = tkinter.Tk()
+        self.root.wm_title(time.ctime())
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.attributes('-zoomed', True)
+
+    # init ttk widget style
+    def _init_style(self):
+        init_css()
+
+    # render the lastest panel image
+    def _sync_image(self):
+        pass
+
+    # read a new image and update to panel
+    def _update_image(self, image_path=None, image=None):
+        if image_path is not None:
+            try:
+                self.photo_panel = tkinter.PhotoImage(file=image_path)
+                self._image_w, self._image_h = self.photo_panel.width(), self.photo_panel.height()
+            except tkinter.TclError as loaderr:
+                # log level should be warning in this block
+                LOGGER.debug(loaderr)
+                self.image_panel = cv2.imread(image_path)
+                self._image_h, self._image_w, _ = self.image_panel.shape
+                self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
+            except Exception as e:
+                LOGGER.exception(e)
+            self.current_image_path = image_path
+        elif image is not None:
+            try:
+                self.photo_panel = TkConverter.cv2_to_photo(image)
+            except Exception as e:
+                LOGGER.exception(e)
+        else:
+            self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
+
+    # input all image path to queue
+    def input_image(self, *image_paths):
+        self.image_queue = image_paths
+        self._update_image(self.image_queue[0])
+
+    # inherit tkinter mainloop
+    def mainloop(self):
+        self._sync_image()
+        self.root.mainloop()
+
+# the interface to preprocess moth image
+class MothPreprocessViewer(MothImageViewer):
+    def __init__(self):
+        super().__init__()
+
+# the interface to graphcut moth
+class MothGraphCutViewer(MothImageViewer):
+    """
+    Assume all image paths in self.image_queue are unique
+    Argument:
+        @image_panel        the image in panel before edit mode
+        @image_panel_tmp    the image in panel after edit mode
+        @image_path_template
+        @image_template     the template image for detection
+        @detector           a TemplateDetector() instance or None
+        @state              corresponding message with application state
+        @root_state         application state
+        @panel_image_state  panel image state
+
+        @symmetric_line     mirror line for moth
+        @body_width         body width of moth
+    """
+    def __init__(self):
+        super().__init__()
         self.image_panel_tmp = []
         self.image_path_template = None
         self.image_template = None
@@ -54,8 +136,6 @@ class MothGraphCutViewer(object):
         self.state_message = None
         self.root_state = []
         self.panel_image_state = []
-
-        self._font = TkFonts()
 
         # meta data
         self.symmetric_line = None
@@ -108,16 +188,6 @@ class MothGraphCutViewer(object):
                 self.symmetric_line, self.body_width
             ))
 
-    # set grid all column configure
-    def _set_all_grid_columnconfigure(self, widget, *cols):
-        for col in cols:
-            widget.grid_columnconfigure(col, weight=1)
-
-    # set grid all row comfigure
-    def _set_all_grid_rowconfigure(self, widget, *rows):
-        for row in rows:
-            widget.grid_rowconfigure(row, weight=1)
-
     # init all state when image changed
     def _init_state(self):
         self.state_message = 'view'
@@ -126,19 +196,6 @@ class MothGraphCutViewer(object):
         self.image_panel_tmp = []
         self._init_detector()
         self._enable_detector()
-
-    # init root window
-    def _init_window(self):
-        """Windows init - root"""
-        self.root = tkinter.Tk()
-        self.root.wm_title(time.ctime())
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        self.root.attributes('-zoomed', True)
-
-    # init ttk widget style
-    def _init_style(self):
-        init_css()
 
     # init tk frame and grid layout
     def _init_frame(self):
@@ -284,29 +341,6 @@ class MothGraphCutViewer(object):
         else:
             LOGGER.warning('No template image given')
 
-    # read a new image and update to panel
-    def _update_image(self, image_path=None, image=None):
-        if image_path is not None:
-            try:
-                self.photo_panel = tkinter.PhotoImage(file=image_path)
-                self._image_w, self._image_h = self.photo_panel.width(), self.photo_panel.height()
-            except tkinter.TclError as loaderr:
-                # log level should be warning in this block
-                LOGGER.debug(loaderr)
-                self.image_panel = cv2.imread(image_path)
-                self._image_h, self._image_w, _ = self.image_panel.shape
-                self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
-            except Exception as e:
-                LOGGER.exception(e)
-            self.current_image_path = image_path
-        elif image is not None:
-            try:
-                self.photo_panel = TkConverter.cv2_to_photo(image)
-            except Exception as e:
-                LOGGER.exception(e)
-        else:
-            self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
-
     # render the lastest panel image
     def _sync_image(self):
         self.root.wm_title(self.current_image_path)
@@ -356,16 +390,6 @@ class MothGraphCutViewer(object):
     def input_template(self, template_path):
         self.image_path_template = template_path
         self._enable_detector()
-
-    # input all image path to queue
-    def input_image(self, *image_paths):
-        self.image_queue = image_paths
-        self._update_image(self.image_queue[0])
-
-    # inherit tkinter mainloop
-    def mainloop(self):
-        self._sync_image()
-        self.root.mainloop()
 
 if __name__ == '__main__':
     """testing"""
