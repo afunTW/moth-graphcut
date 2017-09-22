@@ -1,5 +1,5 @@
 """
-Based on src.view.template.MothViewerTemplate() to bind the action and widget
+Based on src.view.template.MothGraphCutViewer() to bind the action and widget
 """
 import logging
 import sys

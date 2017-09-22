@@ -23,7 +23,7 @@ from src.view.ttkstyle import TTKStyle, init_css
 LOGGER = logging.getLogger(__name__)
 STATE = ['view', 'erase', 'edit', 'mirror', 'seperate']
 
-class MothViewerTemplate(object):
+class MothGraphCutViewer(object):
 
     def __init__(self):
         """
@@ -379,7 +379,7 @@ if __name__ == '__main__':
     TEMPLATE_IMG = abspath('../../image/10mm.png')
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
 
-    viewer = MothViewerTemplate()
+    viewer = MothGraphCutViewer()
     viewer.input_template(TEMPLATE_IMG)
     viewer.input_image(SAMPLE_IMG)
     viewer.mainloop()
