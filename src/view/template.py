@@ -56,13 +56,16 @@ class MothImageViewer(object):
             widget.grid_rowconfigure(row, weight=1)
 
     # init root window
-    def _init_window(self):
+    def _init_window(self, zoom=True):
         """Windows init - root"""
-        self.root = tkinter.Tk()
-        self.root.wm_title(time.ctime())
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        self.root.attributes('-zoomed', True)
+        try:
+            self.root = tkinter.Tk()
+            self.root.wm_title(time.ctime())
+            self.root.grid_rowconfigure(0, weight=1)
+            self.root.grid_columnconfigure(0, weight=1)
+            self.root.attributes('-zoomed', zoom)
+        except Exception as e:
+            LOGGER.exception(e)
 
     # init ttk widget style
     def _init_style(self):
@@ -109,6 +112,87 @@ class MothImageViewer(object):
 class MothPreprocessViewer(MothImageViewer):
     def __init__(self):
         super().__init__()
+
+        self._init_window(zoom=False)
+        self._init_style()
+        self._init_frame()
+        self._init_widget_head()
+        self._init_widget_body()
+        self._init_widget_footer()
+
+    # init tk frame and grid layout
+    def _init_frame(self):
+        """root"""
+        self.frame_root = TkFrame(self.root, bg='white')
+        self.frame_root.grid(row=0, column=0)
+        self._set_all_grid_columnconfigure(self.frame_root, 0)
+        self._set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
+
+        """root.header"""
+        self.frame_nav = TkFrame(self.frame_root, bg='orange')
+        self.frame_nav.grid(row=0, column=0, sticky='news')
+
+        """root.body"""
+        self.frame_body = TkFrame(self.frame_root, bg='black')
+        self.frame_body.grid(row=1, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_body, 0, 1)
+        self._set_all_grid_rowconfigure(self.frame_body, 0)
+
+        """root.body.frame_panel"""
+        self.frame_panel = TkFrame(self.frame_body, bg='light pink')
+        self.frame_panel.grid(row=0, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_panel, 0)
+        self._set_all_grid_rowconfigure(self.frame_panel, 0, 1)
+
+        """root.body.frame_display"""
+        self.frame_display = TkFrame(self.frame_body, bg='royal blue')
+        self.frame_display.grid(row=0, column=1, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_display, 0)
+        self._set_all_grid_rowconfigure(self.frame_display, 0, 1)
+
+        """root.footer"""
+        self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
+        self.frame_footer.grid(row=2, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_footer, 0)
+        self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
+
+    # init header widget
+    def _init_widget_head(self):
+        """Resize state"""
+        self.label_state = ttk.Label(self.frame_nav, text=u'原始尺寸: ', style='H1.TLabel')
+        self.label_state.grid(row=0, column=0, sticky='w')
+
+    # init body widget
+    def _init_widget_body(self):
+        """Panel/Display label"""
+        self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', style='H2.TLabel')
+        self.label_display = ttk.Label(self.frame_display, text='Display', style='H2.TLabel')
+        self.label_panel.grid(row=0, column=0)
+        self.label_display.grid(row=0, column=0)
+
+        """Panel/Display image"""
+        # default output
+        self._image_w, self._image_h = 800, 533
+        self.photo_panel = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
+        self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
+        self.photo_display = self.photo_panel
+
+        self.label_panel_image = ttk.Label(self.frame_panel, image=self.photo_panel)
+        self.label_panel_image.image = self.photo_panel
+        self.label_panel_image.grid(row=2, column=0)
+        self.label_display_image = ttk.Label(self.frame_display, image=self.photo_display)
+        self.label_display_image.grid(row=2, column=0)
+
+    # init footer widget
+    def _init_widget_footer(self):
+        pass
+
+    # render the lastest panel image
+    def _sync_image(self):
+        self.root.wm_title(self.current_image_path)
+        self.root.update()
+        self.label_panel_image.config(image=self.photo_panel)
+        self.label_panel_image.after(10, self._sync_image)
 
 # the interface to graphcut moth
 class MothGraphCutViewer(MothImageViewer):
@@ -403,7 +487,14 @@ if __name__ == '__main__':
     TEMPLATE_IMG = abspath('../../image/10mm.png')
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
 
-    viewer = MothGraphCutViewer()
-    viewer.input_template(TEMPLATE_IMG)
-    viewer.input_image(SAMPLE_IMG)
-    viewer.mainloop()
+    try:
+        preprocess_viewer = MothPreprocessViewer()
+        preprocess_viewer.input_image(SAMPLE_IMG)
+        preprocess_viewer.mainloop()
+    except Exception as e:
+        LOGGER.exception(e)
+
+    # graphcut_viewer = MothGraphCutViewer()
+    # graphcut_viewer.input_template(TEMPLATE_IMG)
+    # graphcut_viewer.input_image(SAMPLE_IMG)
+    # graphcut_viewer.mainloop()
