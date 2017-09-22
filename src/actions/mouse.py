@@ -18,10 +18,15 @@ class MothMouseHandler(MothViewerTemplate):
     def __init__(self):
         super().__init__()
 
-    # @func_profiling
-    # def draw_symmetric_line(self, event=None, color=255):
-    #     LOGGER.debug('mouse on label_image at {}'.format((event.x, event.y)))
-    #     # draw the line by OpenCV
-    #     h, w, channels = self.image_panel_tmp.shape
-    #     cv2.line(self.image_panel_tmp, (event.x, 0), (event.x, h), color, 2)
-    #     self._update_image(edit_mode=True)
+    @func_profiling
+    def draw_symmetric_line(self, event=None, color=255):
+        enter_mirror = ('edit' in self.root_state and 'mirror' not in self.root_state)
+        in_mirror = ('edit' in self.root_state and
+                     'mirror' in self.root_state and
+                     'seperate' not in self.root_state)
+        if enter_mirror and self.symmetric_line:
+            self.root_state.append('mirror')
+
+        if in_mirror and self.symmetric_line:
+            LOGGER.debug('mouse on label_image at {}'.format((event.x, event.y)))
+            self.body_width = abs(event.x - self.symmetric_line[0][0])
