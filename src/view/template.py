@@ -41,6 +41,7 @@ class MothViewerTemplate(object):
             @panel_image_state  panel image state
 
             @symmetric_line     mirror line for moth
+            @body_width         body width of moth
         """
         super().__init__()
         self.current_image_path = None
@@ -58,6 +59,7 @@ class MothViewerTemplate(object):
 
         # meta data
         self.symmetric_line = None
+        self.body_width = None
 
         # init windows, widget and layout
         self._init_window()
@@ -72,6 +74,39 @@ class MothViewerTemplate(object):
     def latest_image_panel(self):
         if self.image_panel_tmp:
             return self.image_panel_tmp[-1]
+        else:
+            LOGGER.warning('image_panel_tmp = {}, current app state = {}'.format(
+                self.image_panel_tmp, self.root_state
+            ))
+
+    # return left bounding line with moth body width
+    @property
+    def body_bound_line_left(self):
+        if self.symmetric_line is not None and self.body_width is not None:
+            pt1, pt2 = self.symmetric_line
+            bound_x = max(pt1[0]-self.body_width, 0)
+            bound_pt1 = (bound_x, pt1[1])
+            bound_pt2 = (bound_x, pt2[1])
+            return (bound_pt1, bound_pt2)
+        else:
+            LOGGER.warning('symmetric_line = {}, body_width = {}'.format(
+                self.symmetric_line, self.body_width
+            ))
+
+    # return right bounding line with moth body width
+    @property
+    def body_bound_line_right(self):
+        if self.symmetric_line is not None and self.body_width is not None:
+            pt1, pt2 = self.symmetric_line
+            h, w, _ = self.image_panel.shape
+            bound_x = min(pt1[0]+self.body_width, w)
+            bound_pt1 = (bound_x, pt1[1])
+            bound_pt2 = (bound_x, pt2[1])
+            return (bound_pt1, bound_pt2)
+        else:
+            LOGGER.warning('symmetric_line = {}, body_width = {}'.format(
+                self.symmetric_line, self.body_width
+            ))
 
     # set grid all column configure
     def _set_all_grid_columnconfigure(self, widget, *cols):
@@ -88,6 +123,7 @@ class MothViewerTemplate(object):
         self.state_message = 'view'
         self.root_state = ['view']
         self.panel_image_state = []
+        self.image_panel_tmp = []
         self._init_detector()
         self._enable_detector()
 
@@ -274,8 +310,10 @@ class MothViewerTemplate(object):
     # render the lastest panel image
     def _sync_image(self):
         self.root.wm_title(self.current_image_path)
+        self.root.update()
+        self._draw()
         self.label_panel_image.config(image=self.photo_panel)
-        self.label_panel_image.after(100, self._sync_image)
+        self.label_panel_image.after(10, self._sync_image)
 
     # render the lastest state
     def _sync_state(self):
@@ -297,12 +335,22 @@ class MothViewerTemplate(object):
 
     # draw meta data on image panel
     def _draw(self):
-        render_image = self.latest_image_panel.copy()
-        if 'edit' in self.root_state:
-            if self.symmetric_line:
-                pt1, pt2 = self.symmetric_line
-                cv2.line(render_image, pt1, pt2, (0, 0, 0), 2)
-                self._update_image(image=render_image)
+        if self.image_panel_tmp:
+            render_image = self.latest_image_panel.copy()
+
+            if 'edit' in self.root_state:
+                if self.symmetric_line:
+                    pt1, pt2 = self.symmetric_line
+                    cv2.line(render_image, pt1, pt2, (0, 0, 0), 2)
+
+            if 'mirror' in self.root_state:
+                if self.body_width:
+                    l_pt1, l_pt2 = self.body_bound_line_left
+                    r_pt1, r_pt2 = self.body_bound_line_right
+                    cv2.line(render_image, l_pt1, l_pt2, (255, 0, 0), 2)
+                    cv2.line(render_image, r_pt1, r_pt2, (255, 0, 0), 2)
+
+            self._update_image(image=render_image)
 
     # input template image
     def input_template(self, template_path):
