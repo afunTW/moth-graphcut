@@ -46,7 +46,7 @@ class MothViewerTemplate(object):
         self.current_image_path = None
         self.image_queue = None
         self.image_panel = None
-        self.image_panel_tmp = None
+        self.image_panel_tmp = []
         self.image_path_template = None
         self.image_template = None
         self.detector = None
@@ -66,6 +66,12 @@ class MothViewerTemplate(object):
         self._init_widget_head()
         self._init_widget_body()
         self._init_widget_footer()
+
+    # return the latest panel image in edit mode
+    @property
+    def latest_image_panel(self):
+        if self.image_panel_tmp:
+            return self.image_panel_tmp[-1]
 
     # set grid all column configure
     def _set_all_grid_columnconfigure(self, widget, *cols):
@@ -243,7 +249,7 @@ class MothViewerTemplate(object):
             LOGGER.warning('No template image given')
 
     # read a new image and update to panel
-    def _update_image(self, image_path=None, edit_mode=False):
+    def _update_image(self, image_path=None, image=None):
         if image_path is not None:
             try:
                 self.photo_panel = tkinter.PhotoImage(file=image_path)
@@ -257,8 +263,11 @@ class MothViewerTemplate(object):
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
-        elif edit_mode:
-            self.photo_panel = TkConverter.cv2_to_photo(self.image_panel_tmp)
+        elif image is not None:
+            try:
+                self.photo_panel = TkConverter.cv2_to_photo(image)
+            except Exception as e:
+                LOGGER.exception(e)
         else:
             self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
 
@@ -285,6 +294,15 @@ class MothViewerTemplate(object):
             msg = u'切割'
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
         self.label_state.after(100, self._sync_state)
+
+    # draw meta data on image panel
+    def _draw(self):
+        render_image = self.latest_image_panel.copy()
+        if 'edit' in self.root_state:
+            if self.symmetric_line:
+                pt1, pt2 = self.symmetric_line
+                cv2.line(render_image, pt1, pt2, (0, 0, 0), 2)
+                self._update_image(image=render_image)
 
     # input template image
     def input_template(self, template_path):
