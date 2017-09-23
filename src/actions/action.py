@@ -9,14 +9,14 @@ import cv2
 sys.path.append('../..')
 from src import tkconfig
 from src.actions.detector import TemplateDetector
-from src.actions.keyboard import MothKeyboardHandler
-from src.actions.mouse import MothMouseHandler
+from src.actions.keyboard import GraphcutKeyboardEvent
+from src.actions.mouse import GraphcutMouseEvent
 
 LOGGER = logging.getLogger(__name__)
 STATE_MANUAL_DETECT = 'manual'
 STATE_AUTO_DETECT = 'auto'
 
-class MothActionsTemplate(MothKeyboardHandler, MothMouseHandler):
+class MothGraphcutAction(GraphcutKeyboardEvent, GraphcutMouseEvent):
     def __init__(self):
         super().__init__()
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     SAMPLE = path.abspath('../../image/sample/')
     SAMPLE_IMGS = sorted([i for i in glob(path.join(SAMPLE, '*.jpg'))])
 
-    action = MothActionsTemplate()
+    action = MothGraphcutAction()
     action.input_template(TEMPLATE_IMG)
     action.input_image(*SAMPLE_IMGS)
     action.mainloop()

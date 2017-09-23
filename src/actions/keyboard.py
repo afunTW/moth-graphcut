@@ -7,13 +7,13 @@ import sys
 import cv2
 
 sys.path.append('../')
-from src.view.template import MothGraphCutViewer
+from src.view.template import MothGraphcutViewer
 from src.image.imnp import ImageNP
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
 
-class MothKeyboardHandler(MothGraphCutViewer):
+class GraphcutKeyboardEvent(MothGraphcutViewer):
     def __init__(self):
         super().__init__()
 

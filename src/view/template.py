@@ -194,8 +194,9 @@ class MothPreprocessViewer(MothImageViewer):
         self.label_panel_image.config(image=self.photo_panel)
         self.label_panel_image.after(10, self._sync_image)
 
+
 # the interface to graphcut moth
-class MothGraphCutViewer(MothImageViewer):
+class MothGraphcutViewer(MothImageViewer):
     """
     Assume all image paths in self.image_queue are unique
     Argument:
@@ -494,7 +495,7 @@ if __name__ == '__main__':
     except Exception as e:
         LOGGER.exception(e)
 
-    # graphcut_viewer = MothGraphCutViewer()
+    # graphcut_viewer = MothGraphcutViewer()
     # graphcut_viewer.input_template(TEMPLATE_IMG)
     # graphcut_viewer.input_image(SAMPLE_IMG)
     # graphcut_viewer.mainloop()
