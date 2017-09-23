@@ -7,13 +7,13 @@ import sys
 import cv2
 
 sys.path.append('../')
-from src.view.template import MothGraphcutViewer
+from src.view.template import MothImageViewer, MothGraphcutViewer
 from src.image.imnp import ImageNP
 from src.support.profiling import func_profiling
 
 LOGGER = logging.getLogger(__name__)
 
-class GraphcutKeyboardEvent(MothGraphcutViewer):
+class KeyboardHandler(MothImageViewer):
     def __init__(self):
         super().__init__()
 
@@ -58,6 +58,10 @@ class GraphcutKeyboardEvent(MothGraphcutViewer):
                 self._update_image(self.current_image_path)
         else:
             LOGGER.warning('No given image')
+
+class GraphcutKeyboardEvent(KeyboardHandler):
+    def __init__(self):
+        super().__init__()
 
     # press ENTER and switch appication state into EDIT
     @func_profiling
