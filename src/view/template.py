@@ -71,6 +71,10 @@ class MothImageViewer(object):
     def _init_style(self):
         init_css()
 
+    # init all state when image changed
+    def _init_state(self):
+        pass
+
     # render the lastest panel image
     def _sync_image(self):
         pass
@@ -159,8 +163,15 @@ class MothPreprocessViewer(MothImageViewer):
     # init header widget
     def _init_widget_head(self):
         """Resize state"""
-        self.label_state = ttk.Label(self.frame_nav, text=u'原始尺寸: ', style='H1.TLabel')
-        self.label_state.grid(row=0, column=0, sticky='w')
+        self.label_size = ttk.Label(self.frame_nav, text=u'原始尺寸: ', style='H1.TLabel')
+        self.label_size_value = ttk.Label(self.frame_nav, text='-', style='H1.TLabel')
+        self.label_resize = ttk.Label(self.frame_nav, text=u'顯示尺寸: ', style='H1.TLabel')
+        self.label_resize_value = ttk.Label(self.frame_nav, text='-', style='H1.TLabel')
+
+        self.label_size.grid(row=0, column=0, sticky='w')
+        self.label_size_value.grid(row=0, column=1, sticky='w')
+        self.label_resize.grid(row=1, column=0, sticky='w')
+        self.label_resize_value.grid(row=1, column=1, sticky='w')
 
     # init body widget
     def _init_widget_body(self):
@@ -191,6 +202,9 @@ class MothPreprocessViewer(MothImageViewer):
     def _sync_image(self):
         self.root.wm_title(self.current_image_path)
         self.root.update()
+        resize_w = self.photo_panel.width()
+        resize_h = self.photo_panel.height()
+        self.label_resize_value.config(text='{} X {}'.format(resize_w, resize_h))
         self.label_panel_image.config(image=self.photo_panel)
         self.label_panel_image.after(10, self._sync_image)
 
@@ -337,8 +351,8 @@ class MothGraphcutViewer(MothImageViewer):
     # init header widget
     def _init_widget_head(self):
         """State"""
-        self.label_state = ttk.Label(self.frame_nav, text='', style='H1.TLabel')
-        self.label_state.grid(row=0, column=0, sticky='w')
+        self.label_size = ttk.Label(self.frame_nav, text='', style='H1.TLabel')
+        self.label_size.grid(row=0, column=0, sticky='w')
         self._sync_state()
 
     # init body widget
@@ -449,8 +463,8 @@ class MothGraphcutViewer(MothImageViewer):
             msg = u'鏡像'
         elif self.state_message == 'seperate':
             msg = u'切割'
-        self.label_state.configure(text=u'現在模式: {}'.format(msg))
-        self.label_state.after(100, self._sync_state)
+        self.label_size.configure(text=u'現在模式: {}'.format(msg))
+        self.label_size.after(100, self._sync_state)
 
     # draw meta data on image panel
     def _draw(self):
@@ -488,14 +502,11 @@ if __name__ == '__main__':
     TEMPLATE_IMG = abspath('../../image/10mm.png')
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
 
-    try:
-        preprocess_viewer = MothPreprocessViewer()
-        preprocess_viewer.input_image(SAMPLE_IMG)
-        preprocess_viewer.mainloop()
-    except Exception as e:
-        LOGGER.exception(e)
+    preprocess_viewer = MothPreprocessViewer()
+    preprocess_viewer.input_image(SAMPLE_IMG)
+    preprocess_viewer.mainloop()
 
-    # graphcut_viewer = MothGraphcutViewer()
-    # graphcut_viewer.input_template(TEMPLATE_IMG)
-    # graphcut_viewer.input_image(SAMPLE_IMG)
-    # graphcut_viewer.mainloop()
+    graphcut_viewer = MothGraphcutViewer()
+    graphcut_viewer.input_template(TEMPLATE_IMG)
+    graphcut_viewer.input_image(SAMPLE_IMG)
+    graphcut_viewer.mainloop()
