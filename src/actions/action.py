@@ -9,14 +9,23 @@ import cv2
 sys.path.append('../..')
 from src import tkconfig
 from src.actions.detector import TemplateDetector
-from src.actions.keyboard import GraphcutKeyboardEvent
+from src.actions.keyboard import PreprocessEvent, GraphcutEvent
 from src.actions.mouse import GraphcutMouseEvent
 
 LOGGER = logging.getLogger(__name__)
 STATE_MANUAL_DETECT = 'manual'
 STATE_AUTO_DETECT = 'auto'
 
-class MothGraphcutAction(GraphcutKeyboardEvent, GraphcutMouseEvent):
+class MothPreprocessAction(PreprocessEvent):
+    def __init__(self):
+        super().__init__()
+
+        # default binding
+        self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
+        self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
+
+
+class MothGraphcutAction(GraphcutEvent, GraphcutMouseEvent):
     def __init__(self):
         super().__init__()
 

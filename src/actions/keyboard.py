@@ -59,7 +59,16 @@ class KeyboardHandler(MothImageViewer):
         else:
             LOGGER.warning('No given image')
 
-class GraphcutKeyboardEvent(KeyboardHandler):
+class PreprocessEvent(KeyboardHandler):
+    def __init__(self):
+        super().__init__()
+
+    # press ENTER and switch appication state into EDIT
+    @func_profiling
+    def enter_edit_mode(self, event=None):
+        self.root_state.append('edit')
+
+class GraphcutEvent(KeyboardHandler):
     def __init__(self):
         super().__init__()
 
