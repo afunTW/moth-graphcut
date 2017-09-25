@@ -538,9 +538,16 @@ if __name__ == '__main__':
     _FILE = abspath(getframeinfo(currentframe()).filename)
     TEMPLATE_IMG = abspath('../../image/10mm.png')
     SAMPLE_IMG = abspath('../../image/sample/0.jpg')
+    THERMAL_IMG = abspath('../../image/thermal/original_rgb/_SWU9909.jpg')
+
+    import os
+    if not os.path.exists(THERMAL_IMG):
+        import zipfile
+        with zipfile.ZipFile(abspath('../../image/thermal.zip'), 'r') as zip_ref:
+            zip_ref.extractall(abspath('../../image'))
 
     preprocess_viewer = MothPreprocessViewer()
-    preprocess_viewer.input_image('/home/afun/Desktop/moth_thermal/data/original_rgb/20170307/mod/_SWU9909.jpg')
+    preprocess_viewer.input_image(THERMAL_IMG)
     preprocess_viewer.mainloop()
 
     # graphcut_viewer = MothGraphcutViewer()
