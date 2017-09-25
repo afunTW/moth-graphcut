@@ -132,7 +132,6 @@ class MothImageViewer(object):
 
     # inherit tkinter mainloop
     def mainloop(self):
-        self._sync_image()
         self.root.mainloop()
 
 # the interface to preprocess moth image
@@ -241,7 +240,7 @@ class MothPreprocessViewer(MothImageViewer):
         elif self.state_message == 'edit':
             msg = u'編輯'
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
-        self.label_state.after(100, self._sync_state)
+        self.label_state.after(10, self._sync_state)
 
     # render the image size image
     def _sync_size_msg(self):
@@ -530,7 +529,7 @@ class MothGraphcutViewer(MothImageViewer):
         elif self.state_message == 'seperate':
             msg = u'切割'
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
-        self.label_state.after(100, self._sync_state)
+        self.label_state.after(10, self._sync_state)
 
     # draw meta data on image panel
     def _draw(self):
@@ -555,6 +554,11 @@ class MothGraphcutViewer(MothImageViewer):
     def input_template(self, template_path):
         self.image_path_template = template_path
         self._enable_detector()
+
+    # inherit parent mainloop
+    def mainloop(self):
+        self._sync_image()
+        super().mainloop()
 
 if __name__ == '__main__':
     """testing"""
