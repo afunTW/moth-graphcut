@@ -142,10 +142,16 @@ class MothPreprocessViewer(MothImageViewer):
 
         self._init_window(zoom=False)
         self._init_style()
+        self._init_state()
         self._init_frame()
         self._init_widget_head()
         self._init_widget_body()
         self._init_widget_footer()
+
+    # init all state when image changed
+    def _init_state(self):
+        self.state_message = 'view'
+        self.root_state = ['view']
 
     # init tk frame and grid layout
     def _init_frame(self):
@@ -554,6 +560,11 @@ class MothGraphcutViewer(MothImageViewer):
                     cv2.line(render_image, r_pt1, r_pt2, (255, 0, 0), 2)
 
             self._update_image(image=render_image)
+
+    # input all image path to queue
+    def input_image(self, *image_paths):
+        super().input_image(*image_paths)
+        self._init_state()
 
     # input template image
     def input_template(self, template_path):
