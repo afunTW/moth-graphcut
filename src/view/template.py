@@ -261,7 +261,7 @@ class MothPreprocessViewer(MothImageViewer):
         super().input_image(*image_paths)
         self._init_state()
         self._image_original = self.image_panel.copy()
-        self.auto_resize(ratio=0.45)
+        self.image_panel = self.auto_resize(self.image_panel, ratio=0.45)
         self._update_image()
 
         # resize the default display board
@@ -271,18 +271,18 @@ class MothPreprocessViewer(MothImageViewer):
         self._sync_display()
 
     # auto fit the image hight from original image to resize image
-    def auto_resize(self, ratio=0.5):
+    def auto_resize(self, image, ratio=0.5):
         screen_h = self.root.winfo_screenheight()
         screen_w = self.root.winfo_screenwidth()
-        image_h, image_w, image_channel = self.image_panel.shape
+        image_h, image_w, image_channel = image.shape
         resize_h = screen_h*ratio
         resize_w = (resize_h/image_h)*image_w
-        self.image_panel = cv2.resize(self.image_panel,
-                                      (int(resize_w), int(resize_h)),
-                                      interpolation=cv2.INTER_AREA)
+        resize_h, resize_w = int(resize_h), int(resize_w)
+        image = cv2.resize(image, (resize_w, resize_h), interpolation=cv2.INTER_AREA)
         LOGGER.info('resize image from {}x{} to {}x{}'.format(
             image_w, image_h, int(resize_w), int(resize_h)
         ))
+        return image
 
     # inherit parent mainloop
     def mainloop(self):
