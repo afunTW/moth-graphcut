@@ -33,6 +33,16 @@ class ImageCV(object):
 
     @staticmethod
     @func_profiling
+    def generate_error_mask(image, gamma=0.22):
+        h, w = image.shape[0], image.shape[1]
+        image = image.astype('float64')
+        image[:] *= 0.22
+        font = cv2.FONT_HERSHEY_TRIPLEX
+        cv2.putText(image, 'Error', (int(w/3), int(h/2)), font, 3, (0, 0, 255), 3)
+        return image
+
+    @staticmethod
+    @func_profiling
     def fill_connected_component(image, contour, threshold=255):
         """get the filled connected component"""
         cmp_img = np.zeros_like(image)
