@@ -142,7 +142,6 @@ class MothPreprocessViewer(MothImageViewer):
 
         self._init_window(zoom=False)
         self._init_style()
-        self._init_state()
         self._init_frame()
         self._init_widget_head()
         self._init_widget_body()
@@ -192,8 +191,8 @@ class MothPreprocessViewer(MothImageViewer):
     # init header widget
     def _init_widget_head(self):
         """Resize state"""
-        self.label_state = ttk.Label(self.frame_nav, text='', style='H1.TLabel')
-        self.label_resize = ttk.Label(self.frame_nav, text=u'顯示尺寸: ', style='H1.TLabel')
+        self.label_state = ttk.Label(self.frame_nav, text='', style='H2.TLabel')
+        self.label_resize = ttk.Label(self.frame_nav, text=u'顯示尺寸: ', style='H2.TLabel')
         self.label_state.grid(row=0, column=0, sticky='w')
         self.label_resize.grid(row=1, column=0, sticky='w')
         self._sync_state()
@@ -260,6 +259,7 @@ class MothPreprocessViewer(MothImageViewer):
     # input all image path to queue
     def input_image(self, *image_paths):
         super().input_image(*image_paths)
+        self._init_state()
         self._image_original = self.image_panel.copy()
         self.auto_resize(ratio=0.45)
         self._update_image()
