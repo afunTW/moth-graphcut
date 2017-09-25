@@ -29,7 +29,11 @@ class TkConverter(object):
 
     @staticmethod
     def cv2_to_photo(img):
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        arr = Image.fromarray(img)
-        photo = ImageTk.PhotoImage(arr)
-        return photo
+        try:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        except Exception as e:
+            LOGGER.warning(e)
+        finally:
+            arr = Image.fromarray(img)
+            photo = ImageTk.PhotoImage(arr)
+            return photo
