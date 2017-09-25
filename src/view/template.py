@@ -278,6 +278,11 @@ class MothPreprocessViewer(MothImageViewer):
             image_w, image_h, int(resize_w), int(resize_h)
         ))
 
+    # inherit parent mainloop
+    def mainloop(self):
+        self._sync_image()
+        super().mainloop()
+
 # the interface to graphcut moth
 class MothGraphcutViewer(MothImageViewer):
     """
