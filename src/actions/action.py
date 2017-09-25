@@ -23,7 +23,7 @@ class MothPreprocessAction(PreprocessEvent):
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
-
+        self.root.bind(tkconfig.KEY_ENTER, self.enter_edit_mode)
 
 class MothGraphcutAction(GraphcutEvent, GraphcutMouseEvent):
     def __init__(self):
@@ -151,8 +151,18 @@ if __name__ == '__main__':
     TEMPLATE_IMG = path.abspath('../../image/10mm.png')
     SAMPLE = path.abspath('../../image/sample/')
     SAMPLE_IMGS = sorted([i for i in glob(path.join(SAMPLE, '*.jpg'))])
+    THERMAL_IMG = path.abspath('../../image/thermal/original_rgb/_SWU9909.jpg')
 
-    action = MothGraphcutAction()
-    action.input_template(TEMPLATE_IMG)
-    action.input_image(*SAMPLE_IMGS)
-    action.mainloop()
+    if not path.exists(THERMAL_IMG):
+        import zipfile
+        with zipfile.ZipFile(path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
+            zip_ref.extractall(path.abspath('../../image'))
+
+    preprocess_action = MothPreprocessAction()
+    preprocess_action.input_image(THERMAL_IMG)
+    preprocess_action.mainloop()
+
+    # graphcut_action = MothGraphcutAction()
+    # graphcut_action.input_template(TEMPLATE_IMG)
+    # graphcut_action.input_image(*SAMPLE_IMGS)
+    # graphcut_action.mainloop()
