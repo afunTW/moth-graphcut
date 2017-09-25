@@ -263,7 +263,6 @@ class MothPreprocessViewer(MothImageViewer):
         h, w, _ = self.image_panel.shape
         resize_display = ImageNP.generate_checkboard((h, w), block_size=10)
         self.photo_display = TkConverter.ndarray_to_photo(resize_display)
-        self._update_display(None)
         self._sync_display()
 
     # auto fit the image hight from original image to resize image
