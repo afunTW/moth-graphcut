@@ -14,6 +14,7 @@ from PIL import Image, ImageTk
 
 sys.path.append('../..')
 from src.image.imnp import ImageNP
+from src.image.imcv import ImageCV
 from src.support.tkconvert import TkConverter
 from src.actions.detector import TemplateDetector
 from src.view.tkfonts import TkFonts
@@ -34,6 +35,7 @@ class MothImageViewer(object):
         @image_queue        a queue of image path
         @image_panel        a image ready to display on panel
         @photo_panel        a photo to display on ttk widget (label)
+        @photo_display      a photo to display on ttk widget (label)
         @state_message      corresponding message with application state
         @root_state         application state
     """
@@ -43,6 +45,7 @@ class MothImageViewer(object):
         self.image_queue = None
         self.image_panel = None
         self.photo_panel = None
+        self.photo_display = None
         self.state_message = None
         self.root_state = []
 
@@ -84,6 +87,10 @@ class MothImageViewer(object):
     def _sync_image(self):
         pass
 
+    # render the lastest display changed
+    def _sync_display(self):
+        pass
+
     # read a new image and update to panel
     def _update_image(self, image_path=None, image=None):
         if image_path is not None:
@@ -106,6 +113,17 @@ class MothImageViewer(object):
                 LOGGER.exception(e)
         else:
             self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
+
+    # update the display photo accroding to image operation in panel
+    def _update_display(self, image):
+        try:
+            self.photo_panel = TkConverter.cv2_to_photo(image)
+        except Exception as e:
+            h, w, _ = self.image_panel.shape
+            error_display = ImageNP.generate_checkboard((h, w), block_size=10)
+            error_display = ImageCV.generate_error_mask(error_display)
+            self.photo_display = TkConverter.cv2_to_photo(error_display)
+            LOGGER.exception(e)
 
     # input all image path to queue
     def input_image(self, *image_paths):
@@ -208,6 +226,11 @@ class MothPreprocessViewer(MothImageViewer):
         self.label_panel_image.config(image=self.photo_panel)
         self.label_panel_image.after(10, self._sync_image)
 
+    # render the lastest display changed
+    def _sync_display(self):
+        self.label_display_image.config(image=self.photo_display)
+        self.label_display_image.after(10, self._sync_display)
+
     # render the lastest state
     def _sync_state(self):
         msg = ''
@@ -233,7 +256,15 @@ class MothPreprocessViewer(MothImageViewer):
     def input_image(self, *image_paths):
         super().input_image(*image_paths)
         self._image_original = self.image_panel.copy()
-        self.auto_resize()
+        self.auto_resize(ratio=0.45)
+        self._update_image()
+
+        # resize the default display board
+        h, w, _ = self.image_panel.shape
+        resize_display = ImageNP.generate_checkboard((h, w), block_size=10)
+        self.photo_display = TkConverter.ndarray_to_photo(resize_display)
+        self._update_display(None)
+        self._sync_display()
 
     # auto fit the image hight from original image to resize image
     def auto_resize(self, ratio=0.5):
@@ -245,7 +276,6 @@ class MothPreprocessViewer(MothImageViewer):
         self.image_panel = cv2.resize(self.image_panel,
                                       (int(resize_w), int(resize_h)),
                                       interpolation=cv2.INTER_AREA)
-        self._update_image()
         LOGGER.info('resize image from {}x{} to {}x{}'.format(
             image_w, image_h, int(resize_w), int(resize_h)
         ))
