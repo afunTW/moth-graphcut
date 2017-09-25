@@ -7,9 +7,10 @@ import sys
 import cv2
 
 sys.path.append('../')
-from src.view.template import MothImageViewer, MothGraphcutViewer
 from src.image.imnp import ImageNP
 from src.support.profiling import func_profiling
+from src.view.template import (MothGraphcutViewer, MothImageViewer,
+                               MothPreprocessViewer)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -59,16 +60,17 @@ class KeyboardHandler(MothImageViewer):
         else:
             LOGGER.warning('No given image')
 
-class PreprocessEvent(KeyboardHandler):
+class PreprocessEvent(KeyboardHandler, MothPreprocessViewer):
     def __init__(self):
         super().__init__()
 
     # press ENTER and switch appication state into EDIT
     @func_profiling
     def enter_edit_mode(self, event=None):
+        self.state_message = 'edit'
         self.root_state.append('edit')
 
-class GraphcutEvent(KeyboardHandler):
+class GraphcutEvent(KeyboardHandler, MothGraphcutViewer):
     def __init__(self):
         super().__init__()
 
