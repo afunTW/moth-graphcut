@@ -88,3 +88,36 @@ class ImageCV(object):
             if k == exit_code:
                 break
         cv2.destroyAllWindows()
+
+    # image preprocess: get the object by difference
+    @staticmethod
+    @func_profiling
+    def run_floodfill(image, threshold=0.9):
+        original_image = image.copy()
+
+        # get the magnitude
+        img_float32 = original_image.astype('floar32') / 255.0
+        img_gradient_x = cv2.Sobel(img_float32, cv2.CV_32F, 1, 0, ksize=1)
+        img_gradient_y = cv2.Sobel(img_float32, cv2.CV_32F, 0, 1, ksize=1)
+        mag, angle = cv2.cartToPolar(img_gradient_x, img_gradient_y, angleInDegrees=Trye)
+
+        # normalize
+        mag += max(-mag.min(), 0)
+        mag /= mag.max()
+        mag *= 255
+        image = mag.astype('uint8')
+
+        # binary threshold
+        threshold_value = np.sort(image, axis=None)[int(image.size*threshold)]
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        ret, image = cv2.threshold(image, threshold_value, 255, cv2.THRESH_BINARY)
+
+        # floodfill and reverse
+        img_floodfill = original_image.copy()
+        mask_h, mask_w = img_floodfill.shape[0]+2, img_floodfill.shape[1]+2
+        mask = np.zeros((mask_h, mask_w), np.uint8)
+        cv2.floodfill(img_floodfill, mask, (0, 0), 255)
+        img_floodfill_rev = cv2.bitwise_not(img_floodfill)
+
+        # result image
+        img_out = original_image | img_floodfill_rev
