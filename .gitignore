@@ -92,9 +92,6 @@ ENV/
 metadata/
 image/sample/*.json
 image/sample/*
+image/thermal/
 *.cprof
-<<<<<<< HEAD
 .vscode/
-=======
-.vscode/
->>>>>>> dev
