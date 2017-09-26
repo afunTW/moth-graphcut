@@ -8,6 +8,7 @@ import cv2
 
 sys.path.append('../')
 from src.image.imnp import ImageNP
+from src.image.imcv import ImageCV
 from src.support.profiling import func_profiling
 from src.view.template import (MothGraphcutViewer, MothImageViewer,
                                MothPreprocessViewer)
@@ -69,6 +70,10 @@ class PreprocessEvent(KeyboardHandler, MothPreprocessViewer):
     def enter_edit_mode(self, event=None):
         self.state_message = 'edit'
         self.root_state.append('edit')
+
+        # show the default display image
+        display_image = ImageCV.run_floodfill(self.image_panel)
+        self._update_display(display_image)
 
 class GraphcutEvent(KeyboardHandler, MothGraphcutViewer):
     def __init__(self):
