@@ -7,6 +7,7 @@ import time
 
 import numpy as np
 import cv2
+from skimage import measure
 
 sys.path.append('../..')
 from src.support.profiling import func_profiling
@@ -92,14 +93,16 @@ class ImageCV(object):
     # image preprocess: get the object by difference
     @staticmethod
     @func_profiling
-    def run_floodfill(image, threshold=0.9):
+    def run_floodfill(image, threshold=0.9, iter_blur=5):
+        if not isinstance(threshold, float) or not isinstance(iter_blur, int):
+            raise ValueError('threshold should be in the range 0 ~ 1 and iter_blur is int')
         original_image = image.copy()
 
         # get the magnitude
-        img_float32 = original_image.astype('floar32') / 255.0
+        img_float32 = original_image.astype('float32') / 255.0
         img_gradient_x = cv2.Sobel(img_float32, cv2.CV_32F, 1, 0, ksize=1)
         img_gradient_y = cv2.Sobel(img_float32, cv2.CV_32F, 0, 1, ksize=1)
-        mag, angle = cv2.cartToPolar(img_gradient_x, img_gradient_y, angleInDegrees=Trye)
+        mag, angle = cv2.cartToPolar(img_gradient_x, img_gradient_y, angleInDegrees=True)
 
         # normalize
         mag += max(-mag.min(), 0)
@@ -113,11 +116,41 @@ class ImageCV(object):
         ret, image = cv2.threshold(image, threshold_value, 255, cv2.THRESH_BINARY)
 
         # floodfill and reverse
-        img_floodfill = original_image.copy()
+        img_floodfill = image.copy()
         mask_h, mask_w = img_floodfill.shape[0]+2, img_floodfill.shape[1]+2
         mask = np.zeros((mask_h, mask_w), np.uint8)
-        cv2.floodfill(img_floodfill, mask, (0, 0), 255)
+        cv2.floodFill(img_floodfill, mask, (0, 0), 255)
         img_floodfill_rev = cv2.bitwise_not(img_floodfill)
 
         # result image
-        img_out = original_image | img_floodfill_rev
+        img_out = image | img_floodfill_rev
+
+        # using non-linear blur to denoise the result image
+        for i in range(iter_blur):
+            img_out = cv2.medianBlur(img_out, 3)
+
+        # Label connected regions of an integer array. (2-connectivity)
+        labels = measure.label(img_out, neighbors=8, background=0)
+        mask = [0, -1]
+        for label in np.unique(labels):
+            # background
+            if label == 0:
+                continue
+
+            object_area = (labels == label).sum()
+            if object_area > mask[0]:
+                mask[0] = object_area
+                mask[1] = label
+
+        # set background
+        '''
+        if set bg to transparent:
+            alpha = np.ones(original_image[:2]).astype('uint8)
+            alpha[labels != mask[1]] = 0
+            alpha[labels == mask[1]] = 255
+            output_image = cv2.merge((original_image[:, :, 0],
+                                      original_image[:, :, 1], alpha))
+            return output_image
+        '''
+        original_image[labels != mask[1]] = 255
+        return original_image
