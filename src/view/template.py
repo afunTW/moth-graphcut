@@ -114,6 +114,8 @@ class MothImageViewer(object):
         else:
             self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
 
+        self._image_h, self._image_w = self.image_panel.shape[0], self.image_panel.shape[1]
+
     # update the display photo accroding to image operation in panel
     def _update_display(self, image):
         try:
@@ -188,6 +190,12 @@ class MothPreprocessViewer(MothImageViewer):
         self._set_all_grid_columnconfigure(self.frame_footer, 0)
         self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
 
+        """root.footer.floodfill"""
+        self.frame_floodfill = TkLabelFrame(self.frame_footer, text=u'Flood Fill 演算法參數', font=self._font.h4())
+        self.frame_floodfill.grid(row=0, column=0, sticky='news')
+        self._set_all_grid_columnconfigure(self.frame_floodfill, 0)
+        self._set_all_grid_rowconfigure(self.frame_floodfill, 0, 1)
+
     # init header widget
     def _init_widget_head(self):
         """Resize state"""
@@ -220,7 +228,31 @@ class MothPreprocessViewer(MothImageViewer):
 
     # init footer widget
     def _init_widget_footer(self):
-        pass
+        """Flood fill algorithm threshold (Double)"""
+        self.label_floodfill_threshold = ttk.Label(self.frame_floodfill, text=u'門檻值: ', style='H5.TLabel')
+        self.scale_threshold_val = tkinter.DoubleVar()
+        self.scale_threshold = ttk.Scale(self.frame_floodfill,
+                                         orient=tkinter.HORIZONTAL,
+                                         length=self._image_w*2,
+                                         from_=0.1, to=0.9,
+                                         variable=self.scale_threshold_val,
+                                         style='White.Horizontal.TScale')
+
+        self.label_floodfill_threshold.grid(row=0, column=0, sticky='w')
+        self.scale_threshold.grid(row=0, column=1, sticky='w')
+
+        """Flood fill algorithm iteration (Int)"""
+        self.label_floodfill_iter = ttk.Label(self.frame_floodfill, text=u'迭代次數: ', style='H5.TLabel')
+        self.scale_iter_val = tkinter.IntVar()
+        self.scale_iter = ttk.Scale(self.frame_floodfill,
+                                    orient=tkinter.HORIZONTAL,
+                                    length=self._image_w*2,
+                                    from_=1, to=10,
+                                    variable=self.scale_iter_val,
+                                    style='White.Horizontal.TScale')
+
+        self.label_floodfill_iter.grid(row=1, column=0, sticky='w')
+        self.scale_iter.grid(row=1, column=1, sticky='w')
 
     # render the lastest panel image
     def _sync_image(self):
