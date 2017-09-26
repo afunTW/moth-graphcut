@@ -231,10 +231,11 @@ class MothPreprocessViewer(MothImageViewer):
         """Flood fill algorithm threshold (Double)"""
         self.label_floodfill_threshold = ttk.Label(self.frame_floodfill, text=u'門檻值: ', style='H5.TLabel')
         self.scale_threshold_val = tkinter.DoubleVar()
+        self.scale_threshold_val.set(0.85)
         self.scale_threshold = ttk.Scale(self.frame_floodfill,
                                          orient=tkinter.HORIZONTAL,
                                          length=self._image_w*2,
-                                         from_=0.1, to=0.9,
+                                         from_=0.01, to=0.99,
                                          variable=self.scale_threshold_val,
                                          style='White.Horizontal.TScale')
 
@@ -244,6 +245,7 @@ class MothPreprocessViewer(MothImageViewer):
         """Flood fill algorithm iteration (Int)"""
         self.label_floodfill_iter = ttk.Label(self.frame_floodfill, text=u'迭代次數: ', style='H5.TLabel')
         self.scale_iter_val = tkinter.IntVar()
+        self.scale_iter_val.set(5)
         self.scale_iter = ttk.Scale(self.frame_floodfill,
                                     orient=tkinter.HORIZONTAL,
                                     length=self._image_w*2,
