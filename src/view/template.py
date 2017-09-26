@@ -117,7 +117,7 @@ class MothImageViewer(object):
     # update the display photo accroding to image operation in panel
     def _update_display(self, image):
         try:
-            self.photo_panel = TkConverter.cv2_to_photo(image)
+            self.photo_display = TkConverter.cv2_to_photo(image)
         except Exception as e:
             h, w, _ = self.image_panel.shape
             error_display = ImageNP.generate_checkboard((h, w), block_size=10)
