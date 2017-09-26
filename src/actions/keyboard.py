@@ -67,12 +67,12 @@ class PreprocessEvent(KeyboardHandler, MothPreprocessViewer):
 
     # press ENTER and switch appication state into EDIT
     @func_profiling
-    def enter_edit_mode(self, event=None):
+    def enter_edit_mode(self, event=None, threshold=0.9, iter_blur=5):
         self.state_message = 'edit'
         self.root_state.append('edit')
 
         # show the default display image
-        display_image = ImageCV.run_floodfill(self.image_panel)
+        display_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
         self._update_display(display_image)
 
 class GraphcutEvent(KeyboardHandler, MothGraphcutViewer):

@@ -95,6 +95,7 @@ class ImageCV(object):
     @func_profiling
     def run_floodfill(image, threshold=0.9, iter_blur=5):
         if not isinstance(threshold, float) or not isinstance(iter_blur, int):
+            LOGGER.error('threshold = {}, iter_count = {}'.format(threshold, iter_blur))
             raise ValueError('threshold should be in the range 0 ~ 1 and iter_blur is int')
         original_image = image.copy()
 

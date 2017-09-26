@@ -19,11 +19,16 @@ STATE_AUTO_DETECT = 'auto'
 class MothPreprocessAction(PreprocessEvent):
     def __init__(self):
         super().__init__()
+        self.meta_floodfill_threshold = self.scale_threshold_val.get()
+        self.meta_floodfill_iter = self.scale_iter_val.get()
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
-        self.root.bind(tkconfig.KEY_ENTER, self.enter_edit_mode)
+        self.root.bind(tkconfig.KEY_ENTER,
+                       lambda x: self.enter_edit_mode(x,
+                                                      self.meta_floodfill_threshold,
+                                                      self.meta_floodfill_iter))
 
 class MothGraphcutAction(GraphcutEvent, GraphcutMouseEvent):
     def __init__(self):
