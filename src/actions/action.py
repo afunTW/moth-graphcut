@@ -177,16 +177,18 @@ if __name__ == '__main__':
     _FILE = path.abspath(getframeinfo(currentframe()).filename)
     TEMPLATE_IMG = path.abspath('../../image/10mm.png')
     SAMPLE = path.abspath('../../image/sample/')
-    SAMPLE_IMGS = sorted([i for i in glob(path.join(SAMPLE, '*.jpg'))])
-    THERMAL_IMG = path.abspath('../../image/thermal/original_rgb/_SWU9909.jpg')
+    THERMAL = path.abspath('../../image/thermal/original_rgb/')
 
-    if not path.exists(THERMAL_IMG):
+    if not path.exists(THERMAL):
         import zipfile
         with zipfile.ZipFile(path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
             zip_ref.extractall(path.abspath('../../image'))
 
+    SAMPLE_IMGS = sorted([i for i in glob(path.join(SAMPLE, '*.jpg'))])
+    THERMAL_IMGS = sorted([i for i in glob(path.join(THERMAL, '*.jpg'))])
+
     preprocess_action = MothPreprocessAction()
-    preprocess_action.input_image(THERMAL_IMG)
+    preprocess_action.input_image(*THERMAL_IMGS)
     preprocess_action.mainloop()
 
     # graphcut_action = MothGraphcutAction()
