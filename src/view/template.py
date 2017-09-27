@@ -290,13 +290,26 @@ class PreprocessViewer(ImageViewer):
         )
         self.label_resize.configure(text=msg)
 
+    # update and auto resize the image if read the first image
+    def _update_image(self, image_path=None, image=None):
+        if image_path is not None:
+            try:
+                self.image_panel = cv2.imread(image_path)
+                self._image_original = self.image_panel.copy()
+                self.image_panel = self.auto_resize(self.image_panel, ratio=0.45)
+                self._image_h, self._image_w, _ = self.image_panel.shape
+                self.photo_panel = TkConverter.cv2_to_photo(self.image_panel)
+            except tkinter.TclError as loaderr:
+                LOGGER.exception(loaderr)
+            except Exception as e:
+                LOGGER.exception(e)
+            self.current_image_path = image_path
+        else:
+            super()._update_image(image_path=image_path, image=image)
+
     # input all image path to queue
     def input_image(self, *image_paths):
         super().input_image(*image_paths)
-        self._init_state()
-        self._image_original = self.image_panel.copy()
-        self.image_panel = self.auto_resize(self.image_panel, ratio=0.45)
-        self._update_image()
 
         # resize the default display board
         h, w, _ = self.image_panel.shape
