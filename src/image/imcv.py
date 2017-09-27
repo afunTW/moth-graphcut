@@ -97,6 +97,9 @@ class ImageCV(object):
         if not isinstance(threshold, float) or not isinstance(iter_blur, int):
             LOGGER.error('threshold = {}, iter_count = {}'.format(threshold, iter_blur))
             raise ValueError('threshold should be in the range 0 ~ 1 and iter_blur is int')
+        LOGGER.info('Running floodfill algorithm - threshold={}, iter_blur={}'.format(
+            threshold, iter_blur
+        ))
         original_image = image.copy()
 
         # get the magnitude
