@@ -230,13 +230,13 @@ class PreprocessViewer(ImageViewer):
     def _init_widget_footer(self):
         """Flood fill algorithm threshold (Double)"""
         self.label_floodfill_threshold = ttk.Label(self.frame_floodfill, text=u'門檻值: ', style='H5.TLabel')
-        self.scale_threshold_val = tkinter.DoubleVar()
-        self.scale_threshold_val.set(0.85)
+        self.val_scale_threshold = tkinter.DoubleVar()
+        self.val_scale_threshold.set(0.85)
         self.scale_threshold = ttk.Scale(self.frame_floodfill,
                                          orient=tkinter.HORIZONTAL,
                                          length=self._image_w*2,
                                          from_=0.01, to=0.99,
-                                         variable=self.scale_threshold_val,
+                                         variable=self.val_scale_threshold,
                                          style='White.Horizontal.TScale')
 
         self.label_floodfill_threshold.grid(row=0, column=0, sticky='w')
@@ -244,13 +244,13 @@ class PreprocessViewer(ImageViewer):
 
         """Flood fill algorithm iteration (Int)"""
         self.label_floodfill_iter = ttk.Label(self.frame_floodfill, text=u'迭代次數: ', style='H5.TLabel')
-        self.scale_iter_val = tkinter.IntVar()
-        self.scale_iter_val.set(5)
+        self.val_scale_iter = tkinter.IntVar()
+        self.val_scale_iter.set(5)
         self.scale_iter = ttk.Scale(self.frame_floodfill,
                                     orient=tkinter.HORIZONTAL,
                                     length=self._image_w*2,
                                     from_=1, to=10,
-                                    variable=self.scale_iter_val,
+                                    variable=self.val_scale_iter,
                                     style='White.Horizontal.TScale')
 
         self.label_floodfill_iter.grid(row=1, column=0, sticky='w')
