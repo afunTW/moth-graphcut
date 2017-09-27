@@ -157,6 +157,8 @@ class PreprocessViewer(ImageViewer):
     def _init_state(self):
         self.state_message = 'view'
         self.root_state = ['view']
+        self._init_floodfill_option()
+        self._init_display_panel()
 
     # init tk frame and grid layout
     def _init_frame(self):
@@ -260,6 +262,17 @@ class PreprocessViewer(ImageViewer):
         self.label_floodfill_iter.grid(row=1, column=0, sticky='w')
         self.scale_iter.grid(row=1, column=1, sticky='w')
 
+    # init display panel
+    def _init_display_panel(self):
+        resize_display = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
+        self.photo_display = TkConverter.ndarray_to_photo(resize_display)
+        self._sync_display()
+
+    # init floodfill option
+    def _init_floodfill_option(self):
+        self.val_scale_threshold.set(0.85)
+        self.val_scale_iter.set(5)
+
     # render the lastest panel image
     def _sync_image(self):
         self.root.wm_title(self.current_image_path)
@@ -318,12 +331,7 @@ class PreprocessViewer(ImageViewer):
     # input all image path to queue
     def input_image(self, *image_paths):
         super().input_image(*image_paths)
-
-        # resize the default display board
-        h, w, _ = self.image_panel.shape
-        resize_display = ImageNP.generate_checkboard((h, w), block_size=10)
-        self.photo_display = TkConverter.ndarray_to_photo(resize_display)
-        self._sync_display()
+        self._init_display_panel()
 
     # auto fit the image hight from original image to resize image
     def auto_resize(self, image, ratio=0.5):
