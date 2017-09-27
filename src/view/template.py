@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 STATE = ['view', 'erase', 'edit', 'mirror', 'seperate']
 
 # the basic template for image application
-class MothImageViewer(object):
+class ImageViewer(object):
     """
     Assume all image paths in self.image_queue are unique,
     show the image on ttk.Label named panel and sync the image to photo
@@ -137,7 +137,7 @@ class MothImageViewer(object):
         self.root.mainloop()
 
 # the interface to preprocess moth image
-class MothPreprocessViewer(MothImageViewer):
+class PreprocessViewer(ImageViewer):
     def __init__(self):
         super().__init__()
         self._image_original = None
@@ -324,7 +324,7 @@ class MothPreprocessViewer(MothImageViewer):
         super().mainloop()
 
 # the interface to graphcut moth
-class MothGraphcutViewer(MothImageViewer):
+class GraphcutViewer(ImageViewer):
     """
     Assume all image paths in self.image_queue are unique
     Argument:
@@ -546,6 +546,7 @@ class MothGraphcutViewer(MothImageViewer):
         if self.image_path_template is not None:
             self.image_template = cv2.imread(self.image_path_template)
             self.checkbtn_template_detect.configure(state='normal')
+            self.val_manual_detect.set(False)
             self.val_template_detect.set(True)
         else:
             LOGGER.warning('No template image given')
@@ -629,11 +630,11 @@ if __name__ == '__main__':
         with zipfile.ZipFile(abspath('../../image/thermal.zip'), 'r') as zip_ref:
             zip_ref.extractall(abspath('../../image'))
 
-    preprocess_viewer = MothPreprocessViewer()
+    preprocess_viewer = PreprocessViewer()
     preprocess_viewer.input_image(THERMAL_IMG)
     preprocess_viewer.mainloop()
 
-    # graphcut_viewer = MothGraphcutViewer()
+    # graphcut_viewer = GraphcutViewer()
     # graphcut_viewer.input_template(TEMPLATE_IMG)
     # graphcut_viewer.input_image(SAMPLE_IMG)
     # graphcut_viewer.mainloop()
