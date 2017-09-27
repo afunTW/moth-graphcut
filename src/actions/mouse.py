@@ -8,13 +8,22 @@ import cv2
 import numpy as np
 
 sys.path.append('../')
-from src.view.template import MothGraphcutViewer
+from src import tkconfig
 from src.support.profiling import func_profiling
 from src.support.tkconvert import TkConverter
+from src.view.template import GraphcutViewer, ImageViewer, PreprocessViewer
 
 LOGGER = logging.getLogger(__name__)
 
-class GraphcutMouseEvent(MothGraphcutViewer):
+class MouseHandler(ImageViewer):
+    def __init__(self):
+        super().__init__()
+
+class PreprocessMouse(MouseHandler, PreprocessViewer):
+    def __init__(self):
+        super().__init__()
+
+class GraphcutMouse(MouseHandler, GraphcutViewer):
     def __init__(self):
         super().__init__()
 

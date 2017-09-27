@@ -10,12 +10,12 @@ sys.path.append('../')
 from src.image.imnp import ImageNP
 from src.image.imcv import ImageCV
 from src.support.profiling import func_profiling
-from src.view.template import (MothGraphcutViewer, MothImageViewer,
-                               MothPreprocessViewer)
+from src.view.template import (GraphcutViewer, ImageViewer,
+                               PreprocessViewer)
 
 LOGGER = logging.getLogger(__name__)
 
-class KeyboardHandler(MothImageViewer):
+class KeyboardHandler(ImageViewer):
     def __init__(self):
         super().__init__()
 
@@ -61,7 +61,7 @@ class KeyboardHandler(MothImageViewer):
         else:
             LOGGER.warning('No given image')
 
-class PreprocessEvent(KeyboardHandler, MothPreprocessViewer):
+class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
     def __init__(self):
         super().__init__()
 
@@ -75,7 +75,7 @@ class PreprocessEvent(KeyboardHandler, MothPreprocessViewer):
         display_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
         self._update_display(display_image)
 
-class GraphcutEvent(KeyboardHandler, MothGraphcutViewer):
+class GraphcutKeyboard(KeyboardHandler, GraphcutViewer):
     def __init__(self):
         super().__init__()
 

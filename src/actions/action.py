@@ -9,18 +9,18 @@ import cv2
 sys.path.append('../..')
 from src import tkconfig
 from src.actions.detector import TemplateDetector
-from src.actions.keyboard import PreprocessEvent, GraphcutEvent
-from src.actions.mouse import GraphcutMouseEvent
+from src.actions.keyboard import GraphcutKeyboard, PreprocessKeyboard
+from src.actions.mouse import GraphcutMouse, PreprocessMouse
 
 LOGGER = logging.getLogger(__name__)
 STATE_MANUAL_DETECT = 'manual'
 STATE_AUTO_DETECT = 'auto'
 
-class MothPreprocessAction(PreprocessEvent):
+class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
     def __init__(self):
         super().__init__()
-        self.meta_floodfill_threshold = self.scale_threshold_val.get()
-        self.meta_floodfill_iter = self.scale_iter_val.get()
+        self.meta_floodfill_threshold = self.val_scale_threshold.get()
+        self.meta_floodfill_iter = self.val_scale_iter.get()
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
@@ -30,7 +30,10 @@ class MothPreprocessAction(PreprocessEvent):
                                                       self.meta_floodfill_threshold,
                                                       self.meta_floodfill_iter))
 
-class MothGraphcutAction(GraphcutEvent, GraphcutMouseEvent):
+        # widget default binding
+        self.scale_threshold.bind(tkconfig.MOUSE_MOTION_LEFT, )
+
+class MothGraphcutAction(GraphcutKeyboard, GraphcutMouse):
     def __init__(self):
         super().__init__()
 
