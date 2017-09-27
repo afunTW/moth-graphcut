@@ -19,6 +19,10 @@ class KeyboardHandler(ImageViewer):
     def __init__(self):
         super().__init__()
 
+    # doing nothing
+    def stale(self, event=None):
+        pass
+
     # press UP and switch to previous image in image queue
     @func_profiling
     def switch_to_previous_image(self, event=None, step=1):

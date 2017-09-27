@@ -19,8 +19,6 @@ STATE_AUTO_DETECT = 'auto'
 class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
     def __init__(self):
         super().__init__()
-        self.meta_floodfill_threshold = self.val_scale_threshold.get()
-        self.meta_floodfill_iter = self.val_scale_iter.get()
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
@@ -31,7 +29,28 @@ class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
                                                       self.meta_floodfill_iter))
 
         # widget default binding
-        self.scale_threshold.bind(tkconfig.MOUSE_MOTION_LEFT, )
+        self._sync_floodfill_option()
+
+    @property
+    def meta_floodfill_threshold(self):
+        return self.scale_threshold.get()
+
+    @property
+    def meta_floodfill_iter(self):
+        return int(self.scale_iter.get())
+
+    # sync and detect whether value changes to re-render the floodfill
+    def _sync_floodfill_option(self):
+        self.scale_iter.bind(tkconfig.MOUSE_MOTION, self.render_integer_value)
+
+        if 'edit' in self.root_state:
+            self.scale_threshold.bind(tkconfig.MOUSE_RELEASE_LEFT, self.render_display)
+            self.scale_iter.bind(tkconfig.MOUSE_RELEASE_LEFT, self.render_display)
+        else:
+            self.scale_threshold.unbind(tkconfig.MOUSE_RELEASE_LEFT)
+            self.scale_iter.unbind(tkconfig.MOUSE_RELEASE_LEFT)
+
+        self.root.after(10, self._sync_floodfill_option)
 
 class MothGraphcutAction(GraphcutKeyboard, GraphcutMouse):
     def __init__(self):
