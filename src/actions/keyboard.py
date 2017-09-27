@@ -35,10 +35,8 @@ class KeyboardHandler(ImageViewer):
                     current_index, current_index-step
                 ))
             else:
-                self.current_image_path = self.image_queue[max(0, current_index-step)]
-                LOGGER.info('({}/{}) Ready to process image {}'.format(
-                    current_index+1, len(self.image_queue), self.current_image_path
-                ))
+                target_index = max(0, current_index-step)
+                self.current_image_path = self.image_queue[target_index]
                 self._init_state()
                 self._update_image(self.current_image_path)
         else:
@@ -56,10 +54,8 @@ class KeyboardHandler(ImageViewer):
                     current_index, current_index+step
                 ))
             else:
-                self.current_image_path = self.image_queue[min(current_index+step, len(self.image_queue)-1)]
-                LOGGER.info('({}/{}) Ready to process image {}'.format(
-                    current_index+1, len(self.image_queue), self.current_image_path
-                ))
+                target_index = min(current_index+step, len(self.image_queue)-1)
+                self.current_image_path = self.image_queue[target_index]
                 self._init_state()
                 self._update_image(self.current_image_path)
         else:

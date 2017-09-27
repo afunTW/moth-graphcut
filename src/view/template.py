@@ -106,6 +106,10 @@ class ImageViewer(object):
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
+            current_index = self.image_queue.index(self.current_image_path)+1
+            LOGGER.info('({}/{}) Ready to process image {}'.format(
+                current_index, len(self.image_queue), self.current_image_path
+            ))
         elif image is not None:
             try:
                 self.photo_panel = TkConverter.cv2_to_photo(image)
@@ -304,6 +308,10 @@ class PreprocessViewer(ImageViewer):
             except Exception as e:
                 LOGGER.exception(e)
             self.current_image_path = image_path
+            current_index = self.image_queue.index(self.current_image_path)+1
+            LOGGER.info('({}/{}) Ready to process image {}'.format(
+                current_index, len(self.image_queue), self.current_image_path
+            ))
         else:
             super()._update_image(image_path=image_path, image=image)
 
