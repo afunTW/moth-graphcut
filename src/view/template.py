@@ -149,6 +149,7 @@ class PreprocessViewer(ImageViewer):
     def __init__(self):
         super().__init__()
         self._image_original = None
+        self._image_w, self._image_h = 800, 533
 
         self._init_window(zoom=False)
         self._init_style()
@@ -226,7 +227,6 @@ class PreprocessViewer(ImageViewer):
 
         """Panel/Display image"""
         # default output
-        self._image_w, self._image_h = 800, 533
         self.photo_panel = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
         self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
         self.photo_display = self.photo_panel
@@ -282,9 +282,10 @@ class PreprocessViewer(ImageViewer):
     def _sync_image(self):
         self.root.wm_title(self.current_image_path)
         self.root.update()
-        self._sync_size_msg()
-        self.label_panel_image.config(image=self.photo_panel)
-        self.label_panel_image.after(10, self._sync_image)
+        if self.current_image_path is not None:
+            self._sync_size_msg()
+            self.label_panel_image.config(image=self.photo_panel)
+            self.label_panel_image.after(10, self._sync_image)
 
     # render the lastest display changed
     def _sync_display(self):
