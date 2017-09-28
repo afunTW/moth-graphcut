@@ -1,8 +1,11 @@
 """
 Based on src.view.template.MothGraphCutViewer() to bind the action and widget
 """
+import inspect
 import logging
+import os
 import sys
+from tkinter.filedialog import askopenfilenames
 
 import cv2
 
@@ -12,6 +15,7 @@ from src.actions.detector import TemplateDetector
 from src.actions.keyboard import GraphcutKeyboard, PreprocessKeyboard
 from src.actions.mouse import GraphcutMouse, PreprocessMouse
 
+__FILE__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
 STATE_MANUAL_DETECT = 'manual'
 STATE_AUTO_DETECT = 'auto'
@@ -19,6 +23,9 @@ STATE_AUTO_DETECT = 'auto'
 class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
     def __init__(self):
         super().__init__()
+
+        # default file dialog
+        self.get_image_queue()
 
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
@@ -53,6 +60,18 @@ class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
             self.scale_iter.unbind(tkconfig.MOUSE_RELEASE_LEFT)
 
         self.root.after(10, self._sync_floodfill_option)
+
+    def get_image_queue(self):
+        init_dir = os.path.abspath(os.path.join(__FILE__, '../../../image/thermal/original_rgb'))
+        LOGGER.info(init_dir)
+        paths = askopenfilenames(title=u'請選擇要處理的圖片',
+                                 filetypes=[('JPG file (*.jpg)', '*jpg'),
+                                            ('JPEG file (*.jpeg)', '*.jpeg'),
+                                            ('PNG file (*.png)', '*.png')],
+                                initialdir=init_dir,
+                                parent=self.root)
+        if paths:
+            self.input_image(*paths)
 
 class MothGraphcutAction(GraphcutKeyboard, GraphcutMouse):
     def __init__(self):
@@ -190,7 +209,7 @@ if __name__ == '__main__':
     THERMAL_IMGS = sorted([i for i in glob(path.join(THERMAL, '*.jpg'))])
 
     preprocess_action = MothPreprocessAction()
-    preprocess_action.input_image(*THERMAL_IMGS)
+    # preprocess_action.input_image(*THERMAL_IMGS)
     preprocess_action.mainloop()
 
     # graphcut_action = MothGraphcutAction()
