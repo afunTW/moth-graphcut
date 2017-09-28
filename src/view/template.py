@@ -1,26 +1,29 @@
 """
 Wrap the tkinter function for this project
 """
+import inspect
 import logging
+import os
 import sys
 import time
 import tkinter
 from inspect import currentframe, getframeinfo
-from os.path import abspath
 from tkinter import ttk
+from tkinter.filedialog import askopenfilenames
 
 import cv2
 from PIL import Image, ImageTk
 
 sys.path.append('../..')
-from src.image.imnp import ImageNP
-from src.image.imcv import ImageCV
-from src.support.tkconvert import TkConverter
 from src.actions.detector import TemplateDetector
+from src.image.imcv import ImageCV
+from src.image.imnp import ImageNP
+from src.support.tkconvert import TkConverter
 from src.view.tkfonts import TkFonts
 from src.view.tkframe import TkFrame, TkLabelFrame
 from src.view.ttkstyle import TTKStyle, init_css
 
+__FILE__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
 STATE = ['view', 'erase', 'edit', 'mirror', 'seperate', 'calc', 'result']
 
@@ -152,8 +155,10 @@ class PreprocessViewer(ImageViewer):
         self._image_w, self._image_h = 800, 533
 
         self._init_window(zoom=False)
+        self.root.option_add('*tearOff', False)
         self._init_style()
         self._init_frame()
+        self._init_menu_bar()
         self._init_widget_head()
         self._init_widget_body()
         self._init_widget_footer()
@@ -165,6 +170,16 @@ class PreprocessViewer(ImageViewer):
         self.root_state = ['view']
         self._init_floodfill_option()
         self._init_display_panel()
+
+    # init menu to load image path
+    def _init_menu_bar(self):
+        self.root_menu = tkinter.Menu(self.root)
+        self.root.config(menu=self.root_menu)
+
+        self.menu_image = tkinter.Menu(self.root_menu)
+        self.menu_image.add_command(label=u'載入圖片', command=self.get_image_queue)
+
+        self.root_menu.add_cascade(label='File', menu=self.menu_image)
 
     # init tk frame and grid layout
     def _init_frame(self):
@@ -359,6 +374,19 @@ class PreprocessViewer(ImageViewer):
             image_w, image_h, int(resize_w), int(resize_h)
         ))
         return image
+
+    # open a file dialog to get image queue
+    def get_image_queue(self):
+        init_dir = os.path.abspath(os.path.join(__FILE__, '../../../image/thermal/original_rgb'))
+        LOGGER.info(init_dir)
+        paths = askopenfilenames(title=u'請選擇要處理的圖片',
+                                 filetypes=[('JPG file (*.jpg)', '*jpg'),
+                                            ('JPEG file (*.jpeg)', '*.jpeg'),
+                                            ('PNG file (*.png)', '*.png')],
+                                initialdir=init_dir,
+                                parent=self.root)
+        if paths:
+            self.input_image(*paths)
 
     # inherit parent mainloop
     def mainloop(self):
@@ -661,16 +689,16 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
         )
-    _FILE = abspath(getframeinfo(currentframe()).filename)
-    TEMPLATE_IMG = abspath('../../image/10mm.png')
-    SAMPLE_IMG = abspath('../../image/sample/0.jpg')
-    THERMAL_IMG = abspath('../../image/thermal/original_rgb/_SWU9909.jpg')
+    _FILE = os.path.abspath(getframeinfo(currentframe()).filename)
+    TEMPLATE_IMG = os.path.abspath('../../image/10mm.png')
+    SAMPLE_IMG = os.path.abspath('../../image/sample/0.jpg')
+    THERMAL_IMG = os.path.abspath('../../image/thermal/original_rgb/_SWU9909.jpg')
 
     import os
     if not os.path.exists(THERMAL_IMG):
         import zipfile
-        with zipfile.ZipFile(abspath('../../image/thermal.zip'), 'r') as zip_ref:
-            zip_ref.extractall(abspath('../../image'))
+        with zipfile.ZipFile(os.path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
+            zip_ref.extractall(os.path.abspath('../../image'))
 
     preprocess_viewer = PreprocessViewer()
     preprocess_viewer.input_image(THERMAL_IMG)
