@@ -79,6 +79,7 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
         # show the default display image
         display_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
         self._update_display(display_image)
+        self.root_state.append('result')
 
     # press UP and switch to previous image in image queue
     def switch_to_previous_image(self, event=None, step=1):
@@ -97,6 +98,28 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
             super().switch_to_next_image(event=event, step=step)
         else:
             LOGGER.error('Unexpected state {}'.format(self.root_state))
+
+    # press SPACE to save the image
+    def save_display_image(self, event=None):
+        if self._image_original is None:
+            LOGGER.warning('No original image to process')
+        elif 'result' not in self.root_state:
+            LOGGER.warning('Have not been processed image')
+        else:
+            _msg = self.state_message
+            self.state_message = 'calc'
+            self._sync_state()
+            self.root.update_idletasks()
+            threshold = float(self.scale_threshold.get())
+            iter_blur = int(self.scale_iter.get())
+            save_path = self.current_image_path.split('.')
+            save_path[0] += '_floodfill'
+            save_path = '.'.join(save_path)
+            save_image = ImageCV.run_floodfill(self._image_original, threshold, iter_blur)
+            cv2.imwrite(save_path, save_image)
+            self.state_message = _msg
+            self._sync_state()
+            LOGGER.info('Save file in {}'.format(save_path))
 
 class GraphcutKeyboard(KeyboardHandler, GraphcutViewer):
     def __init__(self):

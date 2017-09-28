@@ -28,6 +28,7 @@ class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
                        lambda x: self.enter_edit_mode(x,
                                                       self.meta_floodfill_threshold,
                                                       self.meta_floodfill_iter))
+        self.root.bind(tkconfig.KEY_SPACE, self.save_display_image)
 
         # widget default binding
         self._sync_floodfill_option()

@@ -22,7 +22,7 @@ from src.view.tkframe import TkFrame, TkLabelFrame
 from src.view.ttkstyle import TTKStyle, init_css
 
 LOGGER = logging.getLogger(__name__)
-STATE = ['view', 'erase', 'edit', 'mirror', 'seperate']
+STATE = ['view', 'erase', 'edit', 'mirror', 'seperate', 'calc', 'result']
 
 # the basic template for image application
 class ImageViewer(object):
@@ -131,6 +131,10 @@ class ImageViewer(object):
             self.photo_display = TkConverter.cv2_to_photo(error_display)
             LOGGER.exception(e)
 
+    # unique the list element
+    def unique(self, l):
+        return list(set(l))
+
     # input all image path to queue
     def input_image(self, *image_paths):
         self.image_queue = image_paths
@@ -152,6 +156,7 @@ class PreprocessViewer(ImageViewer):
         self._init_widget_head()
         self._init_widget_body()
         self._init_widget_footer()
+        self._init_state()
 
     # init all state when image changed
     def _init_state(self):
@@ -295,6 +300,13 @@ class PreprocessViewer(ImageViewer):
             msg = u'瀏覽 (按下 ENTER 進入編輯模式)'
         elif self.state_message == 'edit':
             msg = u'編輯'
+        elif self.state_message == 'calc':
+            LOGGER.info('root state {}'.format(self.root_state))
+            msg = u'圖片處理中...'
+
+        if 'result' in self.root_state and self.state_message != 'calc':
+            msg += ' (按下 SPACE 儲存圖片)'
+        self.root_state = self.unique(self.root_state)
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
         self.label_state.after(10, self._sync_state)
 

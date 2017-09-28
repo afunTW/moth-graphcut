@@ -40,6 +40,7 @@ class PreprocessMouse(MouseHandler, PreprocessViewer):
         iter_blur = int(self.scale_iter.get())
         display_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
         self._update_display(display_image)
+        self.root_state.append('result')
 
 class GraphcutMouse(MouseHandler, GraphcutViewer):
     def __init__(self):
