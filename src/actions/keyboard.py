@@ -65,6 +65,11 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
     def __init__(self):
         super().__init__()
 
+    # press ESC to leave edit mode
+    def enter_view_mode(self, event=None):
+        self.state_message = 'view'
+        self.root_state = ['view']
+
     # press ENTER and switch appication state into EDIT
     @func_profiling
     def enter_edit_mode(self, event=None, threshold=0.9, iter_blur=5):
@@ -74,6 +79,24 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
         # show the default display image
         display_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
         self._update_display(display_image)
+
+    # press UP and switch to previous image in image queue
+    def switch_to_previous_image(self, event=None, step=1):
+        if 'edit' in self.root_state:
+            LOGGER.warning('Can not go the previous image in edit mode')
+        elif 'view' in self.root_state:
+            super().switch_to_previous_image(event=event, step=step)
+        else:
+            LOGGER.error('Unexpected state {}'.format(self.root_state))
+
+    # press DOWN and switch to next image in image queue
+    def switch_to_next_image(self, event=None, step=1):
+        if 'edit' in self.root_state:
+            LOGGER.warning('Can not go the next image in edit mode')
+        elif 'view' in self.root_state:
+            super().switch_to_next_image(event=event, step=step)
+        else:
+            LOGGER.error('Unexpected state {}'.format(self.root_state))
 
 class GraphcutKeyboard(KeyboardHandler, GraphcutViewer):
     def __init__(self):

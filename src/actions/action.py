@@ -23,6 +23,7 @@ class MothPreprocessAction(PreprocessKeyboard, PreprocessMouse):
         # default binding
         self.root.bind(tkconfig.KEY_UP, self.switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self.switch_to_next_image)
+        self.root.bind(tkconfig.KEY_ESC, self.enter_view_mode)
         self.root.bind(tkconfig.KEY_ENTER,
                        lambda x: self.enter_edit_mode(x,
                                                       self.meta_floodfill_threshold,

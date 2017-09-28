@@ -15,6 +15,7 @@ MOUSE_FOCUSOUT_WIDGET = '<FocusOut>'
 
 RECONFIGURE = '<Configure>'
 
+KEY_ESC = '<Escape>'
 KEY_ENTER = '<Return>'
 KEY_PAGEUP = '<Prior>'
 KEY_PAGEDOWN = '<Next>'
