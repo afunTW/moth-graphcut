@@ -109,7 +109,7 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
             _msg = self.state_message
             self.state_message = 'calc'
             self._sync_state()
-            self.root.update_idletasks()
+            self.root.update()
             threshold = float(self.scale_threshold.get())
             iter_blur = int(self.scale_iter.get())
             save_path = self.current_image_path.split('.')

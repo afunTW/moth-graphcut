@@ -73,7 +73,14 @@ class ImageViewer(object):
             self.root.wm_title(time.ctime())
             self.root.grid_rowconfigure(0, weight=1)
             self.root.grid_columnconfigure(0, weight=1)
-            self.root.attributes('-zoomed', zoom)
+            if os.name == 'posix':
+                self.root.attributes('-zoomed', zoom)
+            elif os.name == 'wt':
+                self.root.state('zoomed')
+            else:
+                LOGGER.warning('Your platform {} does not support zooming in this app'.format(
+                    os.name
+                ))
         except Exception as e:
             LOGGER.exception(e)
 
