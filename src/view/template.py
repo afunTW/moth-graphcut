@@ -394,6 +394,7 @@ class PreprocessViewer(ImageViewer):
                                 parent=self.root)
         if paths:
             self.input_image(*paths)
+            self._init_state()
 
     # inherit parent mainloop
     def mainloop(self):
