@@ -38,6 +38,12 @@ class GraphCut(BaseGraphCut):
             self.__orig_img = orig_image
 
         h, w, channel = self.orig_image.shape
+        if w > 800:
+            ratio = h/w
+            self.__orig_img = cv2.resize(self.__orig_img, (800, int(800*ratio)), interpolation=cv2.INTER_LINEAR)
+            h, w, channel = self.orig_image.shape
+
+        LOGGER.info('Show original image shape = {}'.format(self.__orig_img.shape))
         self.__panel_img = self.orig_image.copy()
         self.__transparent = self.generate_transparent((h, w, channel))
         self.__transparent_2x = self.generate_transparent((h*2, w*2, channel))

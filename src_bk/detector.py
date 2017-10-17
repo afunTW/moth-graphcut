@@ -21,6 +21,14 @@ class ShapeDetector(object):
         self.__template = cv2.cvtColor(self.__template, cv2.COLOR_BGR2GRAY)
         self.__template = cv2.Canny(self.__template, 50, 100)
         self.__target_img = cv2.imread(target)
+
+        im_h, im_w, im_c = self.__target_img.shape
+        if im_w > 800:
+            ratio = im_h/im_w
+            self.__target_img = cv2.resize(self.__target_img, (800, int(800*ratio)), interpolation=cv2.INTER_LINEAR)
+
+        LOGGER.info('target image shape = {}'.format(self.__target_img.shape))
+
         self.__target_img = cv2.cvtColor(self.__target_img, cv2.COLOR_BGR2GRAY)
         self.__output = cv2.imread(target)
         self.__template_rect = None
