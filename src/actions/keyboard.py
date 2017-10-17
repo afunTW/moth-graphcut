@@ -120,6 +120,7 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
             self.state_message = _msg
             self._sync_state()
             LOGGER.info('Save file in {}'.format(save_path))
+            self.enter_view_mode()
 
 class GraphcutKeyboard(KeyboardHandler, GraphcutViewer):
     def __init__(self):
