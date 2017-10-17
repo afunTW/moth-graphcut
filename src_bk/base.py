@@ -6,9 +6,9 @@ import cv2
 import numpy as np
 
 from scipy.spatial.distance import cosine
-from src.color import RGB
-from src.keyboard import KeyHandler
-from src.msg_box import Instruction, MessageBox
+from .color import RGB
+from .keyboard import KeyHandler
+from .msg_box import Instruction, MessageBox
 
 
 LOGGER = logging.getLogger(__name__)

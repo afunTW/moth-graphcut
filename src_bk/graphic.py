@@ -7,9 +7,9 @@ from math import ceil, floor, hypot
 import cv2
 import numpy as np
 
-from src.base import BaseGraphCut
-from src.filter import savitzky_golay
-from src.msg_box import MessageBox
+from .base import BaseGraphCut
+from .filter import savitzky_golay
+from .msg_box import MessageBox
 
 LOGGER = logging.getLogger(__name__)
 

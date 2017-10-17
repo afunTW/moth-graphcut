@@ -10,7 +10,7 @@ from hashlib import sha1
 import cv2
 import numpy as np
 
-from src import detector, graphic
+from src_bk import detector, graphic
 
 __file__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
 
