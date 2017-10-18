@@ -745,6 +745,12 @@ class AutoMappingViewer(TkViewer):
         self.button_ok = ttk.Button(self.frame_footer, text=u'確認', style='H5.TButton')
         self.button_ok.grid(row=0, column=1, sticky='e')
 
+# the interface to manual mapping
+class ManualMappingViewer(ImageViewer):
+    def __init__(self):
+        super().__init__()
+        self.init_window()
+        self.init_style()
 
 if __name__ == '__main__':
     """testing"""
@@ -765,14 +771,17 @@ if __name__ == '__main__':
         with zipfile.ZipFile(os.path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
             zip_ref.extractall(os.path.abspath('../../image'))
 
-    automapping_viewer = AutoMappingViewer()
-    automapping_viewer.mainloop()
+    manualmapping_viewer = ManualMappingViewer()
+    manualmapping_viewer.mainloop()
 
-    # preprocess_viewer = PreprocessViewer()
-    # preprocess_viewer.input_image(THERMAL_IMG)
-    # preprocess_viewer.mainloop()
+    # automapping_viewer = AutoMappingViewer()
+    # automapping_viewer.mainloop()
 
     # graphcut_viewer = GraphcutViewer()
     # graphcut_viewer.input_template(TEMPLATE_IMG)
     # graphcut_viewer.input_image(SAMPLE_IMG)
     # graphcut_viewer.mainloop()
+
+    # preprocess_viewer = PreprocessViewer()
+    # preprocess_viewer.input_image(THERMAL_IMG)
+    # preprocess_viewer.mainloop()
