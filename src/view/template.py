@@ -27,8 +27,50 @@ __FILE__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename
 LOGGER = logging.getLogger(__name__)
 STATE = ['view', 'erase', 'edit', 'mirror', 'seperate', 'calc', 'result']
 
+# the basic function for tkinter
+class TkViewer(object):
+    def __init__(self):
+        super().__init__()
+
+    # set grid all column configure
+    def set_all_grid_columnconfigure(self, widget, *cols):
+        for col in cols:
+            widget.grid_columnconfigure(col, weight=1)
+
+    # set grid all row comfigure
+    def set_all_grid_rowconfigure(self, widget, *rows):
+        for row in rows:
+            widget.grid_rowconfigure(row, weight=1)
+
+    # init root window
+    def init_window(self, zoom=True):
+        """Windows init - root"""
+        try:
+            self.root = tkinter.Tk()
+            self.root.wm_title(time.ctime())
+            self.root.grid_rowconfigure(0, weight=1)
+            self.root.grid_columnconfigure(0, weight=1)
+            if os.name == 'posix':
+                self.root.attributes('-zoomed', zoom)
+            elif os.name == 'wt':
+                self.root.state('zoomed')
+            else:
+                LOGGER.warning('Your platform {} does not support zooming in this app'.format(
+                    os.name
+                ))
+        except Exception as e:
+            LOGGER.exception(e)
+
+    # init ttk widget style
+    def init_style(self):
+        init_css()
+
+    # inherit tkinter mainloop
+    def mainloop(self):
+        self.root.mainloop()
+
 # the basic template for image application
-class ImageViewer(object):
+class ImageViewer(TkViewer):
     """
     Assume all image paths in self.image_queue are unique,
     show the image on ttk.Label named panel and sync the image to photo
@@ -54,39 +96,6 @@ class ImageViewer(object):
 
         # ready to deprecated for tk widget, using ttk style after new version
         self._font = TkFonts()
-
-    # set grid all column configure
-    def _set_all_grid_columnconfigure(self, widget, *cols):
-        for col in cols:
-            widget.grid_columnconfigure(col, weight=1)
-
-    # set grid all row comfigure
-    def _set_all_grid_rowconfigure(self, widget, *rows):
-        for row in rows:
-            widget.grid_rowconfigure(row, weight=1)
-
-    # init root window
-    def _init_window(self, zoom=True):
-        """Windows init - root"""
-        try:
-            self.root = tkinter.Tk()
-            self.root.wm_title(time.ctime())
-            self.root.grid_rowconfigure(0, weight=1)
-            self.root.grid_columnconfigure(0, weight=1)
-            if os.name == 'posix':
-                self.root.attributes('-zoomed', zoom)
-            elif os.name == 'wt':
-                self.root.state('zoomed')
-            else:
-                LOGGER.warning('Your platform {} does not support zooming in this app'.format(
-                    os.name
-                ))
-        except Exception as e:
-            LOGGER.exception(e)
-
-    # init ttk widget style
-    def _init_style(self):
-        init_css()
 
     # init all state when image changed
     def _init_state(self):
@@ -150,10 +159,6 @@ class ImageViewer(object):
         self.image_queue = image_paths
         self._update_image(self.image_queue[0])
 
-    # inherit tkinter mainloop
-    def mainloop(self):
-        self.root.mainloop()
-
 # the interface to preprocess moth image
 class PreprocessViewer(ImageViewer):
     def __init__(self):
@@ -161,9 +166,9 @@ class PreprocessViewer(ImageViewer):
         self._image_original = None
         self._image_w, self._image_h = 800, 533
 
-        self._init_window(zoom=False)
+        self.init_window(zoom=False)
         self.root.option_add('*tearOff', False)
-        self._init_style()
+        self.init_style()
         self._init_frame()
         self._init_menu_bar()
         self._init_widget_head()
@@ -193,8 +198,8 @@ class PreprocessViewer(ImageViewer):
         """root"""
         self.frame_root = TkFrame(self.root, bg='white')
         self.frame_root.grid(row=0, column=0)
-        self._set_all_grid_columnconfigure(self.frame_root, 0)
-        self._set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+        self.set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
 
         """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
@@ -203,32 +208,32 @@ class PreprocessViewer(ImageViewer):
         """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
         self.frame_body.grid(row=1, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_body, 0, 1)
-        self._set_all_grid_rowconfigure(self.frame_body, 0)
+        self.set_all_grid_columnconfigure(self.frame_body, 0, 1)
+        self.set_all_grid_rowconfigure(self.frame_body, 0)
 
         """root.body.frame_panel"""
         self.frame_panel = TkFrame(self.frame_body, bg='light pink')
         self.frame_panel.grid(row=0, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_panel, 0)
-        self._set_all_grid_rowconfigure(self.frame_panel, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_panel, 0)
+        self.set_all_grid_rowconfigure(self.frame_panel, 0, 1)
 
         """root.body.frame_display"""
         self.frame_display = TkFrame(self.frame_body, bg='royal blue')
         self.frame_display.grid(row=0, column=1, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_display, 0)
-        self._set_all_grid_rowconfigure(self.frame_display, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_display, 0)
+        self.set_all_grid_rowconfigure(self.frame_display, 0, 1)
 
         """root.footer"""
         self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
         self.frame_footer.grid(row=2, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_footer, 0)
-        self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+        self.set_all_grid_rowconfigure(self.frame_footer, 0, 1)
 
         """root.footer.floodfill"""
         self.frame_floodfill = TkLabelFrame(self.frame_footer, text=u'Flood Fill 演算法參數', font=self._font.h4())
         self.frame_floodfill.grid(row=0, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_floodfill, 0)
-        self._set_all_grid_rowconfigure(self.frame_floodfill, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_floodfill, 0)
+        self.set_all_grid_rowconfigure(self.frame_floodfill, 0, 1)
 
     # init header widget
     def _init_widget_head(self):
@@ -429,8 +434,8 @@ class GraphcutViewer(ImageViewer):
         self.body_width = None
 
         # init windows, widget and layout
-        self._init_window()
-        self._init_style()
+        self.init_window()
+        self.init_style()
         self._init_frame()
         self._init_widget_head()
         self._init_widget_body()
@@ -489,8 +494,8 @@ class GraphcutViewer(ImageViewer):
         """root"""
         self.frame_root = TkFrame(self.root, bg='white')
         self.frame_root.grid(row=0, column=0)
-        self._set_all_grid_columnconfigure(self.frame_root, 0)
-        self._set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+        self.set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
 
         """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
@@ -499,32 +504,32 @@ class GraphcutViewer(ImageViewer):
         """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
         self.frame_body.grid(row=1, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_body, 0, 1)
-        self._set_all_grid_rowconfigure(self.frame_body, 0)
+        self.set_all_grid_columnconfigure(self.frame_body, 0, 1)
+        self.set_all_grid_rowconfigure(self.frame_body, 0)
 
         """root.body.frame_panel"""
         self.frame_panel = TkFrame(self.frame_body, bg='light pink')
         self.frame_panel.grid(row=0, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_panel, 0)
-        self._set_all_grid_rowconfigure(self.frame_panel, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_panel, 0)
+        self.set_all_grid_rowconfigure(self.frame_panel, 0, 1)
 
         """root.body.frame_display"""
         self.frame_display = TkFrame(self.frame_body, bg='royal blue')
         self.frame_display.grid(row=0, column=1, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_display, 0)
-        self._set_all_grid_rowconfigure(self.frame_display, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_display, 0)
+        self.set_all_grid_rowconfigure(self.frame_display, 0, 1)
 
         """root.footer"""
         self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
         self.frame_footer.grid(row=2, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_footer, 0)
-        self._set_all_grid_rowconfigure(self.frame_footer, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+        self.set_all_grid_rowconfigure(self.frame_footer, 0, 1)
 
         """root.footer.input_option"""
         self.frame_input_option = TkLabelFrame(self.frame_footer, text=u'Input 調整參數', font=self._font.h4(), bg='gray86')
         self.frame_input_option.grid(row=0, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_input_option, 0)
-        self._set_all_grid_rowconfigure(self.frame_input_option, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_input_option, 0)
+        self.set_all_grid_rowconfigure(self.frame_input_option, 0, 1)
 
         """root.footer.input_option.detect_options"""
         self.frame_detect_options = TkFrame(self.frame_input_option, padx=0, pady=0)
@@ -533,8 +538,8 @@ class GraphcutViewer(ImageViewer):
         """root.footer.output_option"""
         self.frame_output_option = TkLabelFrame(self.frame_footer, text=u'Output 調整參數', font=self._font.h4(), bg='gray86')
         self.frame_output_option.grid(row=1, column=0, sticky='news')
-        self._set_all_grid_columnconfigure(self.frame_output_option, 0)
-        self._set_all_grid_rowconfigure(self.frame_output_option, 0)
+        self.set_all_grid_columnconfigure(self.frame_output_option, 0)
+        self.set_all_grid_rowconfigure(self.frame_output_option, 0)
 
     # init header widget
     def _init_widget_head(self):
@@ -689,6 +694,58 @@ class GraphcutViewer(ImageViewer):
         self._sync_image()
         super().mainloop()
 
+# the interface to auto mapping
+class AutoMappingViewer(TkViewer):
+    def __init__(self):
+        super().__init__()
+        self._im_h, self._im_w = 239, 320
+
+        self.init_window(zoom=False)
+        self.init_style()
+        TTKStyle('H5.TButton', font=('', 13), background='white')
+
+        self._init_frame()
+        self._init_widget()
+
+    def _init_frame(self):
+        """root"""
+        self.frame_root = TkFrame(self.root, bg='white')
+        self.frame_root.grid(row=0, column=0)
+        self.set_all_grid_rowconfigure(self.frame_root, 0)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+
+        """head"""
+        self.frame_head = TkFrame(self.frame_root, bg='orange')
+        self.frame_head.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_head, 0)
+        self.set_all_grid_columnconfigure(self.frame_head, 0)
+
+        """body"""
+        self.frame_body = TkFrame(self.frame_root, bg='black')
+        self.frame_body.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_body, 0)
+        self.set_all_grid_columnconfigure(self.frame_body, 0)
+
+        """footer"""
+        self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
+        self.frame_footer.grid(row=2, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_footer, 0)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+
+    def _init_widget(self):
+        """body"""
+        self.photo_mapping_result = ImageNP.generate_checkboard((self._im_h, self._im_w), block_size=10)
+        self.photo_mapping_result = TkConverter.ndarray_to_photo(self.photo_mapping_result)
+        self.label_mapping_result = ttk.Label(self.frame_body, image=self.photo_mapping_result)
+        self.label_mapping_result.grid(row=0, column=0, sticky='news')
+
+        """footer"""
+        self.button_manual = ttk.Button(self.frame_footer, text=u'手動定位', style='H5.TButton')
+        self.button_manual.grid(row=0, column=0, sticky='e')
+        self.button_ok = ttk.Button(self.frame_footer, text=u'確認', style='H5.TButton')
+        self.button_ok.grid(row=0, column=1, sticky='e')
+
+
 if __name__ == '__main__':
     """testing"""
     logging.basicConfig(
@@ -708,9 +765,12 @@ if __name__ == '__main__':
         with zipfile.ZipFile(os.path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
             zip_ref.extractall(os.path.abspath('../../image'))
 
-    preprocess_viewer = PreprocessViewer()
-    preprocess_viewer.input_image(THERMAL_IMG)
-    preprocess_viewer.mainloop()
+    automapping_viewer = AutoMappingViewer()
+    automapping_viewer.mainloop()
+
+    # preprocess_viewer = PreprocessViewer()
+    # preprocess_viewer.input_image(THERMAL_IMG)
+    # preprocess_viewer.mainloop()
 
     # graphcut_viewer = GraphcutViewer()
     # graphcut_viewer.input_template(TEMPLATE_IMG)
