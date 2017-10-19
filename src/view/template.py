@@ -312,12 +312,14 @@ class PreprocessViewer(ImageViewer):
         if self.current_image_path is not None:
             self._sync_size_msg()
             self.label_panel_image.config(image=self.photo_panel)
-            self.label_panel_image.after(10, self._sync_image)
+            if self.root and 'normal' == self.root.state():
+                self.label_panel_image.after(10, self._sync_image)
 
     # render the lastest display changed
     def _sync_display(self):
         self.label_display_image.config(image=self.photo_display)
-        self.label_display_image.after(10, self._sync_display)
+        if self.root and 'normal' == self.root.state():
+            self.label_display_image.after(10, self._sync_display)
 
     # render the lastest state
     def _sync_state(self):
@@ -336,7 +338,8 @@ class PreprocessViewer(ImageViewer):
             msg += ' (按下 SPACE 儲存圖片)'
         self.root_state = self.unique(self.root_state)
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
-        self.label_state.after(10, self._sync_state)
+        if self.root and 'normal' == self.root.state():
+            self.label_state.after(10, self._sync_state)
 
     # render the image size image
     def _sync_size_msg(self):
@@ -640,7 +643,8 @@ class GraphcutViewer(ImageViewer):
         self.root.update()
         self._draw()
         self.label_panel_image.config(image=self.photo_panel)
-        self.label_panel_image.after(10, self._sync_image)
+        if self.root and 'normal' == self.root.state():
+            self.label_panel_image.after(10, self._sync_image)
 
     # render the lastest state
     def _sync_state(self):
@@ -658,7 +662,8 @@ class GraphcutViewer(ImageViewer):
         elif self.state_message == 'seperate':
             msg = u'切割'
         self.label_state.configure(text=u'現在模式: {}'.format(msg))
-        self.label_state.after(10, self._sync_state)
+        if self.root and 'normal' == self.root.state():
+            self.label_state.after(10, self._sync_state)
 
     # draw meta data on image panel
     def _draw(self):
