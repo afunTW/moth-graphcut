@@ -196,6 +196,8 @@ class PreprocessViewer(ImageViewer):
         """root.header"""
         self.frame_nav = TkFrame(self.frame_root, bg='orange')
         self.frame_nav.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_columnconfigure(self.frame_nav, 0)
+        self.set_all_grid_rowconfigure(self.frame_nav, 0, 1)
 
         """root.body"""
         self.frame_body = TkFrame(self.frame_root, bg='black')
@@ -341,6 +343,8 @@ class PreprocessViewer(ImageViewer):
             resize_w, resize_h, orig_w, orig_h
         )
         self.label_resize.configure(text=msg)
+        if self.root and 'normal' == self.root.state():
+            self.label_resize.after(10, self._sync_size_msg)
 
     # update and auto resize the image if read the first image
     def _update_image(self, image_path=None, image=None):
