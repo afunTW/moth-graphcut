@@ -43,7 +43,7 @@ class TkViewer(object):
             widget.grid_rowconfigure(row, weight=1)
 
     # init root window
-    def init_window(self, zoom=True):
+    def _init_window(self, zoom=True):
         """Windows init - root"""
         try:
             self.root = tkinter.Tk()
@@ -62,14 +62,14 @@ class TkViewer(object):
             LOGGER.exception(e)
 
     # init ttk widget style
-    def init_style(self):
+    def _init_style(self):
         init_css()
 
     # inherit tkinter mainloop
     def mainloop(self):
         self.root.mainloop()
 
-# the basic template for image application
+# the basic template for image application (2-side)
 class ImageViewer(TkViewer):
     """
     Assume all image paths in self.image_queue are unique,
@@ -101,14 +101,6 @@ class ImageViewer(TkViewer):
     def _init_state(self):
         self.root_state = ['view']
         self.state_message = 'view'
-
-    # render the lastest panel image
-    def _sync_image(self):
-        pass
-
-    # render the lastest display changed
-    def _sync_display(self):
-        pass
 
     # read a new image and update to panel
     def _update_image(self, image_path=None, image=None):
@@ -166,9 +158,9 @@ class PreprocessViewer(ImageViewer):
         self._image_original = None
         self._image_w, self._image_h = 800, 533
 
-        self.init_window(zoom=False)
+        self._init_window(zoom=False)
         self.root.option_add('*tearOff', False)
-        self.init_style()
+        self._init_style()
         self._init_frame()
         self._init_menu_bar()
         self._init_widget_head()
@@ -437,8 +429,8 @@ class GraphcutViewer(ImageViewer):
         self.body_width = None
 
         # init windows, widget and layout
-        self.init_window()
-        self.init_style()
+        self._init_window()
+        self._init_style()
         self._init_frame()
         self._init_widget_head()
         self._init_widget_body()
@@ -705,8 +697,8 @@ class AutoMappingViewer(TkViewer):
         super().__init__()
         self._im_h, self._im_w = 239, 320
 
-        self.init_window(zoom=False)
-        self.init_style()
+        self._init_window(zoom=False)
+        self._init_style()
         TTKStyle('H5.TButton', font=('', 13), background='white')
 
         self._init_frame()
@@ -754,8 +746,10 @@ class AutoMappingViewer(TkViewer):
 class ManualMappingViewer(ImageViewer):
     def __init__(self):
         super().__init__()
-        self.init_window()
-        self.init_style()
+        self._init_window()
+        self._init_style()
+
+
 
 if __name__ == '__main__':
     """testing"""
