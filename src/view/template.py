@@ -695,66 +695,6 @@ class GraphcutViewer(ImageViewer):
         self._sync_image()
         super().mainloop()
 
-# the interface to auto mapping
-class AutoMappingViewer(TkViewer):
-    def __init__(self):
-        super().__init__()
-        self._im_h, self._im_w = 239, 320
-
-        self._init_window(zoom=False)
-        self._init_style()
-        TTKStyle('H5.TButton', font=('', 13), background='white')
-
-        self._init_frame()
-        self._init_widget()
-
-    def _init_frame(self):
-        """root"""
-        self.frame_root = TkFrame(self.root, bg='white')
-        self.frame_root.grid(row=0, column=0)
-        self.set_all_grid_rowconfigure(self.frame_root, 0)
-        self.set_all_grid_columnconfigure(self.frame_root, 0)
-
-        """head"""
-        self.frame_head = TkFrame(self.frame_root, bg='orange')
-        self.frame_head.grid(row=1, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_head, 0)
-        self.set_all_grid_columnconfigure(self.frame_head, 0)
-
-        """body"""
-        self.frame_body = TkFrame(self.frame_root, bg='black')
-        self.frame_body.grid(row=1, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_body, 0)
-        self.set_all_grid_columnconfigure(self.frame_body, 0)
-
-        """footer"""
-        self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
-        self.frame_footer.grid(row=2, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_footer, 0)
-        self.set_all_grid_columnconfigure(self.frame_footer, 0)
-
-    def _init_widget(self):
-        """body"""
-        self.photo_mapping_result = ImageNP.generate_checkboard((self._im_h, self._im_w), block_size=10)
-        self.photo_mapping_result = TkConverter.ndarray_to_photo(self.photo_mapping_result)
-        self.label_mapping_result = ttk.Label(self.frame_body, image=self.photo_mapping_result)
-        self.label_mapping_result.grid(row=0, column=0, sticky='news')
-
-        """footer"""
-        self.button_manual = ttk.Button(self.frame_footer, text=u'手動定位', style='H5.TButton')
-        self.button_manual.grid(row=0, column=0, sticky='e')
-        self.button_ok = ttk.Button(self.frame_footer, text=u'確認', style='H5.TButton')
-        self.button_ok.grid(row=0, column=1, sticky='e')
-
-# the interface to manual mapping
-class ManualMappingViewer(ImageViewer):
-    def __init__(self):
-        super().__init__()
-        self._init_window()
-        self._init_style()
-
-
-
 if __name__ == '__main__':
     """testing"""
     logging.basicConfig(
@@ -773,12 +713,6 @@ if __name__ == '__main__':
         import zipfile
         with zipfile.ZipFile(os.path.abspath('../../image/thermal.zip'), 'r') as zip_ref:
             zip_ref.extractall(os.path.abspath('../../image'))
-
-    manualmapping_viewer = ManualMappingViewer()
-    manualmapping_viewer.mainloop()
-
-    # automapping_viewer = AutoMappingViewer()
-    # automapping_viewer.mainloop()
 
     # graphcut_viewer = GraphcutViewer()
     # graphcut_viewer.input_template(TEMPLATE_IMG)
