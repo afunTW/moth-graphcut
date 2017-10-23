@@ -22,6 +22,60 @@ from src.view.ttkstyle import TTKStyle, init_css
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
 
+# the entry to auto mapping
+class EntryMappingViewer(TkViewer):
+    def __init__(self):
+        super().__init__()
+        self._init_window(zoom=False)
+        self._init_frame()
+        self._init_style()
+        self._init_widget()
+
+    # init tk frame adn layout
+    def _init_frame(self):
+        """root"""
+        self.frame_root = TkFrame(self.root)
+        self.frame_root.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_root, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+
+        """body"""
+        self.frame_body = TkFrame(self.frame_root)
+        self.frame_body.grid(row=0, column=0, sticky='w')
+        self.set_all_grid_rowconfigure(self.frame_body, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_body, 0, 1)
+
+        """footer"""
+        self.frame_footer = TkFrame(self.frame_root)
+        self.frame_footer.grid(row=1, column=0, sticky='e')
+        self.set_all_grid_rowconfigure(self.frame_footer, 0)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0, 1, 2)
+
+    # init ttk style
+    def _init_style(self):
+        init_css()
+        TTKStyle('H5Bold.TLabel', font=('', 13))
+
+    # init ttk widget
+    def _init_widget(self):
+        """body"""
+        self.label_img = ttk.Label(self.frame_body, text=u'圖片路徑: ', style='H5Bold.TLabel')
+        self.label_img.grid(row=0, column=0, sticky='w')
+        self.label_img_path = ttk.Label(self.frame_body, text=u'N/A', style='H5.TLabel')
+        self.label_img_path.grid(row=0, column=1, sticky='w')
+        self.label_temp = ttk.Label(self.frame_body, text=u'熱像儀資料夾路徑: ', style='H5Bold.TLabel')
+        self.label_temp.grid(row=1, column=0, sticky='w')
+        self.label_temp_path = ttk.Label(self.frame_body, text=u'N/A', style='H5.TLabel')
+        self.label_temp_path.grid(row=1, column=1, sticky='w')
+
+        """footer"""
+        self.btn_img_path = ttk.Button(self.frame_footer, text=u'載入圖片', style='H5.TButton')
+        self.btn_img_path.grid(row=0, column=0, sticky='e')
+        self.btn_temp_path = ttk.Button(self.frame_footer, text=u'選擇熱像儀資料夾', style='H5.TButton')
+        self.btn_temp_path.grid(row=0, column=1, sticky='e')
+        self.btn_ok = ttk.Button(self.frame_footer, text=u'確認', style='H5.TButton')
+        self.btn_ok.grid(row=0, column=2, sticky='e')
+
 # the interface to auto mapping
 class AutoMappingViewer(TkViewer):
     def __init__(self):
@@ -167,8 +221,11 @@ if __name__ == '__main__':
         stream=sys.stdout
     )
 
-    manualmapping_viewer = ManualMappingViewer()
-    manualmapping_viewer.mainloop()
+    entry_viewer = EntryMappingViewer()
+    entry_viewer.mainloop()
+
+    # manualmapping_viewer = ManualMappingViewer()
+    # manualmapping_viewer.mainloop()
 
     # automapping_viewer = AutoMappingViewer()
     # automapping_viewer.mainloop()
