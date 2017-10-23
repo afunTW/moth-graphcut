@@ -177,7 +177,7 @@ if __name__ == '__main__':
         format='%(asctime)s %(filename)12s:L%(lineno)3s [%(levelname)8s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         stream=sys.stdout
-        )
+    )
     from glob import glob
     from inspect import currentframe, getframeinfo
     from os import path
