@@ -221,12 +221,11 @@ if __name__ == '__main__':
         stream=sys.stdout
     )
 
-    entry_viewer = EntryMappingViewer()
-    entry_viewer.mainloop()
+    # entry_viewer = EntryMappingViewer()
+    # entry_viewer.mainloop()
+
+    automapping_viewer = AutoMappingViewer()
+    automapping_viewer.mainloop()
 
     # manualmapping_viewer = ManualMappingViewer()
     # manualmapping_viewer.mainloop()
-
-    # automapping_viewer = AutoMappingViewer()
-    # automapping_viewer.mainloop()
-
