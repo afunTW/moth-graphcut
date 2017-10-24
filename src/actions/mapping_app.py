@@ -6,10 +6,13 @@ import os
 import sys
 from tkinter.filedialog import askdirectory, askopenfilename
 
+import cv2
+
 sys.path.append('../..')
+from src.support.msg_box import MessageBox
+from src.support.tkconvert import TkConverter
 from src.view.mapping_app import (AutoMappingViewer, EntryMappingViewer,
                                   ManualMappingViewer)
-from src.support.msg_box import MessageBox
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,6 +54,17 @@ class EntryMappingAction(EntryMappingViewer):
             Mbox.alert(title='Warning', string=u'請選擇熱像儀 (灰階) 圖片資料夾')
         else:
             LOGGER.info('Ready to process')
+
+class AutoMappingAction(AutoMappingViewer):
+    def __init__(self, img_path, temp_path):
+        self.img_path = img_path
+        self.temp_path = temp_path
+
+        self._original_img = None
+
+    def _load_image(self):
+        self._original_img = cv2.imread(self.img_path)
+        pass
 
 if __name__ == '__main__':
     """testing"""
