@@ -34,7 +34,7 @@ class AlignmentCore(object):
         self.original_img = cv2.resize(self.original_img, (self.heat_img.shape[1], self.heat_img.shape[0]))
 
         # preprocess heat image to get the transform matrix
-        self.heat_img = np.zeros((self.heat_img.shape[1], self.heat_img.shape[0], self.avg_nth_img))
+        self.heat_img = np.zeros((self.heat_img.shape[0], self.heat_img.shape[1], self.avg_nth_img))
         self.heat_img = self.heat_img.astype('float32')
         self.heat_img = self._avg_sample_image(self.heat_img, self.heat_path[1:self.avg_nth_img+1])
         self.heat_img = np.sum(self.heat_img, axis=2)
@@ -156,10 +156,10 @@ class AlignmentCore(object):
             # for background colour mixed black and white
             heat = cv2.bitwise_not(heat)
             heat = cv2.medianBlur(heat, 3, 10)
-            orig_centers = get_contour_centers(orig)
-            orig_points = find_max_point(orig_centers)
-            heat_centers = get_nearest_centers(heat)
-            heat_points = find_max_point(heat_centers)
+            orig_centers = self._get_contour_centers(orig)
+            orig_points = self._find_max_point(orig_centers)
+            heat_centers = self._get_nearest_centers(heat)
+            heat_points = self._find_max_point(heat_centers)
 
         else:
             threshold = np.sort(heat, axis=None)[int(heat.size*0.04)]
@@ -172,10 +172,10 @@ class AlignmentCore(object):
             heat[mask_y[2]-40:mask_y[2]+40, :] = 0
 
             heat = cv2.medianBlur(heat,3,10)
-            orig_centers = get_contour_centers(orig)
-            orig_points = find_max_point(orig_centers)
-            heat_centers = get_nearest_centers(heat)
-            heat_points = find_min_point(heat_centers, (mask_x[2], mask_y[2]))
+            orig_centers = self._get_contour_centers(orig)
+            orig_points = self._find_max_point(orig_centers)
+            heat_centers = self._get_nearest_centers(heat)
+            heat_points = self._find_min_point(heat_centers, (mask_x[2], mask_y[2]))
 
         M, status = cv2.findHomography(heat_points, orig_points)
 
