@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter.messagebox import askyesno
 from tkinter.messagebox import askokcancel
 from tkinter.messagebox import showwarning
+from tkinter.messagebox import showinfo
 
 
 class MessageBox(object):
@@ -22,6 +23,13 @@ class MessageBox(object):
         self.root = tk.Tk()
         self.root.withdraw()
         showwarning(title, string)
+        self.root.destroy()
+        self.root.mainloop()
+
+    def info(self, title='Info', string='Please at least add one target'):
+        self.root = tk.Tk()
+        self.root.withdraw()
+        showinfo(title, string)
         self.root.destroy()
         self.root.mainloop()
 
