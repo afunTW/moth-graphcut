@@ -86,12 +86,15 @@ class AutoMappingAction(AutoMappingViewer):
             save_path = self._img_path.split(os.sep)
             save_path[-1] = save_path[-1].split('.')[0]
             save_path = os.sep.join(save_path)
+
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
 
             save_file = os.sep.join((save_path, 'transform_matrix.txt'))
             self.alignment.transform_matrix.tofile(save_file)
             LOGGER.info('Save transform matrix file - {}'.format(save_file))
+            Mbox = MessageBox()
+            Mbox.info(string='Save matrix in {}'.format(save_file))
         else:
             LOGGER.error('Please do the alignment mapping first')
 
