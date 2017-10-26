@@ -10,6 +10,7 @@ import cv2
 
 sys.path.append('../..')
 from src.actions.alignment import AlignmentCore
+from src.image.imnp import ImageNP
 from src.support.msg_box import MessageBox
 from src.support.tkconvert import TkConverter
 from src.view.mapping_app import (AutoMappingViewer, EntryMappingViewer,
@@ -83,8 +84,9 @@ class AutoMappingAction(AutoMappingViewer):
 
     # manual mapping
     def _manual(self):
+        LOGGER.info('Ready to process manual mapping')
         self.root.destroy()
-        manualmapping = ManualMappingAction()
+        manualmapping = ManualMappingAction(self._img_path, self._temp_path)
         manualmapping.mainloop()
 
     # output transform matrix and close windows
@@ -112,8 +114,46 @@ class AutoMappingAction(AutoMappingViewer):
         self._update_result_img()
 
 class ManualMappingAction(ManualMappingViewer):
-    def __init__(self):
+    def __init__(self, img_path, temp_path):
         super().__init__()
+        self._img_path = img_path
+        self._temp_path = temp_path
+
+        self._load_image()
+
+    # load image - original and first thermal image
+    def _load_image(self):
+        thermal_file = [os.path.join(self._temp_path, i) for i in os.listdir(self._temp_path)]
+        thermal_file = sorted(thermal_file)[0]
+        self._img_panel = cv2.imread(self._img_path)
+        self._img_display = cv2.imread(thermal_file)
+        self._img_h, self._img_w = self._img_display.shape[0], self._img_display.shape[1]
+        self._img_panel = cv2.resize(self._img_panel, (self._img_w, self._img_h))
+
+        self._update_image()
+        self._sync_image()
+
+    # convert image to photo and update to panel/display
+    def _update_image(self):
+        try:
+            # try to convert cv2 image to photo
+            LOGGER.info('Update image')
+            self._img_h, self._img_w = self._img_panel.shape[0], self._img_panel.shape[1]
+            self.photo_panel = TkConverter.cv2_to_photo(self._img_panel)
+            self.photo_display = TkConverter.cv2_to_photo(self._img_display)
+        except Exception as e:
+            # generate default ndarray image to photo
+            LOGGER.warning('Cannot update image properly')
+            self.photo_panel = ImageNP.generate_checkboard((239, 320), block_size=10)
+            self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
+            self.photo_display = self.photo_panel
+
+    # sync image to panel label
+    def _sync_image(self):
+        self.label_panel_image.config(image=self.photo_panel)
+        self.label_display_image.config(image=self.photo_display)
+        if self.root and 'normal' == self.root.state():
+            self.label_panel_image.after(10, self._sync_image)
 
 if __name__ == '__main__':
     """testing"""

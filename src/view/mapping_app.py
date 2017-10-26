@@ -131,7 +131,7 @@ class AutoMappingViewer(TkViewer):
 class ManualMappingViewer(TkViewer):
     def __init__(self):
         super().__init__()
-        self._image_h, self._image_w = 239, 320
+        self._img_h, self._img_w = 239, 320
         self._init_window(zoom=False)
         self._init_style()
         TTKStyle('H5.TButton', font=('', 13), background='white')
@@ -200,7 +200,7 @@ class ManualMappingViewer(TkViewer):
 
         """Panel/Display image"""
         # default output
-        self.photo_panel = ImageNP.generate_checkboard((self._image_h, self._image_w), block_size=10)
+        self.photo_panel = ImageNP.generate_checkboard((239, 320), block_size=10)
         self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
         self.photo_display = self.photo_panel
 
