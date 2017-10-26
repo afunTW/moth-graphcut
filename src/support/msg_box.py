@@ -1,10 +1,12 @@
 import tkinter as tk
+import logging
 from tkinter import ttk
 from tkinter.messagebox import askyesno
 from tkinter.messagebox import askokcancel
 from tkinter.messagebox import showwarning
 from tkinter.messagebox import showinfo
 
+LOGGER = logging.getLogger(__name__)
 
 class MessageBox(object):
 
@@ -26,10 +28,15 @@ class MessageBox(object):
         self.root.destroy()
         self.root.mainloop()
 
-    def info(self, title='Info', string='Please at least add one target'):
+    # FIXME: so far, close info window will close parent window as well
+    def info(self, title='Info', string='Please at least add one target', parent=None):
         self.root = tk.Tk()
         self.root.withdraw()
-        showinfo(title, string)
+        if parent:
+            showinfo(title, string, parent=parent)
+            parent.destroy()
+        else:
+            showinfo(title, string)
         self.root.destroy()
         self.root.mainloop()
 

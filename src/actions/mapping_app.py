@@ -94,7 +94,7 @@ class AutoMappingAction(AutoMappingViewer):
             self.alignment.transform_matrix.tofile(save_file)
             LOGGER.info('Save transform matrix file - {}'.format(save_file))
             Mbox = MessageBox()
-            Mbox.info(string='Save matrix in {}'.format(save_file))
+            Mbox.info(string='Done.', parent=self.root)
         else:
             LOGGER.error('Please do the alignment mapping first')
 
