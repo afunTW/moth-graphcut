@@ -173,7 +173,7 @@ class ManualMappingViewer(ImageViewer):
         self.set_all_grid_rowconfigure(self.frame_display, 0, 1)
 
         """root.footer"""
-        self.frame_footer = TkFrame(self.frame_root, bg='khaki1')
+        self.frame_footer = TkFrame(self.frame_root)
         self.frame_footer.grid(row=2, column=0, sticky='news')
         self.set_all_grid_columnconfigure(self.frame_footer, 0)
         self.set_all_grid_rowconfigure(self.frame_footer, 0)
