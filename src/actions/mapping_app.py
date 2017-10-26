@@ -103,7 +103,7 @@ class AutoMappingAction(AutoMappingViewer):
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
 
-            save_file = os.sep.join((save_path, 'transform_matrix.txt'))
+            save_file = os.sep.join((save_path, 'transform_matrix.dat'))
             self.alignment.transform_matrix.tofile(save_file)
             LOGGER.info('Save transform matrix file - {}'.format(save_file))
             Mbox = MessageBox()
@@ -120,6 +120,7 @@ class AutoMappingAction(AutoMappingViewer):
 class ManualMappingAction(ManualMappingViewer):
     def __init__(self, img_path, temp_path):
         super().__init__()
+        self.transform_matrix = None
         self._img_path = img_path
         self._temp_path = temp_path
         self._panel_anchor = []
@@ -131,20 +132,21 @@ class ManualMappingAction(ManualMappingViewer):
 
         # callback
         self.button_preview.config(command=self._preview)
-
-        # mouse event
-        self.label_panel_image.bind(
-            tkconfig.MOUSE_RELEASE_LEFT,
-            lambda x: self.on_draw_anchor(x, self._panel_img, self._panel_anchor)
-        )
-        self.label_display_image.bind(
-            tkconfig.MOUSE_RELEASE_LEFT,
-            lambda x: self.on_draw_anchor(x, self._display_img, self._display_anchor)
-        )
+        self.button_ok.config(command=self._confirm)
 
         # keyboard event
         self.root.bind('<u>', self._undo_anchor)
         self.root.bind('<U>', self._undo_anchor)
+
+        # mouse event
+        self.label_panel_image.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self._on_draw_anchor(x, self._panel_img, self._panel_anchor)
+        )
+        self.label_display_image.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self._on_draw_anchor(x, self._display_img, self._display_anchor)
+        )
 
     # load image - original and first thermal image
     def _load_image(self):
@@ -208,8 +210,8 @@ class ManualMappingAction(ManualMappingViewer):
             cv2.circle(self._display_img, (x, y), 3, (0, 0, 255), cv2.FILLED)
         self._update_image()
 
-    # preview the result
-    def _preview(self):
+    # get transform matrix
+    def _get_transform_matrix(self):
         if len(self._panel_anchor) != 4:
             LOGGER.error('Original image should get 4 anchor points')
             Mbox = MessageBox()
@@ -219,7 +221,7 @@ class ManualMappingAction(ManualMappingViewer):
             Mbox = MessageBox()
             Mbox.alert(string=u'請確認右圖已標記 4 個座標點')
         else:
-            # get the point.x, point.y and sorted in lt, lb, rt, rb
+             # get the point.x, point.y and sorted in lt, lb, rt, rb
             panel_anchor = [(point[0], point[1]) for point in self._panel_anchor]
             display_anchor = [(point[0], point[1]) for point in self._display_anchor]
             panel_anchor = sorted(panel_anchor, key=lambda point: (point[0], point[1]))
@@ -229,6 +231,13 @@ class ManualMappingAction(ManualMappingViewer):
 
             # get transform matrix and generate preview image
             M, status = cv2.findHomography(display_anchor, panel_anchor)
+            self.transform_matrix = M
+            return M
+
+    # callback: preview the result
+    def _preview(self):
+        M = self._get_transform_matrix()
+        if M is not None:
             thermal_img = cv2.cvtColor(self._display_img_bk.copy(), cv2.COLOR_BGR2GRAY)
             preview_img = cv2.warpPerspective(thermal_img, M, thermal_img.shape[:2][::-1])
             mask_img = cv2.cvtColor(self._panel_img_bk.copy(), cv2.COLOR_BGR2HSV)[:, :, 2]
@@ -242,6 +251,23 @@ class ManualMappingAction(ManualMappingViewer):
 
             plt.imshow(preview_img, cmap='gray')
             plt.show()
+
+    # callback: confirm the mapping result and output the transform matrix
+    def _confirm(self):
+        M = self._get_transform_matrix()
+        if M is not None:
+            save_path = self._img_path.split(os.sep)
+            save_path[-1] = save_path[-1].split('.')[0]
+            save_path = os.sep.join(save_path)
+
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+
+            save_file = os.sep.join((save_path, 'transform_matrix.dat'))
+            M.tofile(save_file)
+            LOGGER.info('Save transform matrix file - {}'.format(save_file))
+            Mbox = MessageBox()
+            Mbox.info(string='Done.', parent=self.root)
 
     # key event: undo anchor
     def _undo_anchor(self, k):
@@ -265,7 +291,7 @@ class ManualMappingAction(ManualMappingViewer):
         self._render_anchor()
 
     # mouse event: draw anchor on panel/display
-    def on_draw_anchor(self, event=None, img=None, record=None):
+    def _on_draw_anchor(self, event=None, img=None, record=None):
         if img is None:
             LOGGER.error('No given image')
         if record is None or not isinstance(record, list):
