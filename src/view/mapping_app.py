@@ -128,7 +128,7 @@ class AutoMappingViewer(TkViewer):
         self.button_ok.grid(row=0, column=1, sticky='e')
 
 # the interface to manual mapping
-class ManualMappingViewer(ImageViewer):
+class ManualMappingViewer(TkViewer):
     def __init__(self):
         super().__init__()
         self._image_h, self._image_w = 239, 320
