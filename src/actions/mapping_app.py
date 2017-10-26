@@ -70,6 +70,7 @@ class AutoMappingAction(AutoMappingViewer):
         self.run()
 
         self.button_ok.config(command=self._confirm)
+        self.button_manual.config(command=self._manual)
 
     # update the output image once
     def _update_result_img(self):
@@ -79,6 +80,12 @@ class AutoMappingAction(AutoMappingViewer):
         else:
             Mbox = MessageBox()
             Mbox.alert(title='Warning', string=u'無法自動對應, 請嘗試手動定位')
+
+    # manual mapping
+    def _manual(self):
+        self.root.destroy()
+        manualmapping = ManualMappingAction()
+        manualmapping.mainloop()
 
     # output transform matrix and close windows
     def _confirm(self):
@@ -103,6 +110,10 @@ class AutoMappingAction(AutoMappingViewer):
         self.alignment = AlignmentCore(self._img_path, self._temp_path)
         self._show_img = self.alignment.run()
         self._update_result_img()
+
+class ManualMappingAction(ManualMappingViewer):
+    def __init__(self):
+        super().__init__()
 
 if __name__ == '__main__':
     """testing"""
