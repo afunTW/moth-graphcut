@@ -6,10 +6,12 @@ import os
 import sys
 import time
 from tkinter.filedialog import askdirectory, askopenfilename
+sys.path.append('../..')
+
+import numpy as np
 
 import cv2
-
-sys.path.append('../..')
+from matplotlib import pyplot as plt
 from src import tkconfig
 from src.actions.alignment import AlignmentCore
 from src.image.imnp import ImageNP
@@ -123,8 +125,14 @@ class ManualMappingAction(ManualMappingViewer):
         self._panel_anchor = []
         self._display_anchor = []
 
+        # preprocess
         self._load_image()
         self._sync_anchor_state()
+
+        # callback
+        self.button_preview.config(command=self._preview)
+
+        # mouse event
         self.label_panel_image.bind(
             tkconfig.MOUSE_RELEASE_LEFT,
             lambda x: self.on_draw_anchor(x, self._panel_img, self._panel_anchor)
@@ -133,6 +141,8 @@ class ManualMappingAction(ManualMappingViewer):
             tkconfig.MOUSE_RELEASE_LEFT,
             lambda x: self.on_draw_anchor(x, self._display_img, self._display_anchor)
         )
+
+        # keyboard event
         self.root.bind('<u>', self._undo_anchor)
         self.root.bind('<U>', self._undo_anchor)
 
@@ -197,6 +207,37 @@ class ManualMappingAction(ManualMappingViewer):
             x, y = anchor[0], anchor[1]
             cv2.circle(self._display_img, (x, y), 3, (0, 0, 255), cv2.FILLED)
         self._update_image()
+
+    # preview the result
+    def _preview(self):
+        if len(self._panel_anchor) != 4:
+            LOGGER.error('Original image should get 4 anchor points')
+        elif len(self._display_anchor) != 4:
+            LOGGER.error('Thermal image should get 4 anchor points')
+        else:
+            # get the point.x, point.y and sorted in lt, lb, rt, rb
+            panel_anchor = [(point[0], point[1]) for point in self._panel_anchor]
+            display_anchor = [(point[0], point[1]) for point in self._display_anchor]
+            panel_anchor = sorted(panel_anchor, key=lambda point: (point[0], point[1]))
+            display_anchor = sorted(display_anchor, key=lambda point: (point[0], point[1]))
+            panel_anchor = np.array(panel_anchor)
+            display_anchor = np.array(display_anchor)
+
+            # get transform matrix and generate preview image
+            M, status = cv2.findHomography(display_anchor, panel_anchor)
+            thermal_img = cv2.cvtColor(self._display_img_bk.copy(), cv2.COLOR_BGR2GRAY)
+            preview_img = cv2.warpPerspective(thermal_img, M, thermal_img.shape[:2][::-1])
+            mask_img = cv2.cvtColor(self._panel_img_bk.copy(), cv2.COLOR_BGR2HSV)[:, :, 2]
+            ret, mask_img = cv2.threshold(mask_img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+            if mask_img[0, :].sum() > 255*5:
+                mask_img[mask_img == 255] = 100
+                mask_img[mask_img == 0] = 255
+                mask_img[mask_img == 100] = 0
+            mask_img = mask_img.astype('bool')
+            preview_img[mask_img] = 0
+
+            plt.imshow(preview_img, cmap='gray')
+            plt.show()
 
     # key event: undo anchor
     def _undo_anchor(self, k):
