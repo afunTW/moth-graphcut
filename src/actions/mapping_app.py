@@ -4,11 +4,13 @@ Defined mapping application action
 import logging
 import os
 import sys
+import time
 from tkinter.filedialog import askdirectory, askopenfilename
 
 import cv2
 
 sys.path.append('../..')
+from src import tkconfig
 from src.actions.alignment import AlignmentCore
 from src.image.imnp import ImageNP
 from src.support.msg_box import MessageBox
@@ -118,18 +120,39 @@ class ManualMappingAction(ManualMappingViewer):
         super().__init__()
         self._img_path = img_path
         self._temp_path = temp_path
+        self._panel_anchor = []
+        self._display_anchor = []
 
         self._load_image()
+        self._sync_anchor_state()
+        self.label_panel_image.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self.on_draw_anchor(x, self._panel_img, self._panel_anchor)
+        )
+        self.label_display_image.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self.on_draw_anchor(x, self._display_img, self._display_anchor)
+        )
+        self.root.bind('<u>', self._undo_anchor)
+        self.root.bind('<U>', self._undo_anchor)
 
     # load image - original and first thermal image
     def _load_image(self):
+        # get the first thermal image to anchor
         thermal_file = [os.path.join(self._temp_path, i) for i in os.listdir(self._temp_path)]
         thermal_file = sorted(thermal_file)[0]
-        self._img_panel = cv2.imread(self._img_path)
-        self._img_display = cv2.imread(thermal_file)
-        self._img_h, self._img_w = self._img_display.shape[0], self._img_display.shape[1]
-        self._img_panel = cv2.resize(self._img_panel, (self._img_w, self._img_h))
 
+        # read panel/display image
+        self._panel_img = cv2.imread(self._img_path)
+        self._display_img = cv2.imread(thermal_file)
+        self._img_h, self._img_w = self._display_img.shape[0], self._display_img.shape[1]
+        self._panel_img = cv2.resize(self._panel_img, (self._img_w, self._img_h))
+
+        # backup original image
+        self._panel_img_bk = self._panel_img.copy()
+        self._display_img_bk = self._display_img.copy()
+
+        # update and sync
         self._update_image()
         self._sync_image()
 
@@ -137,10 +160,9 @@ class ManualMappingAction(ManualMappingViewer):
     def _update_image(self):
         try:
             # try to convert cv2 image to photo
-            LOGGER.info('Update image')
-            self._img_h, self._img_w = self._img_panel.shape[0], self._img_panel.shape[1]
-            self.photo_panel = TkConverter.cv2_to_photo(self._img_panel)
-            self.photo_display = TkConverter.cv2_to_photo(self._img_display)
+            self._img_h, self._img_w = self._panel_img.shape[0], self._panel_img.shape[1]
+            self.photo_panel = TkConverter.cv2_to_photo(self._panel_img)
+            self.photo_display = TkConverter.cv2_to_photo(self._display_img)
         except Exception as e:
             # generate default ndarray image to photo
             LOGGER.warning('Cannot update image properly')
@@ -153,7 +175,64 @@ class ManualMappingAction(ManualMappingViewer):
         self.label_panel_image.config(image=self.photo_panel)
         self.label_display_image.config(image=self.photo_display)
         if self.root and 'normal' == self.root.state():
-            self.label_panel_image.after(10, self._sync_image)
+            self.frame_body.after(10, self._sync_image)
+
+    # sync anchor state
+    def _sync_anchor_state(self):
+        panel_anchor_remain = 4 - len(self._panel_anchor)
+        display_anchor_remain = 4 - len(self._display_anchor)
+        self.label_panel_state.config(text=u'Original - 尚餘 {} 個標記'.format(panel_anchor_remain))
+        self.label_display_state.config(text=u'Thermal - 尚餘 {} 個標記'.format(display_anchor_remain))
+        if self.root and 'normal' == self.root.state():
+            self.frame_nav.after(10, self._sync_anchor_state)
+
+    # redraw the anchor to image
+    def _render_anchor(self):
+        self._panel_img = self._panel_img_bk.copy()
+        self._display_img = self._display_img_bk.copy()
+        for anchor in self._panel_anchor:
+            x, y = anchor[0], anchor[1]
+            cv2.circle(self._panel_img, (x, y), 3, (0, 0, 255), cv2.FILLED)
+        for anchor in self._display_anchor:
+            x, y = anchor[0], anchor[1]
+            cv2.circle(self._display_img, (x, y), 3, (0, 0, 255), cv2.FILLED)
+        self._update_image()
+
+    # key event: undo anchor
+    def _undo_anchor(self, k):
+        panel_sort_timestamp = sorted(self._panel_anchor, key=lambda x: x[-1])
+        display_sort_timestamp = sorted(self._display_anchor, key=lambda x: x[-1])
+
+        if panel_sort_timestamp and display_sort_timestamp:
+            panel_last = panel_sort_timestamp[-1]
+            display_last = display_sort_timestamp[-1]
+            if panel_last[-1] > display_last[-1]:
+                self._panel_anchor.pop()
+            elif display_last[-1] > panel_last[-1]:
+                self._display_anchor.pop()
+        elif panel_sort_timestamp and not display_sort_timestamp:
+            self._panel_anchor.pop()
+        elif not panel_sort_timestamp and display_sort_timestamp:
+            self._display_anchor.pop()
+        else:
+            LOGGER.warning('No recorded anchor to undo')
+
+        self._render_anchor()
+
+    # mouse event: draw anchor on panel/display
+    def on_draw_anchor(self, event=None, img=None, record=None):
+        if img is None:
+            LOGGER.error('No given image')
+        if record is None or not isinstance(record, list):
+            LOGGER.error('No given record')
+        elif len(record) >= 4:
+            LOGGER.warning('already got {} anchors'.format(len(record)))
+        else:
+            LOGGER.info('Mouse x={}, y={}'.format(event.x, event.y))
+            cv2.circle(img, (event.x, event.y), 3, (0, 0, 255), cv2.FILLED)
+            record.append((event.x, event.y, time.time()))
+            self._update_image()
+
 
 if __name__ == '__main__':
     """testing"""
