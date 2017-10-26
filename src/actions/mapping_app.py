@@ -69,7 +69,7 @@ class AutoMappingAction(AutoMappingViewer):
         self._alignment = None
         self.run()
 
-        self.button_ok.config(command=self.output)
+        self.button_ok.config(command=self._confirm)
 
     # update the output image once
     def _update_result_img(self):
@@ -80,8 +80,8 @@ class AutoMappingAction(AutoMappingViewer):
             Mbox = MessageBox()
             Mbox.alert(title='Warning', string=u'無法自動對應, 請嘗試手動定位')
 
-    # output transform matrix
-    def output(self):
+    # output transform matrix and close windows
+    def _confirm(self):
         if self.alignment is not None:
             save_path = self._img_path.split(os.sep)
             save_path[-1] = save_path[-1].split('.')[0]
