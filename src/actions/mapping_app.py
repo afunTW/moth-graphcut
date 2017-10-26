@@ -212,8 +212,12 @@ class ManualMappingAction(ManualMappingViewer):
     def _preview(self):
         if len(self._panel_anchor) != 4:
             LOGGER.error('Original image should get 4 anchor points')
+            Mbox = MessageBox()
+            Mbox.alert(string=u'請確認左圖已標記 4 個座標點')
         elif len(self._display_anchor) != 4:
             LOGGER.error('Thermal image should get 4 anchor points')
+            Mbox = MessageBox()
+            Mbox.alert(string=u'請確認右圖已標記 4 個座標點')
         else:
             # get the point.x, point.y and sorted in lt, lb, rt, rb
             panel_anchor = [(point[0], point[1]) for point in self._panel_anchor]
