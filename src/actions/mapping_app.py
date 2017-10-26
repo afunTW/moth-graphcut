@@ -1,6 +1,7 @@
 """
 Defined mapping application action
 """
+import inspect
 import logging
 import os
 import sys
@@ -21,6 +22,7 @@ from src.view.mapping_app import (AutoMappingViewer, EntryMappingViewer,
                                   ManualMappingViewer)
 
 
+__FILE__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
 
 class EntryMappingAction(EntryMappingViewer):
@@ -35,7 +37,7 @@ class EntryMappingAction(EntryMappingViewer):
 
     def _load_img_path(self):
         self._img_path = askopenfilename(
-            initialdir=os.path.abspath('../../'),
+            initialdir=os.path.join(__FILE__, '../../'),
             title=u'選擇原始圖片路徑',
             filetypes=(('JPG Image', '*.jpg'),('JPEG Image', '*.jpeg'))
         )
@@ -45,7 +47,7 @@ class EntryMappingAction(EntryMappingViewer):
 
     def _load_temp_path(self):
         self._temp_path = askdirectory(
-            initialdir=os.path.abspath('../../'),
+            initialdir=os.path.join(__FILE__, '../../'),
             title=u'選擇熱像儀 (灰階) 圖片資料夾'
         )
         if self._temp_path:
@@ -221,11 +223,13 @@ class ManualMappingAction(ManualMappingViewer):
             Mbox = MessageBox()
             Mbox.alert(string=u'請確認右圖已標記 4 個座標點')
         else:
-             # get the point.x, point.y and sorted in lt, lb, rt, rb
+            # get the point.x, point.y and sorted in lt, lb, rt, rb
             panel_anchor = [(point[0], point[1]) for point in self._panel_anchor]
             display_anchor = [(point[0], point[1]) for point in self._display_anchor]
             panel_anchor = sorted(panel_anchor, key=lambda point: (point[0], point[1]))
             display_anchor = sorted(display_anchor, key=lambda point: (point[0], point[1]))
+            LOGGER.info('original anchor - {}'.format(panel_anchor))
+            LOGGER.info('thermal anchor - {}'.format(display_anchor))
             panel_anchor = np.array(panel_anchor)
             display_anchor = np.array(display_anchor)
 
