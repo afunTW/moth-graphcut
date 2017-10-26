@@ -181,14 +181,14 @@ class ManualMappingViewer(TkViewer):
     # init head widget
     def _init_widget_head(self):
 
-        self.label_original_state = ttk.Label(
+        self.label_panel_state = ttk.Label(
             self.frame_nav, text=u'Original - 尚餘 {} 個標記'.format(4), style='H2.TLabel'
         )
-        self.label_thermal_state = ttk.Label(
+        self.label_display_state = ttk.Label(
             self.frame_nav, text=u'Thermal - 尚餘 {} 個標記'.format(4), style='H2.TLabel'
         )
-        self.label_original_state.grid(row=0, column=0, sticky='w')
-        self.label_thermal_state.grid(row=1, column=0, sticky='w')
+        self.label_panel_state.grid(row=0, column=0, sticky='w')
+        self.label_display_state.grid(row=1, column=0, sticky='w')
 
     # init body widget
     def _init_widget_body(self):
