@@ -31,7 +31,7 @@ class EntryMappingViewer(TkViewer):
         self._init_style()
         self._init_widget()
 
-    # init tk frame adn layout
+    # init tk frame and layout
     def _init_frame(self):
         """root"""
         self.frame_root = TkFrame(self.root)
