@@ -42,7 +42,7 @@ def test():
 
     # thermal image preprocess
     mat_warp_thermal = cv2.warpPerspective(mat_test_thermal, transform_matrix, mat_test_thermal.shape[:2][::-1])
-    mat_warp_thermal.
+    print(mat_warp_thermal)
 
     # check
     rgb_mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
