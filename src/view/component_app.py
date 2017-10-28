@@ -35,7 +35,7 @@ class EntryThermalComponentViewer(TkViewer):
         # body
         self.frame_body = TkFrame(self.frame_root)
         self.frame_body.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_body, 0, 1)
+        self.set_all_grid_rowconfigure(self.frame_body, 0, 1, 2)
         self.set_all_grid_columnconfigure(self.frame_body, 0)
 
         # body > option
@@ -44,9 +44,15 @@ class EntryThermalComponentViewer(TkViewer):
         self.set_all_grid_rowconfigure(self.frame_option, 0)
         self.set_all_grid_columnconfigure(self.frame_option, *[i for i in range(len(OUTFILE_TYPE)+1)])
 
+        # body > upload
+        self.frame_upload = TkFrame(self.frame_body)
+        self.frame_upload.grid(row=1, column=0, sticky='w')
+        self.set_all_grid_rowconfigure(self.frame_upload, 0, 1, 2, 3)
+        self.set_all_grid_columnconfigure(self.frame_upload, 0, 1, 2)
+
         # body > btn
         self.frame_btn = TkFrame(self.frame_body)
-        self.frame_btn.grid(row=1, column=0, sticky='e')
+        self.frame_btn.grid(row=2, column=0, sticky='e')
         self.set_all_grid_rowconfigure(self.frame_btn, 0)
         self.set_all_grid_columnconfigure(self.frame_btn, 0)
 
@@ -63,7 +69,7 @@ class EntryThermalComponentViewer(TkViewer):
 
     # init ttk widget
     def _init_widget_body(self):
-        # ourput option
+        # option
         self.label_option = ttk.Label(self.frame_option, text=u'輸出檔案類型: ', style='Title.TLabel')
         self.label_option.grid(row=0, column=0, sticky='w')
         self.val_filetype = tkinter.StringVar()
@@ -74,6 +80,28 @@ class EntryThermalComponentViewer(TkViewer):
             radiobtn = ttk.Radiobutton(self.frame_option, text=text, variable=self.val_filetype, value=mode, style='H5.TRadiobutton')
             radiobtn.grid(row=0, column=i+1, sticky='w')
             self.radiobtn.append(radiobtn)
+
+        # upload: thermal txt directory
+        self.label_thermal_txt = ttk.Label(self.frame_upload, text=u'溫度檔資料夾 ', style='Title.TLabel')
+        self.label_thermal_txt.grid(row=0, column=0, sticky='w')
+        self.btn_thermal_txt_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_thermal_txt_upload.grid(row=0, column=1, sticky='w')
+
+        # upload: transform matrix
+        self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣 ', style='Title.TLabel')
+        self.label_transform_matrix.grid(row=1, column=0, sticky='w')
+        self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w')
+
+        # upload: contour
+        self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊 ', style='Title.TLabel')
+        self.label_contour_meta.grid(row=2, column=0, sticky='w')
+        self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w')
+
+        # upload: output path
+        self.label_output_path = ttk.Label(self.frame_upload, text=u'輸出路徑', style='Title.TLabel')
+        self.label_output_path.grid(row=3, column=0, sticky='w')
 
 if __name__ == '__main__':
     logging.basicConfig(
