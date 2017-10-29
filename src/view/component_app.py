@@ -82,26 +82,38 @@ class EntryThermalComponentViewer(TkViewer):
             self.radiobtn.append(radiobtn)
 
         # upload: thermal txt directory
-        self.label_thermal_txt = ttk.Label(self.frame_upload, text=u'溫度檔資料夾 ', style='Title.TLabel')
+        self.label_thermal_txt = ttk.Label(self.frame_upload, text=u'溫度檔資料夾: ', style='Title.TLabel')
         self.label_thermal_txt.grid(row=0, column=0, sticky='w')
         self.btn_thermal_txt_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
         self.btn_thermal_txt_upload.grid(row=0, column=1, sticky='w')
+        self.label_thermal_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_thermal_path.grid(row=0, column=2, sticky='w')
 
         # upload: transform matrix
-        self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣 ', style='Title.TLabel')
+        self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣: ', style='Title.TLabel')
         self.label_transform_matrix.grid(row=1, column=0, sticky='w')
         self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
         self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w')
+        self.label_transform_matrix_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_transform_matrix_path.grid(row=1, column=2, sticky='w')
 
         # upload: contour
-        self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊 ', style='Title.TLabel')
+        self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊: ', style='Title.TLabel')
         self.label_contour_meta.grid(row=2, column=0, sticky='w')
         self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
         self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w')
+        self.label_contour_meta_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_contour_meta_path.grid(row=2, column=2, sticky='w')
 
         # upload: output path
-        self.label_output_path = ttk.Label(self.frame_upload, text=u'輸出路徑', style='Title.TLabel')
-        self.label_output_path.grid(row=3, column=0, sticky='w')
+        self.label_output = ttk.Label(self.frame_upload, text=u'輸出路徑: ', style='Title.TLabel')
+        self.label_output.grid(row=3, column=0, sticky='w')
+        self.label_output_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_output_path.grid(row=3, column=1, sticky='w')
+
+        # button: convert btn
+        self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', style='H5.TButton')
+        self.btn_convert.grid(row=0, column=0, sticky='e')
 
 if __name__ == '__main__':
     logging.basicConfig(
