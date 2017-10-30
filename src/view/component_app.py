@@ -29,7 +29,7 @@ class EntryThermalComponentViewer(TkViewer):
         # root
         self.frame_root = TkFrame(self.root)
         self.frame_root.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_root, 0)
+        self.set_all_grid_rowconfigure(self.frame_root, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_root, 0)
 
         # body
@@ -58,6 +58,14 @@ class EntryThermalComponentViewer(TkViewer):
 
         self._init_widget_body()
 
+    # init footer frame
+    def _init_footer_frame(self):
+        # footer
+        self.frame_footer = TkFrame(self.frame_root)
+        self.frame_footer.grid(row=1, column=0)
+        self.set_all_grid_rowconfigure(self.frame_footer, 0)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+
     # init ttk style
     def _init_style(self):
         init_css()
@@ -67,7 +75,7 @@ class EntryThermalComponentViewer(TkViewer):
         TTKStyle('H5.TButton', font=('', 13))
         TTKStyle('H5.TRadiobutton', font=('', 13))
 
-    # init ttk widget
+    # init ttk body widget
     def _init_widget_body(self):
         # option
         self.label_option = ttk.Label(self.frame_option, text=u'輸出檔案類型: ', style='Title.TLabel')
@@ -84,7 +92,7 @@ class EntryThermalComponentViewer(TkViewer):
         # upload: thermal txt directory
         self.label_thermal_txt = ttk.Label(self.frame_upload, text=u'溫度檔資料夾: ', style='Title.TLabel')
         self.label_thermal_txt.grid(row=0, column=0, sticky='w')
-        self.btn_thermal_txt_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_thermal_txt_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
         self.btn_thermal_txt_upload.grid(row=0, column=1, sticky='w')
         self.label_thermal_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_thermal_path.grid(row=0, column=2, sticky='w')
@@ -92,7 +100,7 @@ class EntryThermalComponentViewer(TkViewer):
         # upload: transform matrix
         self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣: ', style='Title.TLabel')
         self.label_transform_matrix.grid(row=1, column=0, sticky='w')
-        self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
         self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w')
         self.label_transform_matrix_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_transform_matrix_path.grid(row=1, column=2, sticky='w')
@@ -100,7 +108,7 @@ class EntryThermalComponentViewer(TkViewer):
         # upload: contour
         self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊: ', style='Title.TLabel')
         self.label_contour_meta.grid(row=2, column=0, sticky='w')
-        self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', style='H5.TButton')
+        self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
         self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w')
         self.label_contour_meta_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_contour_meta_path.grid(row=2, column=2, sticky='w')
@@ -112,8 +120,14 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_output_path.grid(row=3, column=1, sticky='w')
 
         # button: convert btn
-        self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', style='H5.TButton')
+        self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')
         self.btn_convert.grid(row=0, column=0, sticky='e')
+
+    # init ttk footer widget
+    def _init_widget_footer(self):
+        # state msg
+        self.label_convert_state = ttk.Label(self.frame_footer, text=u'共 N/A 份檔案 - 準備中', style='H5Bold.TLabel')
+        self.label_convert_state.grid(row=0, column=0, sticky='w')
 
 if __name__ == '__main__':
     logging.basicConfig(
