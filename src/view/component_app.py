@@ -12,7 +12,7 @@ from src.view.ttkstyle import TTKStyle, init_css
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
-OUTFILE_TYPE = [('.dat', 'dat'), ('.txt', 'txt')]
+OUTFILE_TYPE = [('.npy', 'npy'), ('.dat', 'dat'), ('.txt', 'txt')]
 
 
 class EntryThermalComponentViewer(TkViewer):
@@ -79,12 +79,12 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_option = ttk.Label(self.frame_option, text=u'輸出檔案類型: ', style='Title.TLabel')
         self.label_option.grid(row=0, column=0, sticky='w')
         self.val_filetype = tkinter.StringVar()
-        self.val_filetype.set('dat')
+        self.val_filetype.set('npy')
         self.radiobtn = []
         for i, filetype in enumerate(OUTFILE_TYPE):
             text, mode = filetype
             radiobtn = ttk.Radiobutton(self.frame_option, text=text, variable=self.val_filetype, value=mode, style='H5.TRadiobutton')
-            radiobtn.grid(row=0, column=i+1, sticky='w')
+            radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
             self.radiobtn.append(radiobtn)
 
         # upload: thermal txt directory
