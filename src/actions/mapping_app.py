@@ -1,11 +1,11 @@
 """
 Defined mapping application action
 """
-import inspect
 import logging
 import os
 import sys
 import time
+from inspect import currentframe, getframeinfo
 from tkinter.filedialog import askdirectory, askopenfilename
 sys.path.append('../..')
 
@@ -22,7 +22,7 @@ from src.view.mapping_app import (AutoMappingViewer, EntryMappingViewer,
                                   ManualMappingViewer)
 
 
-__FILE__ = os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename)
+__FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
 
 class EntryMappingAction(EntryMappingViewer):
@@ -36,8 +36,9 @@ class EntryMappingAction(EntryMappingViewer):
         self.btn_ok.config(command=self._confirm)
 
     def _load_img_path(self):
+        print(os.path.abspath(os.path.join(__FILE__, '../../../')))
         self._img_path = askopenfilename(
-            initialdir=os.path.join(__FILE__, '../../'),
+            initialdir=os.path.abspath(os.path.join(__FILE__, '../../../')),
             title=u'選擇原始圖片路徑',
             filetypes=(('JPG Image', '*.jpg'),('JPEG Image', '*.jpeg'))
         )
@@ -47,7 +48,7 @@ class EntryMappingAction(EntryMappingViewer):
 
     def _load_temp_path(self):
         self._temp_path = askdirectory(
-            initialdir=os.path.join(__FILE__, '../../'),
+            initialdir=os.path.abspath(os.path.join(__FILE__, '../../')),
             title=u'選擇熱像儀 (灰階) 圖片資料夾'
         )
         if self._temp_path:
