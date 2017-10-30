@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -7,8 +6,7 @@ from inspect import currentframe, getframeinfo
 from tkinter import ttk
 sys.path.append('../..')
 
-import cv2
-from src.view.template import ImageViewer, TkViewer
+from src.view.template import TkViewer
 from src.view.tkframe import TkFrame
 from src.view.ttkstyle import TTKStyle, init_css
 
@@ -90,10 +88,10 @@ class EntryThermalComponentViewer(TkViewer):
             self.radiobtn.append(radiobtn)
 
         # upload: thermal txt directory
-        self.label_thermal_txt = ttk.Label(self.frame_upload, text=u'溫度檔資料夾: ', style='Title.TLabel')
-        self.label_thermal_txt.grid(row=0, column=0, sticky='w')
+        self.label_thermal = ttk.Label(self.frame_upload, text=u'溫度檔資料夾: ', style='Title.TLabel')
+        self.label_thermal.grid(row=0, column=0, sticky='w')
         self.btn_thermal_txt_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_thermal_txt_upload.grid(row=0, column=1, sticky='w')
+        self.btn_thermal_txt_upload.grid(row=0, column=1, sticky='w', padx=10)
         self.label_thermal_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_thermal_path.grid(row=0, column=2, sticky='w')
 
@@ -101,7 +99,7 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣: ', style='Title.TLabel')
         self.label_transform_matrix.grid(row=1, column=0, sticky='w')
         self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w')
+        self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w', padx=10)
         self.label_transform_matrix_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_transform_matrix_path.grid(row=1, column=2, sticky='w')
 
@@ -109,7 +107,7 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊: ', style='Title.TLabel')
         self.label_contour_meta.grid(row=2, column=0, sticky='w')
         self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w')
+        self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w', padx=10)
         self.label_contour_meta_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_contour_meta_path.grid(row=2, column=2, sticky='w')
 
@@ -117,7 +115,7 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_output = ttk.Label(self.frame_upload, text=u'輸出路徑: ', style='Title.TLabel')
         self.label_output.grid(row=3, column=0, sticky='w')
         self.label_output_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_output_path.grid(row=3, column=1, sticky='w')
+        self.label_output_path.grid(row=3, column=1, sticky='w', padx=10)
 
         # button: convert btn
         self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')
