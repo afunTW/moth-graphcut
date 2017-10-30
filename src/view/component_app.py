@@ -96,12 +96,12 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_thermal_path.grid(row=0, column=2, sticky='w')
 
         # upload: original image
-        self.label_original = ttk.Label(self.frame_upload, text=u'原圖: ', style='Title.TLabel')
-        self.label_original.grid(row=1, column=0, sticky='w')
-        self.btn_original_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_original_upload.grid(row=1, column=1, sticky='w', padx=10)
-        self.label_original_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_original_path.grid(row=1, column=2, sticky='w')
+        self.label_component = ttk.Label(self.frame_upload, text=u'部位原圖資料夾: ', style='Title.TLabel')
+        self.label_component.grid(row=1, column=0, sticky='w')
+        self.btn_component_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
+        self.btn_component_upload.grid(row=1, column=1, sticky='w', padx=10)
+        self.label_component_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_component_path.grid(row=1, column=2, sticky='w')
 
         # upload: transform matrix
         self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣: ', style='Title.TLabel')
