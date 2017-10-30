@@ -12,7 +12,7 @@ from src.view.ttkstyle import TTKStyle, init_css
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
-OUTFILE_TYPE = [('.dat', 'ndarray'), ('.txt', 'text')]
+OUTFILE_TYPE = [('.dat', 'dat'), ('.txt', 'txt')]
 
 
 class EntryThermalComponentViewer(TkViewer):
@@ -79,7 +79,7 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_option = ttk.Label(self.frame_option, text=u'輸出檔案類型: ', style='Title.TLabel')
         self.label_option.grid(row=0, column=0, sticky='w')
         self.val_filetype = tkinter.StringVar()
-        self.val_filetype.set('ndarray')
+        self.val_filetype.set('dat')
         self.radiobtn = []
         for i, filetype in enumerate(OUTFILE_TYPE):
             text, mode = filetype
@@ -115,7 +115,7 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_output = ttk.Label(self.frame_upload, text=u'輸出路徑: ', style='Title.TLabel')
         self.label_output.grid(row=3, column=0, sticky='w')
         self.label_output_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_output_path.grid(row=3, column=1, sticky='w', padx=10)
+        self.label_output_path.grid(row=3, column=1, sticky='w', columnspan=2)
 
         # button: convert btn
         self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')
