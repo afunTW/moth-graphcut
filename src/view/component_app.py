@@ -45,7 +45,7 @@ class EntryThermalComponentViewer(TkViewer):
         # body > upload
         self.frame_upload = TkFrame(self.frame_body)
         self.frame_upload.grid(row=1, column=0, sticky='w')
-        self.set_all_grid_rowconfigure(self.frame_upload, 0, 1, 2, 3)
+        self.set_all_grid_rowconfigure(self.frame_upload, 0, 1, 2, 3, 4)
         self.set_all_grid_columnconfigure(self.frame_upload, 0, 1, 2)
 
         # body > btn
@@ -95,27 +95,35 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_thermal_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_thermal_path.grid(row=0, column=2, sticky='w')
 
+        # upload: original image
+        self.label_original = ttk.Label(self.frame_upload, text=u'原圖: ', style='Title.TLabel')
+        self.label_original.grid(row=1, column=0, sticky='w')
+        self.btn_original_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
+        self.btn_original_upload.grid(row=1, column=1, sticky='w', padx=10)
+        self.label_original_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
+        self.label_original_path.grid(row=1, column=2, sticky='w')
+
         # upload: transform matrix
         self.label_transform_matrix = ttk.Label(self.frame_upload, text=u'轉換矩陣: ', style='Title.TLabel')
-        self.label_transform_matrix.grid(row=1, column=0, sticky='w')
+        self.label_transform_matrix.grid(row=2, column=0, sticky='w')
         self.btn_transform_matrix_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_transform_matrix_upload.grid(row=1, column=1, sticky='w', padx=10)
+        self.btn_transform_matrix_upload.grid(row=2, column=1, sticky='w', padx=10)
         self.label_transform_matrix_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_transform_matrix_path.grid(row=1, column=2, sticky='w')
+        self.label_transform_matrix_path.grid(row=2, column=2, sticky='w')
 
         # upload: contour
         self.label_contour_meta = ttk.Label(self.frame_upload, text=u'輪廓資訊: ', style='Title.TLabel')
-        self.label_contour_meta.grid(row=2, column=0, sticky='w')
+        self.label_contour_meta.grid(row=3, column=0, sticky='w')
         self.btn_contour_meta_upload = ttk.Button(self.frame_upload, text=u'上傳', width=4, style='H5.TButton')
-        self.btn_contour_meta_upload.grid(row=2, column=1, sticky='w', padx=10)
+        self.btn_contour_meta_upload.grid(row=3, column=1, sticky='w', padx=10)
         self.label_contour_meta_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_contour_meta_path.grid(row=2, column=2, sticky='w')
+        self.label_contour_meta_path.grid(row=3, column=2, sticky='w')
 
         # upload: output path
         self.label_output = ttk.Label(self.frame_upload, text=u'輸出路徑: ', style='Title.TLabel')
-        self.label_output.grid(row=3, column=0, sticky='w')
+        self.label_output.grid(row=4, column=0, sticky='w')
         self.label_output_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_output_path.grid(row=3, column=1, sticky='w', columnspan=2)
+        self.label_output_path.grid(row=4, column=1, sticky='w', columnspan=2)
 
         # button: convert btn
         self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')
