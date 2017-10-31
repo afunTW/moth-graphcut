@@ -39,7 +39,7 @@ class EntryThermalComponentViewer(TkViewer):
         # body > option
         self.frame_option = TkFrame(self.frame_body)
         self.frame_option.grid(row=0, column=0, sticky='w')
-        self.set_all_grid_rowconfigure(self.frame_option, 0)
+        self.set_all_grid_rowconfigure(self.frame_option, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_option, *[i for i in range(len(OUTFILE_TYPE)+1)])
 
         # body > upload
@@ -75,17 +75,29 @@ class EntryThermalComponentViewer(TkViewer):
 
     # init ttk body widget
     def _init_widget_body(self):
-        # option
+        # option: out filetype
         self.label_option = ttk.Label(self.frame_option, text=u'輸出檔案類型: ', style='Title.TLabel')
         self.label_option.grid(row=0, column=0, sticky='w')
         self.val_filetype = tkinter.StringVar()
         self.val_filetype.set('npy')
-        self.radiobtn = []
+        self.radiobtn_filetype = []
         for i, filetype in enumerate(OUTFILE_TYPE):
             text, mode = filetype
             radiobtn = ttk.Radiobutton(self.frame_option, text=text, variable=self.val_filetype, value=mode, style='H5.TRadiobutton')
             radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
-            self.radiobtn.append(radiobtn)
+            self.radiobtn_filetype.append(radiobtn)
+
+        # option: save visual img
+        self.label_visual_option = ttk.Label(self.frame_option, text=u'輸出成果圖: ', style='Title.TLabel')
+        self.label_visual_option.grid(row=1, column=0, sticky='w')
+        self.val_visual = tkinter.StringVar()
+        self.val_visual.set('n')
+        self.radiobtn_visual = []
+        for i, op in enumerate([(u'是', 'y'), (u'否', 'n')]):
+            text, option = op
+            radiobtn = ttk.Radiobutton(self.frame_option, text=text, variable=self.val_visual, value=option, style='H5.TRadiobutton')
+            radiobtn.grid(row=1, column=i+1, sticky='w', padx=10)
+            self.radiobtn_visual.append(radiobtn)
 
         # upload: thermal txt directory
         self.label_thermal = ttk.Label(self.frame_upload, text=u'溫度檔資料夾: ', style='Title.TLabel')
