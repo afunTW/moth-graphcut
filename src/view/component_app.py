@@ -33,7 +33,7 @@ class EntryThermalComponentViewer(TkViewer):
         # body
         self.frame_body = TkFrame(self.frame_root)
         self.frame_body.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_body, 0, 1, 2)
+        self.set_all_grid_rowconfigure(self.frame_body, 0, 1, 2, 3)
         self.set_all_grid_columnconfigure(self.frame_body, 0)
 
         # body > option
@@ -48,9 +48,15 @@ class EntryThermalComponentViewer(TkViewer):
         self.set_all_grid_rowconfigure(self.frame_upload, 0, 1, 2, 3, 4)
         self.set_all_grid_columnconfigure(self.frame_upload, 0, 1, 2)
 
+        # body > output
+        self.frame_output = TkFrame(self.frame_body)
+        self.frame_output.grid(row=2, column=0, sticky='w')
+        self.set_all_grid_rowconfigure(self.frame_output, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_output, 0, 1)
+
         # body > btn
         self.frame_btn = TkFrame(self.frame_body)
-        self.frame_btn.grid(row=2, column=0, sticky='e')
+        self.frame_btn.grid(row=3, column=0, sticky='e')
         self.set_all_grid_rowconfigure(self.frame_btn, 0)
         self.set_all_grid_columnconfigure(self.frame_btn, 0)
 
@@ -131,11 +137,17 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_contour_meta_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
         self.label_contour_meta_path.grid(row=3, column=2, sticky='w')
 
-        # upload: output path
-        self.label_output = ttk.Label(self.frame_upload, text=u'輸出路徑: ', style='Title.TLabel')
-        self.label_output.grid(row=4, column=0, sticky='w')
-        self.label_output_path = ttk.Label(self.frame_upload, text=u'N/A', style='H5.TLabel')
-        self.label_output_path.grid(row=4, column=1, sticky='w', columnspan=2)
+        # output: file path
+        self.label_output = ttk.Label(self.frame_output, text=u'輸出檔案路徑: ', style='Title.TLabel')
+        self.label_output.grid(row=0, column=0, sticky='w')
+        self.label_output_path = ttk.Label(self.frame_output, text=u'N/A', style='H5.TLabel')
+        self.label_output_path.grid(row=0, column=1, sticky='w', columnspan=2)
+
+        # output: img path
+        self.label_visual = ttk.Label(self.frame_output, text=u'輸出圖片路徑: ', style='Title.TLabel')
+        self.label_visual.grid(row=1, column=0, sticky='w')
+        self.label_visual_path = ttk.Label(self.frame_output, text=u'N/A', style='H5.TLabel')
+        self.label_visual_path.grid(row=1, column=1, sticky='w')
 
         # button: convert btn
         self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')

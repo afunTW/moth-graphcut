@@ -12,6 +12,7 @@ import numpy as np
 import cv2
 from src.support.msg_box import MessageBox
 from src.view.component_app import EntryThermalComponentViewer
+from src.image.colourmap import ColourMap
 
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
@@ -26,6 +27,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
         self._transform_matrix_path = None
         self._contour_path = None
         self._output_dir_path = None
+        self._output_visual_path = None
 
         # file
         self._component_img = None
@@ -38,6 +40,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
         self.btn_contour_meta_upload.config(command=self._load_contour_meta)
         self.btn_convert.config(command=self._convert)
         self._sync_generate_save_path()
+        self._sync_generate_visual_path()
 
     # load thermal directory
     def _load_thermal_dir(self):
@@ -118,6 +121,17 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
 
         self.label_output_path.after(10, self._sync_generate_save_path)
 
+    # sync visual path
+    def _sync_generate_visual_path(self):
+        if self._thermal_dir_path and self.val_visual.get() == 'y':
+            self._output_visual_path = '{}_component'.format(self._thermal_dir_path)
+            self.label_visual_path.config(text=self._output_visual_path)
+        else:
+            self._output_visual_path = None
+            self.label_visual_path.config(text='N/A')
+
+        self.label_visual_path.after(10, self._sync_generate_visual_path)
+
     # check if all necessary data is prepared
     def _check_data(self):
         if self._thermal_dir_path is None or not self._thermal_dir_path:
@@ -151,6 +165,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
     # convert
     def _convert(self):
         if self._check_data():
+            is_output_visual = True if self.val_visual.get() == 'y' else False
             output_file_format = self.val_filetype.get()
             thermal_frames = [os.path.join(self._thermal_dir_path, f) for f in os.listdir(self._thermal_dir_path)]
             thermal_frames = sorted(thermal_frames, key=lambda x: int(x.split(os.sep)[-1].split('.')[0].split('_')[-1]))
@@ -174,9 +189,27 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             # process each frame
             for idx, frame in enumerate(thermal_frames):
                 frame_data = np.loadtxt(open(frame, 'rb'), delimiter=',', skiprows=1)
+                thermal_map = ColourMap(frame_data)
+                thermal_img = thermal_map.transform_to_rgb()
 
                 # process each component
                 for part, cnt in component_cnts.items():
+
+                    # save visual path
+                    if is_output_visual:
+                        warp_thermal = cv2.warpPerspective(thermal_img, self._transform_matrix, thermal_img.shape[:2][::-1])
+                        warp_thermal = warp_thermal.astype('float32')
+                        warp_thermal = cv2.cvtColor(warp_thermal, cv2.COLOR_RGB2BGR)
+                        warp_thermal[np.where(component_mask[part] == 0)] = 0
+                        savedir = os.path.join(self._output_visual_path, part)
+                        if not os.path.exists(savedir):
+                            os.makedirs(savedir)
+                        saveframe = os.path.join(savedir, frame.split(os.sep)[-1].split('.')[0])
+                        savefile = saveframe + '.png'
+                        cv2.imwrite(savefile, warp_thermal)
+                        LOGGER.info('Save - {}'.format(savefile))
+
+                    # save path
                     savedir = os.path.join(self._output_dir_path, part)
                     if not os.path.exists(savedir):
                         os.makedirs(savedir)
