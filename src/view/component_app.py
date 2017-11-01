@@ -171,10 +171,10 @@ class EntryThermalComponentViewer(TkViewer):
         self.btn_convert.grid(row=0, column=1, sticky='e')
 
 class PreviewComponentViewer(TkViewer):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         self._im_h, self._im_w = 239, 320
-        self._init_window(zoom=False)
+        self._init_window(zoom=False, parent=parent)
         self._init_frame()
         self._init_style()
 

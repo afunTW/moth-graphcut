@@ -43,10 +43,13 @@ class TkViewer(object):
             widget.grid_rowconfigure(row, weight=1)
 
     # init root window
-    def _init_window(self, zoom=True):
+    def _init_window(self, zoom=True, parent=None):
         """Windows init - root"""
         try:
-            self.root = tkinter.Tk()
+            if parent is None:
+                self.root = tkinter.Tk()
+            else:
+                self.root = tkinter.Toplevel(parent)
             self.root.wm_title(time.ctime())
             self.root.grid_rowconfigure(0, weight=1)
             self.root.grid_columnconfigure(0, weight=1)
