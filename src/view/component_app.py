@@ -196,17 +196,11 @@ class PreviewComponentViewer(TkViewer):
         self.frame_body = TkFrame(self.frame_root)
         self.frame_body.grid(row=1, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_body, 0)
-        self.set_all_grid_columnconfigure(self.frame_body, 0, 1)
-
-        # body > thermal
-        self.frame_thermal = TkFrame(self.frame_body, bg='')
-        self.frame_thermal.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_thermal, 0)
-        self.set_all_grid_columnconfigure(self.frame_thermal, 0)
+        self.set_all_grid_columnconfigure(self.frame_body, 0)
 
         # body > cut
         self.frame_cut = TkFrame(self.frame_body)
-        self.frame_cut.grid(row=0, column=1, sticky='news')
+        self.frame_cut.grid(row=0, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_cut, 0)
         self.set_all_grid_columnconfigure(self.frame_cut, 0)
 
@@ -218,7 +212,7 @@ class PreviewComponentViewer(TkViewer):
 
         self._init_widget_head()
         self._init_widget_body()
-        self._init_widget_footer()
+        # self._init_widget_footer()
 
     # init ttk style
     def _init_style(self):
@@ -230,19 +224,13 @@ class PreviewComponentViewer(TkViewer):
         # show frame info
         self.label_frameinfo = ttk.Label(
             self.frame_head,
-            text=u'Image {}, Frame #{}'.format('N/A', 'N/A'),
+            text=u'Frame #{}'.format('N/A'),
             style='H2Gray.TLabel'
         )
         self.label_frameinfo.grid(row=0, column=0, sticky='w', padx=10)
 
     # init ttk widget for frame body
     def _init_widget_body(self):
-        # thermal > original thermal image
-        self.photo_original_thermal = ImageNP.generate_checkboard((self._im_h, self._im_w), 10)
-        self.photo_original_thermal = TkConverter.ndarray_to_photo(self.photo_original_thermal)
-        self.label_original_thermal = ttk.Label(self.frame_thermal, image=self.photo_original_thermal)
-        self.label_original_thermal.grid(row=0, column=0, sticky='news')
-
         # cut > fl, fr, bl, br, body
         self.set_all_grid_rowconfigure(self.frame_cut, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_cut, 0, 1, 2)
