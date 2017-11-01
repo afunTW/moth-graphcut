@@ -6,6 +6,8 @@ from inspect import currentframe, getframeinfo
 from tkinter import ttk
 sys.path.append('../..')
 
+from src.image.imnp import ImageNP
+from src.support.tkconvert import TkConverter
 from src.view.template import TkViewer
 from src.view.tkframe import TkFrame
 from src.view.ttkstyle import TTKStyle, init_css
@@ -167,6 +169,103 @@ class EntryThermalComponentViewer(TkViewer):
         # button: convert btn
         self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', style='H5.TButton')
         self.btn_convert.grid(row=0, column=1, sticky='e')
+
+class PreviewComponentViewer(TkViewer):
+    def __init__(self):
+        super().__init__()
+        self._im_h, self._im_w = 239, 320
+        self._init_window(zoom=False)
+        self._init_frame()
+        self._init_style()
+
+    # init tk frame and layout
+    def _init_frame(self):
+        # root
+        self.frame_root = TkFrame(self.root)
+        self.frame_root.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+
+        # head
+        self.frame_head = TkFrame(self.frame_root)
+        self.frame_head.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_head, 0)
+        self.set_all_grid_columnconfigure(self.frame_head, 0)
+
+        # body
+        self.frame_body = TkFrame(self.frame_root)
+        self.frame_body.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_body, 0)
+        self.set_all_grid_columnconfigure(self.frame_body, 0, 1)
+
+        # body > thermal
+        self.frame_thermal = TkFrame(self.frame_body, bg='')
+        self.frame_thermal.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_thermal, 0)
+        self.set_all_grid_columnconfigure(self.frame_thermal, 0)
+
+        # body > cut
+        self.frame_cut = TkFrame(self.frame_body)
+        self.frame_cut.grid(row=0, column=1, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_cut, 0)
+        self.set_all_grid_columnconfigure(self.frame_cut, 0)
+
+        # footer
+        self.frame_footer = TkFrame(self.frame_root)
+        self.frame_footer.grid(row=2, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_footer, 0)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+
+        self._init_widget_head()
+        self._init_widget_body()
+        self._init_widget_footer()
+
+    # init ttk style
+    def _init_style(self):
+        init_css()
+        TTKStyle('H2Gray.TLabel', font=('', 24, 'bold'), bg='gray56')
+
+    # init ttk widget for frame head
+    def _init_widget_head(self):
+        # show frame info
+        self.label_frameinfo = ttk.Label(
+            self.frame_head,
+            text=u'Image {}, Frame #{}'.format('N/A', 'N/A'),
+            style='H2Gray.TLabel'
+        )
+        self.label_frameinfo.grid(row=0, column=0, sticky='w', padx=10)
+
+    # init ttk widget for frame body
+    def _init_widget_body(self):
+        # thermal > original thermal image
+        self.photo_original_thermal = ImageNP.generate_checkboard((self._im_h, self._im_w), 10)
+        self.photo_original_thermal = TkConverter.ndarray_to_photo(self.photo_original_thermal)
+        self.label_original_thermal = ttk.Label(self.frame_thermal, image=self.photo_original_thermal)
+        self.label_original_thermal.grid(row=0, column=0, sticky='news')
+
+        # cut > fl, fr, bl, br, body
+        self.set_all_grid_rowconfigure(self.frame_cut, 0, 1)
+        self.set_all_grid_columnconfigure(self.frame_cut, 0, 1, 2)
+        self.photo_small = ImageNP.generate_checkboard((self._im_h//2, self._im_w//3), 10)
+        self.photo_small = TkConverter.ndarray_to_photo(self.photo_small)
+        self.photo_large = ImageNP.generate_checkboard((self._im_h, self._im_w//3), 10)
+        self.photo_large = TkConverter.ndarray_to_photo(self.photo_large)
+        self.label_cut_fl = ttk.Label(self.frame_cut, image=self.photo_small)
+        self.label_cut_fl.grid(row=0, column=0, sticky='news')
+        self.label_cut_fr = ttk.Label(self.frame_cut, image=self.photo_small)
+        self.label_cut_fr.grid(row=0, column=1, sticky='news')
+        self.label_cut_bl = ttk.Label(self.frame_cut, image=self.photo_small)
+        self.label_cut_bl.grid(row=1, column=0, sticky='news')
+        self.label_cut_br = ttk.Label(self.frame_cut, image=self.photo_small)
+        self.label_cut_br.grid(row=1, column=1, sticky='news')
+        self.label_cut_body = ttk.Label(self.frame_cut, image=self.photo_large)
+        self.label_cut_body.grid(row=0, column=2, sticky='news', rowspan=2)
+
+    # init ttk widget for frame footer
+    def _init_widget_footer(self):
+        # replay
+        self.btn_replay = ttk.Button(self.frame_footer, text=u'重播', style='H5.TButton')
+        self.btn_replay.grid(row=0, column=0, sticky='e', padx=10)
 
 if __name__ == '__main__':
     logging.basicConfig(
