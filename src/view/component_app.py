@@ -54,26 +54,31 @@ class EntryThermalComponentViewer(TkViewer):
         self.set_all_grid_rowconfigure(self.frame_output, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_output, 0, 1)
 
-        # body > btn
-        self.frame_btn = TkFrame(self.frame_body)
-        self.frame_btn.grid(row=3, column=0, sticky='e')
+        # footer
+        self.frame_footer = TkFrame(self.frame_root)
+        self.frame_footer.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_footer, 0)
+        self.set_all_grid_columnconfigure(self.frame_footer, 0, 1)
+
+        # footer > state
+        self.frame_state = TkFrame(self.frame_footer)
+        self.frame_state.grid(row=0, column=0, sticky='w')
+        self.set_all_grid_rowconfigure(self.frame_state, 0)
+        self.set_all_grid_columnconfigure(self.frame_state, 0)
+
+        # footer > btn
+        self.frame_btn = TkFrame(self.frame_footer)
+        self.frame_btn.grid(row=0, column=1, sticky='e')
         self.set_all_grid_rowconfigure(self.frame_btn, 0)
         self.set_all_grid_columnconfigure(self.frame_btn, 0)
 
         self._init_widget_body()
-
-    # init footer frame
-    def _init_footer_frame(self):
-        # footer
-        self.frame_footer = TkFrame(self.frame_root)
-        self.frame_footer.grid(row=1, column=0)
-        self.set_all_grid_rowconfigure(self.frame_footer, 0)
-        self.set_all_grid_columnconfigure(self.frame_footer, 0)
+        self._init_widget_footer()
 
     # init ttk style
     def _init_style(self):
         init_css()
-        TTKStyle('H5Bold.TLabel', font=('', 13))
+        TTKStyle('H5Bold.TLabel', font=('', 13, 'bold'))
         TTKStyle('Title.TLabel', font=('', 13, 'bold'))
         TTKStyle('H5.TLabel', font=('', 13))
         TTKStyle('H5.TButton', font=('', 13))
@@ -149,15 +154,19 @@ class EntryThermalComponentViewer(TkViewer):
         self.label_visual_path = ttk.Label(self.frame_output, text=u'N/A', style='H5.TLabel')
         self.label_visual_path.grid(row=1, column=1, sticky='w')
 
-        # button: convert btn
-        self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', width=4, style='H5.TButton')
-        self.btn_convert.grid(row=0, column=0, sticky='e')
-
     # init ttk footer widget
     def _init_widget_footer(self):
-        # state msg
-        self.label_convert_state = ttk.Label(self.frame_footer, text=u'共 N/A 份檔案 - 準備中', style='H5Bold.TLabel')
+        # state
+        self.label_convert_state = ttk.Label(self.frame_state, text=u'共 N/A 份檔案 - 準備中', style='H5Bold.TLabel')
         self.label_convert_state.grid(row=0, column=0, sticky='w')
+
+        # button: preview
+        self.btn_preview = ttk.Button(self.frame_btn, text=u'預覽', style='H5.TButton')
+        self.btn_preview.grid(row=0, column=0, sticky='e')
+
+        # button: convert btn
+        self.btn_convert = ttk.Button(self.frame_btn, text=u'轉換', style='H5.TButton')
+        self.btn_convert.grid(row=0, column=1, sticky='e')
 
 if __name__ == '__main__':
     logging.basicConfig(
