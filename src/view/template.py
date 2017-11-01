@@ -197,7 +197,7 @@ class PreprocessViewer(ImageViewer):
         self.set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
 
         """root.header"""
-        self.frame_nav = TkFrame(self.frame_root, bg='orange')
+        self.frame_nav = TkFrame(self.frame_root, bg='white')
         self.frame_nav.grid(row=0, column=0, sticky='news')
         self.set_all_grid_columnconfigure(self.frame_nav, 0)
         self.set_all_grid_rowconfigure(self.frame_nav, 0, 1)
@@ -236,7 +236,7 @@ class PreprocessViewer(ImageViewer):
     def _init_widget_head(self):
         """Resize state"""
         self.label_state = ttk.Label(self.frame_nav, text='', style='H2.TLabel')
-        self.label_resize = ttk.Label(self.frame_nav, text=u'顯示尺寸: ', style='H2.TLabel')
+        self.label_resize = ttk.Label(self.frame_nav, text=u'顯示尺寸: N/A', style='H2.TLabel')
         self.label_state.grid(row=0, column=0, sticky='w')
         self.label_resize.grid(row=1, column=0, sticky='w')
         self._sync_state()
@@ -328,7 +328,6 @@ class PreprocessViewer(ImageViewer):
         elif self.state_message == 'edit':
             msg = u'編輯'
         elif self.state_message == 'calc':
-            LOGGER.info('root state {}'.format(self.root_state))
             msg = u'圖片處理中...'
 
         if 'result' in self.root_state and self.state_message != 'calc':
