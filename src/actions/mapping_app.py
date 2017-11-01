@@ -36,7 +36,6 @@ class EntryMappingAction(EntryMappingViewer):
         self.btn_ok.config(command=self._confirm)
 
     def _load_img_path(self):
-        print(os.path.abspath(os.path.join(__FILE__, '../../../')))
         self._img_path = askopenfilename(
             initialdir=os.path.abspath(os.path.join(__FILE__, '../../../')),
             title=u'選擇原始圖片路徑',
