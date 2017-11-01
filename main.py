@@ -22,6 +22,11 @@ def argparser():
         nargs='+', default=[])
     parser.add_argument('-r', '--recursive', help='process all image in given directory',
         nargs='+', default=[])
+    parser.add_argument('--ruler', dest='template', action='store_true',
+        help='Add this args to skip template matching')
+    parser.add_argument('--no-ruler', dest='template', action='store_false',
+        help='Add this args to skip template matching')
+    parser.set_defaults(template=True)
     return parser
 
 def filter_rects(rects, ignore_rect):
@@ -161,6 +166,7 @@ def main(args):
      - update status by moth.STATE
      - consider moth by moth.ACTION
     '''
+    print(args)
     template_path = os.path.join(os.path.dirname(__file__), 'image/10mm.png')
     metadata_path = os.path.join(os.path.dirname(__file__), 'metadata/')
     ext = ['jpg', 'jpeg', 'png']
@@ -234,9 +240,16 @@ def main(args):
 
                 with open(key_json, 'r') as f:
                     last_status = json.load(f)
-                    result = graph_cut(moth, template_path, last_status)
+                    if not args.template:
+                        result = graph_cut(moth, last_status=last_status)
+                    else:
+                        result = graph_cut(moth, template_path, last_status)
 
-            if result is None: result = graph_cut(moth, template_path)
+            if result is None:
+                if not args.template:
+                    result = graph_cut(moth)
+                else:
+                    result = graph_cut(moth, template_path)
 
             with open(metadata_map, 'w') as f:
                 exist_data.update({key: {'file': moth, 'state': result.STATE}})
