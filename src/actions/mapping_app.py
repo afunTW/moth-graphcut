@@ -47,7 +47,7 @@ class EntryMappingAction(EntryMappingViewer):
 
     def _load_temp_path(self):
         self._temp_path = askdirectory(
-            initialdir=os.path.abspath(os.path.join(__FILE__, '../../')),
+            initialdir=os.path.abspath(os.path.join(__FILE__, '../../../')),
             title=u'選擇熱像儀 (灰階) 圖片資料夾'
         )
         if self._temp_path:
