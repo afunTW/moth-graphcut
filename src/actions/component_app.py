@@ -38,6 +38,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
         self.btn_component_upload.config(command=self._load_component_img)
         self.btn_transform_matrix_upload.config(command=self._load_transform_matrix)
         self.btn_contour_meta_upload.config(command=self._load_contour_meta)
+        self.btn_preview.config(command=self._preview)
         self.btn_convert.config(command=self._convert)
         self._sync_generate_save_path()
         self._sync_generate_visual_path()
@@ -51,7 +52,9 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
 
         if self._thermal_dir_path:
             LOGGER.info('Thermal txt directory - {}'.format(self._thermal_dir_path))
+            frame_count = len(os.listdir(self._thermal_dir_path))
             self.label_thermal_path.config(text=self._thermal_dir_path)
+            self.label_convert_state.config(text=u'共 {} 份檔案 - 準備中'.format(frame_count))
 
     # load original image path
     def _load_component_img(self):
@@ -162,6 +165,17 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
         else:
             return True
 
+    # preview
+    def _preview(self):
+        component_key = ['foreleft', 'foreright', 'backleft', 'backright', 'body']
+        if self._thermal_dir_path:
+            # get the right path
+            gen_path = lambda x: os.path.join('{}_component'.format(self._thermal_dir_path), x)
+            part_path = {part: gen_path(part) for part in component_key}
+
+            # operate per frame
+            pass
+
     # convert
     def _convert(self):
         if self._check_data():
@@ -176,6 +190,10 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
                 'backright': self._contour_meta['components_contour']['backwings']['right'],
                 'body': self._contour_meta['components_contour']['body']
             }
+
+            # view state
+            self.label_convert_state.config(text=u'共 {} 份檔案 - 準備中'.format(len(thermal_frames)))
+            self.root.update()
 
             # original image resize > threshold > get mask
             _ = np.loadtxt(open(thermal_frames[0], 'rb'), delimiter=',', skiprows=1)
@@ -231,6 +249,16 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
                         savefile = saveframe + '.txt'
                         np.savetxt(savefile, warp_component)
                     LOGGER.info('Save - {}'.format(savefile))
+
+                self.label_convert_state.config(
+                    text=u'{}/{} 份檔案 - 轉換中'.format(idx, len(thermal_frames)))
+                self.root.update()
+
+            # view state
+            self.label_convert_state.config(text=u'共 {} 份檔案 - 已完成'.format(len(thermal_frames)))
+            self.root.update()
+            Mbox = MessageBox()
+            Mbox.info(string=u'Done', parent=self.root)
 
 if __name__ == '__main__':
     logging.basicConfig(
