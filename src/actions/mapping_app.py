@@ -76,6 +76,7 @@ class AutoMappingAction(AutoMappingViewer):
         self._alignment = None
         self.run()
 
+        self.button_reload.config(command=self._reload)
         self.button_ok.config(command=self._confirm)
         self.button_manual.config(command=self._manual)
 
@@ -87,6 +88,12 @@ class AutoMappingAction(AutoMappingViewer):
         else:
             Mbox = MessageBox()
             Mbox.alert(title='Warning', string=u'無法自動對應, 請嘗試手動定位')
+
+    # reload to previous action
+    def _reload(self):
+        self.root.destroy()
+        entry_action = EntryMappingAction()
+        entry_action.mainloop()
 
     # manual mapping
     def _manual(self):
@@ -141,6 +148,7 @@ class ManualMappingAction(ManualMappingViewer):
         self._sync_anchor_state()
 
         # callback
+        self.button_reload.config(command=self._reload)
         self.button_preview.config(command=self._preview)
         self.button_ok.config(command=self._confirm)
 
@@ -245,6 +253,12 @@ class ManualMappingAction(ManualMappingViewer):
             M, status = cv2.findHomography(display_anchor, panel_anchor)
             self.transform_matrix = M
             return M
+
+    # callback: reload to previous action
+    def _reload(self):
+        self.root.destroy()
+        automapping_action = AutoMappingAction(self._img_path, self._temp_path)
+        automapping_action.mainloop()
 
     # callback: preview the result
     def _preview(self):

@@ -243,10 +243,12 @@ class ManualMappingViewer(TkViewer):
 
     # init footer widget
     def _init_widget_footer(self):
+        self.button_reload = ttk.Button(self.frame_footer, text=u'自動標記', style='H5.TButton')
+        self.button_reload.grid(row=0, column=0, sticky='e')
         self.button_preview = ttk.Button(self.frame_footer, text=u'預覽', style='H5.TButton')
         self.button_ok = ttk.Button(self.frame_footer, text=u'確認', style='H5.TButton')
-        self.button_preview.grid(row=0, column=0, sticky='e')
-        self.button_ok.grid(row=0, column=1, sticky='e')
+        self.button_preview.grid(row=0, column=1, sticky='e')
+        self.button_ok.grid(row=0, column=2, sticky='e')
 
 if __name__ == '__main__':
     """testing"""
