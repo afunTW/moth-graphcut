@@ -201,7 +201,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
                     component_img[part] = TkConverter.cv2_to_photo(component_img[part])
 
                 # update previewer
-                previewer.label_frameinfo.config(text=u'Frame #{}'.format(i))
+                previewer.label_frameinfo.config(text=u'Frame #{}'.format(i+1))
                 previewer.update(
                     fl=component_img['foreleft'],
                     fr=component_img['foreright'],
