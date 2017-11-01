@@ -117,6 +117,14 @@ class AutoMappingAction(AutoMappingViewer):
     def run(self):
         self.alignment = AlignmentCore(self._img_path, self._temp_path)
         self._show_img = self.alignment.run()
+
+        self._original_img = self.alignment.original_img.copy()
+        self._original_img = TkConverter.cv2_to_photo(self._original_img)
+        self._warp_thermal_img = self.alignment.warp_thermal.copy()
+        self._warp_thermal_img = TkConverter.cv2_to_photo(self._warp_thermal_img)
+        self.label_original.config(image=self._original_img)
+        self.label_warp_thermal.config(image=self._warp_thermal_img)
+
         self._update_result_img()
 
 class ManualMappingAction(ManualMappingViewer):
