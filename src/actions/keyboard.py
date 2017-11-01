@@ -115,7 +115,7 @@ class PreprocessKeyboard(KeyboardHandler, PreprocessViewer):
             save_path = self.current_image_path.split('.')
             save_path[0] += '_floodfill'
             save_path = '.'.join(save_path)
-            save_image = ImageCV.run_floodfill(self._image_original, threshold, iter_blur)
+            save_image = ImageCV.run_floodfill(self.image_panel, threshold, iter_blur)
             cv2.imwrite(save_path, save_image)
             self.state_message = _msg
             self._sync_state()
