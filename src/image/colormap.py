@@ -6,12 +6,12 @@ import logging
 
 import numpy as np
 
-from .colour import ColorTransformation as c_trans
-from .colour import Palette
+from .color import ColorTransformation as c_trans
+from .color import Palette
 
 LOGGER = logging.getLogger(__name__)
 
-class ColourMap(object):
+class ColorMap(object):
     """
     Input and matrix in float and out put as image
 
