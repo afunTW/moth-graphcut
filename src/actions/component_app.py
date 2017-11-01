@@ -12,7 +12,7 @@ import numpy as np
 import cv2
 from src.support.msg_box import MessageBox
 from src.view.component_app import EntryThermalComponentViewer
-from src.image.colourmap import ColourMap
+from src.image.colormap import ColorMap
 
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
