@@ -8,12 +8,15 @@ from tkinter.filedialog import askdirectory, askopenfilename
 sys.path.append('../..')
 
 import numpy as np
+from PIL.ImageTk import PhotoImage
 
 import cv2
-from src.support.msg_box import MessageBox
-from src.view.component_app import EntryThermalComponentViewer
 from src.image.colormap import ColorMap
-
+from src.image.imnp import ImageNP
+from src.support.msg_box import MessageBox
+from src.support.tkconvert import TkConverter
+from src.view.component_app import (EntryThermalComponentViewer,
+                                    PreviewComponentViewer)
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
@@ -169,12 +172,46 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
     def _preview(self):
         component_key = ['foreleft', 'foreright', 'backleft', 'backright', 'body']
         if self._thermal_dir_path:
-            # get the right path
+            # check thermal frame path
+            thermal_frames = os.listdir(self._thermal_dir_path)
+            thermal_frames = sorted(thermal_frames, key=lambda x: int(x.split('.')[0].split('_')[-1]))
+            thermal_frames = [os.path.join(self._thermal_dir_path, i) for i in thermal_frames]
+
+            # check component path
             gen_path = lambda x: os.path.join('{}_component'.format(self._thermal_dir_path), x)
-            part_path = {part: gen_path(part) for part in component_key}
+            component_path = {part: gen_path(part) for part in component_key}
+            for part, path in component_path.items():
+                if not os.path.exists(path):
+                    LOGGER.warning('No proper path for {}'.format(part))
+                    Mbox = MessageBox()
+                    Mbox.alert(string=u'沒有可預覽的圖片路徑')
+                    return
 
             # operate per frame
-            pass
+            previewer = PreviewComponentAction(self.root)
+            for i, frame_path in enumerate(thermal_frames):
+                # thermal image preprocess
+                frame_id = frame_path.split(os.sep)[-1].split('.')[0]
+
+                # component image preprocess
+                component_img = {}
+                for part, path in component_path.items():
+                    path = os.path.join(path, frame_id) + '.png'
+                    component_img[part] = cv2.imread(path)
+                    component_img[part] = TkConverter.cv2_to_photo(component_img[part])
+
+                # update previewer
+                previewer.label_frameinfo.config(text=u'Frame #{}'.format(i))
+                previewer.update(
+                    fl=component_img['foreleft'],
+                    fr=component_img['foreright'],
+                    bl=component_img['backleft'],
+                    br=component_img['backright'],
+                    body=component_img['body']
+                )
+                previewer.root.update()
+            previewer.mainloop()
+
 
     # convert
     def _convert(self):
@@ -207,7 +244,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             # process each frame
             for idx, frame in enumerate(thermal_frames):
                 frame_data = np.loadtxt(open(frame, 'rb'), delimiter=',', skiprows=1)
-                thermal_map = ColourMap(frame_data)
+                thermal_map = ColorMap(frame_data)
                 thermal_img = thermal_map.transform_to_rgb()
 
                 # process each component
@@ -259,6 +296,32 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             self.root.update()
             Mbox = MessageBox()
             Mbox.info(string=u'Done', parent=self.root)
+
+
+class PreviewComponentAction(PreviewComponentViewer):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+    # update with default
+    def _update_default(self, img, err):
+        try:
+            assert isinstance(img, PhotoImage)
+        except Exception as e:
+            img = err
+        return img
+
+    # update component images
+    def update(self, fl=None, fr=None, bl=None, br=None, body=None):
+        self.photo_cut_fl = self._update_default(fl, self.photo_small)
+        self.label_cut_fl.config(image=self.photo_cut_fl)
+        self.photo_cut_fr = self._update_default(fr, self.photo_small)
+        self.label_cut_fr.config(image=self.photo_cut_fr)
+        self.photo_cut_bl = self._update_default(bl, self.photo_small)
+        self.label_cut_bl.config(image=self.photo_cut_bl)
+        self.photo_cut_br = self._update_default(br, self.photo_small)
+        self.label_cut_br.config(image=self.photo_cut_br)
+        self.photo_cut_body = self._update_default(body, self.photo_large)
+        self.label_cut_body.config(image=self.photo_cut_body)
 
 if __name__ == '__main__':
     logging.basicConfig(
