@@ -192,9 +192,10 @@ class AlignmentCore(object):
             )
 
             # warp the heat image to fit the original image
-            self.result_img = cv2.warpPerspective(
+            self.warp_thermal = cv2.warpPerspective(
                 self.heat_img, self.transform_matrix, self.heat_img.shape[:2][::-1]
             )
+            self.result_img = self.warp_thermal.copy()
 
             # get mask to check the difference of thermal and original image
             self.mask_img = cv2.cvtColor(self.original_img, cv2.COLOR_BGR2HSV)[:, :, 2]
