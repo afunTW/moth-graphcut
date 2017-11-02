@@ -8,7 +8,6 @@ sys.path.append('../..')
 from PIL import Image, ImageTk
 
 import cv2
-from src.image.imcv import ImageCV
 from src.image.imnp import ImageNP
 from src.support.tkconvert import TkConverter
 from src.view.template import TkViewer
