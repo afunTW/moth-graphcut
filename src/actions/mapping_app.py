@@ -146,7 +146,6 @@ class ManualMappingAction(ManualMappingViewer):
 
         # preprocess
         self._load_image()
-        self._sync_anchor_state()
 
         # callback
         self.button_reload.config(command=self._reload)
@@ -185,7 +184,6 @@ class ManualMappingAction(ManualMappingViewer):
 
         # update and sync
         self._update_image()
-        self._sync_image()
 
     # convert image to photo and update to panel/display
     def _update_image(self):
@@ -201,21 +199,12 @@ class ManualMappingAction(ManualMappingViewer):
             self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
             self.photo_display = self.photo_panel
 
-    # sync image to panel label
-    def _sync_image(self):
         self.label_panel_image.config(image=self.photo_panel)
         self.label_display_image.config(image=self.photo_display)
-        if self.root and 'normal' == self.root.state():
-            self.frame_body.after(10, self._sync_image)
-
-    # sync anchor state
-    def _sync_anchor_state(self):
         panel_anchor_remain = 4 - len(self._panel_anchor)
         display_anchor_remain = 4 - len(self._display_anchor)
         self.label_panel_state.config(text=u'Original - 尚餘 {} 個標記'.format(panel_anchor_remain))
         self.label_display_state.config(text=u'Thermal - 尚餘 {} 個標記'.format(display_anchor_remain))
-        if self.root and 'normal' == self.root.state():
-            self.frame_nav.after(10, self._sync_anchor_state)
 
     # redraw the anchor to image
     def _render_anchor(self):
@@ -257,6 +246,7 @@ class ManualMappingAction(ManualMappingViewer):
 
     # callback: reload to previous action
     def _reload(self):
+        LOGGER.info('Ready to process auto mapping')
         self.root.destroy()
         automapping_action = AutoMappingAction(self._img_path, self._temp_path)
         automapping_action.mainloop()
