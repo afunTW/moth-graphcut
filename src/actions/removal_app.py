@@ -12,12 +12,14 @@ from src.view.removal_app import RemovalViewer
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
+STATE = ['browse']
 
 class RemovalAction(RemovalViewer):
     def __init__(self):
         super().__init__()
-        self._current_image_info = {}
         self._image_queue = []
+        self._current_image_info = {}
+        self._current_state = None
 
     @property
     def current_image(self):
@@ -26,6 +28,7 @@ class RemovalAction(RemovalViewer):
         else:
             return False
 
+    # check and update image to given widget
     def _check_and_update_photo(self, target_widget, img):
         try:
             self._tmp_photo = TkConverter.cv2_to_photo(img)
@@ -35,8 +38,24 @@ class RemovalAction(RemovalViewer):
             self._default_photo = TkConverter.ndarray_to_photo(self._default_photo)
             target_widget.config(image=self._tmp_photo)
 
+    # switch to state and update related action
+    def _switch_state(self, state):
+        if state is None or not state or state not in STATE:
+            LOGGER.error('{} not in standard state'.fornat(state))
+        elif state == 'browse':
+            self.label_state.config(text=u'現在模式: 瀏覽')
+
     # update current image
     def _update_current_image(self, index):
+        '''
+        - record current image index, path
+        - read image
+        - resize image
+        - record current image resize info
+        - update size message
+        - reset algorithm parameters
+        - reset state to browse
+        '''
         if self._image_queue is None or not self._image_queue:
             LOGGER.warning('No images in the queue')
         elif index < 0 or index >= len(self._image_queue):
@@ -54,6 +73,13 @@ class RemovalAction(RemovalViewer):
             self.label_resize.config(text=u'原有尺寸 {}X{} -> 顯示尺寸 {}X{}'.format(
                 *self._current_image_info['size'][::-1], *self._current_image_info['resize'][::-1]
             ))
+            self._reset_parameter()
+            self._switch_state(state='browse')
+
+    # reset algorithm parameter
+    def _reset_parameter(self):
+        self.val_scale_threshold.set(0.85)
+        self.val_scale_iter.set(5)
 
     # open filedialog to get input image paths
     def input_images(self):
