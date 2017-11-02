@@ -250,6 +250,26 @@ class ManualMappingViewer(TkViewer):
         self.button_preview.grid(row=0, column=1, sticky='e')
         self.button_ok.grid(row=0, column=2, sticky='e')
 
+# the interface to preview
+class PreviewViewer(TkViewer):
+    def __init__(self, img, parent=None):
+        self._preview_img = img
+        self._init_window(zoom=False, parent=parent)
+        self._init_style()
+        self._init_frame()
+
+    def _init_frame(self):
+        self.frame_root = TkFrame(self.root)
+        self.frame_root.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_root, 0)
+        self.set_all_grid_columnconfigure(self.frame_root, 0)
+        self._init_widget()
+
+    def _init_widget(self):
+        self._preivew_photo = TkConverter.cv2_to_photo(self._preview_img)
+        self.label_preview = ttk.Label(self.frame_root, image=self._preivew_photo)
+        self.label_preview.grid(row=0, column=0, sticky='news')
+
 if __name__ == '__main__':
     """testing"""
     logging.basicConfig(

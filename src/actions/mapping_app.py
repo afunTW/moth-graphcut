@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from inspect import currentframe, getframeinfo
+from tkinter import Toplevel, ttk
 from tkinter.filedialog import askdirectory, askopenfilename
 sys.path.append('../..')
 
@@ -19,7 +20,7 @@ from src.image.imnp import ImageNP
 from src.support.msg_box import MessageBox
 from src.support.tkconvert import TkConverter
 from src.view.mapping_app import (AutoMappingViewer, EntryMappingViewer,
-                                  ManualMappingViewer)
+                                  ManualMappingViewer, PreviewViewer)
 
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
@@ -275,8 +276,8 @@ class ManualMappingAction(ManualMappingViewer):
             mask_img = mask_img.astype('bool')
             preview_img[mask_img] = 0
 
-            plt.imshow(preview_img, cmap='gray')
-            plt.show()
+            previewer = PreviewViewer(preview_img, parent=self.root)
+            previewer.mainloop()
 
     # callback: confirm the mapping result and output the transform matrix
     def _confirm(self):
