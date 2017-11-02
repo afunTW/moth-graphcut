@@ -21,6 +21,10 @@ class RemovalAction(RemovalViewer):
         self._current_image_info = {}
         self._current_state = None
 
+        # callback
+        self.scale_threshold.config(command=self._update_floodfill_threshold)
+        self.scale_iter.config(command=self._update_floodfill_iteration)
+
     @property
     def current_image(self):
         if self._current_image_info and 'path' in self._current_image_info:
@@ -75,6 +79,16 @@ class RemovalAction(RemovalViewer):
             ))
             self._reset_parameter()
             self._switch_state(state='browse')
+
+    # update floodfill threshold
+    def _update_floodfill_threshold(self, val_threshold):
+        val_threshold = float(val_threshold)
+        self.label_floodfill_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
+
+    # update floodfill iteration count
+    def _update_floodfill_iteration(self, val_iter):
+        val_iter = float(val_iter)
+        self.label_floodfill_iter.config(text=u'迭代次數 ({:2.0f}): '.format(val_iter))
 
     # reset algorithm parameter
     def _reset_parameter(self):
