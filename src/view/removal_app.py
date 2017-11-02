@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 class RemovalViewer(TkViewer):
     def __init__(self):
         super().__init__()
-        self._im_w, self.im_h = 800, 533
+        self._im_w, self._im_h = 800, 533
         self._init_window(zoom=False)
         self._init_menu()
         self._init_style()
@@ -95,7 +95,7 @@ class RemovalViewer(TkViewer):
         # self.set_all_grid_rowconfigure(self.frame_panel, 0, 1)
         self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', style='H2.TLabel')
         self.label_panel.grid(row=0, column=0, sticky='ns')
-        self.photo_panel = ImageNP.generate_checkboard((self.im_h, self._im_w), block_size=10)
+        self.photo_panel = ImageNP.generate_checkboard((self._im_h, self._im_w), block_size=10)
         self.photo_panel = TkConverter.ndarray_to_photo(self.photo_panel)
         self.label_panel_image = ttk.Label(self.frame_panel, image=self.photo_panel)
         self.label_panel_image.grid(row=1, column=0, sticky='ns')
