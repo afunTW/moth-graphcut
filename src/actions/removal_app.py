@@ -51,6 +51,9 @@ class RemovalAction(RemovalViewer):
             self._current_image_info['size'] = self._current_image_info['image'].shape[:2]
             self._current_image_info['image'] = self.auto_resize(self._current_image_info['image'])
             self._current_image_info['resize'] = self._current_image_info['image'].shape[:2]
+            self.label_resize.config(text=u'原有尺寸 {}X{} -> 顯示尺寸 {}X{}'.format(
+                *self._current_image_info['size'][::-1], *self._current_image_info['resize'][::-1]
+            ))
 
     # open filedialog to get input image paths
     def input_images(self):

@@ -86,7 +86,7 @@ class RemovalViewer(TkViewer):
         self.set_all_grid_rowconfigure(self.frame_head, 0, 1)
         self.label_state = ttk.Label(self.frame_head, text=u'現在模式: N/A', style='H2.TLabel')
         self.label_state.grid(row=0, column=0, sticky='w')
-        self.label_resize = ttk.Label(self.frame_head, text=u'顯示尺寸: N/A', style='H2.TLabel')
+        self.label_resize = ttk.Label(self.frame_head, text=u'原有尺寸 N/A-> 顯示尺寸 N/A', style='H2.TLabel')
         self.label_resize.grid(row=1, column=0, sticky='w')
 
     # init body widget
