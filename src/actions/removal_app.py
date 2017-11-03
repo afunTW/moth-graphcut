@@ -63,7 +63,6 @@ class RemovalAction(RemovalViewer):
     def _check_and_update_photo(self, target_widget, img=None):
         try:
             assert img is not None
-            print(target_widget)
             self._tmp_photo = TkConverter.cv2_to_photo(img)
             target_widget.config(image=self._tmp_photo)
         except Exception as e:
@@ -105,8 +104,8 @@ class RemovalAction(RemovalViewer):
             # running floodfill
             display_image = ImageCV.run_floodfill(
                 self._current_image_info['image'],
-                self.val_scale_threshold.get(),
-                self.val_scale_iter.get()
+                float(self.val_scale_threshold.get()),
+                int(self.val_scale_iter.get())
             )
             self._check_and_update_photo(self.label_display_image, display_image)
 

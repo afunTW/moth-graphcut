@@ -128,7 +128,7 @@ class RemovalViewer(TkViewer):
         self.scale_threshold.grid(row=0, column=1, sticky='w')
 
         # floodfill iteration count
-        self.val_scale_iter = tkinter.IntVar()
+        self.val_scale_iter = tkinter.DoubleVar()
         self.val_scale_iter.set(5)
         self.label_floodfill_iter = ttk.Label(self.frame_floodfill, text=u'迭代次數 ({:2.0f}): '.format(5.), style='H5.TLabel')
         self.scale_iter = ttk.Scale(self.frame_floodfill,
