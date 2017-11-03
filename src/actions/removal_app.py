@@ -6,6 +6,7 @@ from tkinter.filedialog import askopenfilenames
 sys.path.append('../..')
 
 import cv2
+from src import tkconfig
 from src.image.imnp import ImageNP
 from src.support.tkconvert import TkConverter
 from src.view.removal_app import RemovalViewer
@@ -24,6 +25,12 @@ class RemovalAction(RemovalViewer):
         # callback
         self.scale_threshold.config(command=self._update_floodfill_threshold)
         self.scale_iter.config(command=self._update_floodfill_iteration)
+
+        # keyboard binding
+        self.root.bind(tkconfig.KEY_UP, self._k_switch_to_previous_image)
+        self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
+        self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
+        self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
 
     @property
     def current_image(self):
@@ -45,11 +52,17 @@ class RemovalAction(RemovalViewer):
 
     # switch to state and update related action
     def _switch_state(self, state):
+        '''
+        brose mode - switch to previous/next image
+        edit mode - computer vision operation
+        '''
         if state is None or not state or state not in STATE:
             LOGGER.error('{} not in standard state'.fornat(state))
         elif state == 'browse':
+            self._current_state = 'browse'
             self.label_state.config(text=u'瀏覽模式')
         elif state == 'edit':
+            self._current_state = 'edit'
             self.label_state.config(text=u'編輯模式')
 
     # update current image
@@ -98,6 +111,46 @@ class RemovalAction(RemovalViewer):
     def _reset_parameter(self):
         self.val_scale_threshold.set(0.85)
         self.val_scale_iter.set(5)
+
+    # keyboard: switch to previous image
+    def _k_switch_to_previous_image(self, event=None, step=1):
+        if self._current_state is None or self._current_state != 'browse':
+            LOGGER.warning('Not in browse mode, cannot switch image')
+        elif self.current_image and self.current_image in self._image_queue:
+            current_index = self._image_queue.index(self.current_image)
+            if current_index == 0:
+                LOGGER.warning('Already the first image in the queue')
+            elif current_index - step < 0:
+                LOGGER.warning('Out of index: current {}, target {}'.format(
+                    current_index, current_index - step
+                ))
+            else:
+                target_index = max(0, current_index - step)
+                self._update_current_image(index=target_index)
+                self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
+                self._check_and_update_photo(self.label_display_image, None)
+        else:
+            LOGGER.warning('No given image')
+
+    # keyboard: switch to next image
+    def _k_switch_to_next_image(self, event=None, step=1):
+        if self._current_state is None or self._current_state != 'browse':
+            LOGGER.warning('Not in browse mode, cannot switch image')
+        elif self.current_image and self.current_image in self._image_queue:
+            current_index = self._image_queue.index(self.current_image)
+            if current_index == len(self._image_queue) - 1:
+                LOGGER.warning('Already the last image in the queue')
+            elif current_index + step >= len(self._image_queue):
+                LOGGER.warning('Out of index: current {}, target {}'.format(
+                    current_index, current_index+step
+                ))
+            else:
+                target_index = min(current_index+step, len(self._image_queue)-1)
+                self._update_current_image(index=target_index)
+                self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
+                self._check_and_update_photo(self.label_display_image, None)
+        else:
+            LOGGER.warning('No given image')
 
     # open filedialog to get input image paths
     def input_images(self):
