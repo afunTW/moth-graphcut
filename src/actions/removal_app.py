@@ -28,6 +28,7 @@ class RemovalAction(RemovalViewer):
         self._init_instruction()
 
         # callback
+        self.menu_load_img.add_command(label=u'載入圖片', command=self.input_images)
         self.scale_threshold.config(command=self._update_floodfill_threshold)
         self.scale_iter.config(command=self._update_floodfill_iteration)
 
