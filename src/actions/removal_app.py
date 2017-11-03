@@ -60,7 +60,11 @@ class RemovalAction(RemovalViewer):
             LOGGER.error('{} not in standard state'.fornat(state))
         elif state == 'browse':
             self._current_state = 'browse'
-            self.label_state.config(text=u'瀏覽模式')
+            self.label_state.config(text=u'瀏覽模式 ({}/{}) - {}'.format(
+                self._current_image_info['index']+1,
+                len(self._image_queue),
+                self._current_image_info['path'].split(os.sep)[-1]
+            ))
         elif state == 'edit':
             self._current_state = 'edit'
             self.label_state.config(text=u'編輯模式')
@@ -110,7 +114,9 @@ class RemovalAction(RemovalViewer):
     # reset algorithm parameter
     def _reset_parameter(self):
         self.val_scale_threshold.set(0.85)
+        self._update_floodfill_threshold(0.85)
         self.val_scale_iter.set(5)
+        self._update_floodfill_iteration(5)
 
     # keyboard: switch to previous image
     def _k_switch_to_previous_image(self, event=None, step=1):
