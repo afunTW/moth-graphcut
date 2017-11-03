@@ -12,7 +12,7 @@ from src.view.removal_app import RemovalViewer
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
 LOGGER = logging.getLogger(__name__)
-STATE = ['browse']
+STATE = ['browse', 'edit']
 
 class RemovalAction(RemovalViewer):
     def __init__(self):
@@ -33,21 +33,24 @@ class RemovalAction(RemovalViewer):
             return False
 
     # check and update image to given widget
-    def _check_and_update_photo(self, target_widget, img):
+    def _check_and_update_photo(self, target_widget, img=None):
         try:
+            assert img is not None
             self._tmp_photo = TkConverter.cv2_to_photo(img)
             target_widget.config(image=self._tmp_photo)
         except Exception as e:
             self._default_photo = ImageNP.generate_checkboard((self._im_h, self._im_w), 10)
             self._default_photo = TkConverter.ndarray_to_photo(self._default_photo)
-            target_widget.config(image=self._tmp_photo)
+            target_widget.config(image=self._default_photo)
 
     # switch to state and update related action
     def _switch_state(self, state):
         if state is None or not state or state not in STATE:
             LOGGER.error('{} not in standard state'.fornat(state))
         elif state == 'browse':
-            self.label_state.config(text=u'現在模式: 瀏覽')
+            self.label_state.config(text=u'瀏覽模式')
+        elif state == 'edit':
+            self.label_state.config(text=u'編輯模式')
 
     # update current image
     def _update_current_image(self, index):
@@ -77,6 +80,7 @@ class RemovalAction(RemovalViewer):
             self.label_resize.config(text=u'原有尺寸 {}X{} -> 顯示尺寸 {}X{}'.format(
                 *self._current_image_info['size'][::-1], *self._current_image_info['resize'][::-1]
             ))
+            self._im_h, self._im_w = self._current_image_info['resize']
             self._reset_parameter()
             self._switch_state(state='browse')
 
@@ -110,9 +114,10 @@ class RemovalAction(RemovalViewer):
         if paths:
             self._image_queue = list(paths)
 
-            # update first image to input panel
+            # update first image to input panel and change display default bg
             self._update_current_image(index=0)
             self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
+            self._check_and_update_photo(self.label_display_image, None)
 
     # auto fit the image hight from original image to resize image
     def auto_resize(self, image, ratio=0.5):
