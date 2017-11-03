@@ -31,6 +31,9 @@ class RemovalAction(RemovalViewer):
         self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
         self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
+        self.root.bind(tkconfig.KEY_ESC, lambda x: self._switch_state('browse'))
+        self.root.bind(tkconfig.KEY_ENTER, lambda x: self._switch_state('edit'))
+
 
     @property
     def current_image(self):
@@ -64,10 +67,14 @@ class RemovalAction(RemovalViewer):
                 self._current_image_info['index']+1,
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
-            ))
+            ), style='H2BlackdBold.TLabel')
         elif state == 'edit':
             self._current_state = 'edit'
-            self.label_state.config(text=u'編輯模式')
+            self.label_state.config(text=u'編輯模式 ({}/{}) - {}'.format(
+                self._current_image_info['index'] + 1,
+                len(self._image_queue),
+                self._current_image_info['path'].split(os.sep)[-1]
+            ), style='H2RedBold.TLabel')
 
     # update current image
     def _update_current_image(self, index):

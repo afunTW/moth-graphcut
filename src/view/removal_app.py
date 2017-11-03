@@ -31,6 +31,8 @@ class RemovalViewer(TkViewer):
     def _init_style(self):
         init_css()
         self.font = TkFonts()
+        TTKStyle('H2BlackdBold.TLabel', font=('', 24, 'bold'), background='white', foreground='black')
+        TTKStyle('H2RedBold.TLabel', font=('', 24, 'bold'), background='white', foreground='red')
 
     # init tk frame and grid layout
     def _init_frame(self):
