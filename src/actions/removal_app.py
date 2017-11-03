@@ -66,15 +66,32 @@ class RemovalAction(RemovalViewer):
         self.instruction.row_append('h/H', u'打開提示視窗')
 
     # check and update image to given widget
-    def _check_and_update_photo(self, target_widget, img=None):
+    def _check_and_update_photo(self, target_widget, photo=None):
         try:
-            assert img is not None
-            self._tmp_photo = TkConverter.cv2_to_photo(img)
-            target_widget.config(image=self._tmp_photo)
+            assert photo is not None
+            target_widget.config(image=photo)
         except Exception as e:
             self._default_photo = ImageNP.generate_checkboard((self._im_h, self._im_w), 10)
             self._default_photo = TkConverter.ndarray_to_photo(self._default_photo)
             target_widget.config(image=self._default_photo)
+
+    # check and update image to input panel
+    def _check_and_update_panel(self, img=None):
+        try:
+            assert img is not None
+            self.photo_panel = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_panel_image, self.photo_panel)
+        except Exception as e:
+            self._check_and_update_photo(self.label_panel_image, None)
+
+    # check and update image to display
+    def _check_and_update_display(self, img=None):
+        try:
+            assert img is not None
+            self.photo_display = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_display_image, self.photo_display)
+        except Exception as e:
+            self._check_and_update_photo(self.label_display_image, None)
 
     # switch to state and update related action
     def _switch_state(self, state):
@@ -100,7 +117,7 @@ class RemovalAction(RemovalViewer):
             ), style='H2BlackdBold.TLabel')
 
             # update display default photo
-            self._check_and_update_photo(self.label_display_image, None)
+            self._check_and_update_display(None)
 
         elif state == 'edit':
 
@@ -156,7 +173,7 @@ class RemovalAction(RemovalViewer):
                 float(self.val_scale_threshold.get()),
                 int(self.val_scale_iter.get())
             )
-            self._check_and_update_photo(self.label_display_image, self.display_image)
+            self._check_and_update_display(self.display_image)
 
     # update floodfill threshold
     def _update_floodfill_threshold(self, val_threshold):
@@ -190,8 +207,8 @@ class RemovalAction(RemovalViewer):
             else:
                 target_index = max(0, current_index - step)
                 self._update_current_image(index=target_index)
-                self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
-                self._check_and_update_photo(self.label_display_image, None)
+                self._check_and_update_panel(self._current_image_info['image'])
+                self._check_and_update_display(None)
         else:
             LOGGER.warning('No given image')
 
@@ -210,8 +227,8 @@ class RemovalAction(RemovalViewer):
             else:
                 target_index = min(current_index+step, len(self._image_queue)-1)
                 self._update_current_image(index=target_index)
-                self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
-                self._check_and_update_photo(self.label_display_image, None)
+                self._check_and_update_panel(self._current_image_info['image'])
+                self._check_and_update_display(None)
         else:
             LOGGER.warning('No given image')
 
@@ -257,8 +274,8 @@ class RemovalAction(RemovalViewer):
 
             # update first image to input panel and change display default bg
             self._update_current_image(index=0)
-            self._check_and_update_photo(self.label_panel_image, self._current_image_info['image'])
-            self._check_and_update_photo(self.label_display_image, None)
+            self._check_and_update_panel(self._current_image_info['image'])
+            self._check_and_update_display(None)
 
     # auto fit the image hight from original image to resize image
     def auto_resize(self, image, ratio=0.5):
