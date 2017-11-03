@@ -4,7 +4,7 @@ from glob import glob
 from inspect import currentframe, getframeinfo
 from os import path
 
-from src.actions.action import MothPreprocessAction
+from src.actions.removal_app import RemovalAction
 
 __FILE__ = path.abspath(getframeinfo(currentframe()).filename)
 
@@ -12,8 +12,9 @@ LOGGER = logging.getLogger(__FILE__)
 
 
 def main():
-    preprocess_action = MothPreprocessAction()
-    preprocess_action.mainloop()
+    removal_action = RemovalAction()
+    removal_action.input_images()
+    removal_action.mainloop()
 
 if __name__ == '__main__':
     logging.basicConfig(
