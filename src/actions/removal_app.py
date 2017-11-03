@@ -33,6 +33,10 @@ class RemovalAction(RemovalViewer):
         self.scale_threshold.config(command=self._update_floodfill_threshold)
         self.scale_iter.config(command=self._update_floodfill_iteration)
 
+        # mouse binding
+        self.scale_threshold.bind(tkconfig.MOUSE_RELEASE_LEFT, lambda x: self._update_floodfill_image())
+        self.scale_iter.bind(tkconfig.MOUSE_RELEASE_LEFT, lambda x: self._update_floodfill_image())
+
         # keyboard binding
         self.root.bind('h', self._k_show_instruction)
         self.root.bind('H', self._k_show_instruction)
@@ -79,9 +83,12 @@ class RemovalAction(RemovalViewer):
         if not self._image_queue:
             LOGGER.warn('No images in the image queue')
             self.input_images()
+
         elif state is None or not state or state not in STATE:
             LOGGER.error('{} not in standard state'.fornat(state))
+
         elif state == 'browse':
+
             # update state message
             self._current_state = 'browse'
             self.label_state.config(text=u'瀏覽模式 ({}/{}) - {}'.format(
@@ -92,7 +99,9 @@ class RemovalAction(RemovalViewer):
 
             # update display default photo
             self._check_and_update_photo(self.label_display_image, None)
+
         elif state == 'edit':
+
             # update state message
             self._current_state = 'edit'
             self.label_state.config(text=u'編輯模式 ({}/{}) - {}'.format(
@@ -102,12 +111,7 @@ class RemovalAction(RemovalViewer):
             ), style='H2RedBold.TLabel')
 
             # running floodfill
-            display_image = ImageCV.run_floodfill(
-                self._current_image_info['image'],
-                float(self.val_scale_threshold.get()),
-                int(self.val_scale_iter.get())
-            )
-            self._check_and_update_photo(self.label_display_image, display_image)
+            self._update_floodfill_image()
 
     # update current image
     def _update_current_image(self, index):
@@ -140,6 +144,17 @@ class RemovalAction(RemovalViewer):
             self._im_h, self._im_w = self._current_image_info['resize']
             self._reset_parameter()
             self._switch_state(state='browse')
+
+    # update floodfill image
+    def _update_floodfill_image(self):
+        if self._current_state == 'edit':
+            # running floodfill
+            display_image = ImageCV.run_floodfill(
+                self._current_image_info['image'],
+                float(self.val_scale_threshold.get()),
+                int(self.val_scale_iter.get())
+            )
+            self._check_and_update_photo(self.label_display_image, display_image)
 
     # update floodfill threshold
     def _update_floodfill_threshold(self, val_threshold):
