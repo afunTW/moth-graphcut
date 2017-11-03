@@ -5,7 +5,7 @@ import tkinter
 from tkinter import ttk
 sys.path.append('../..')
 
-from PIL import Image, ImageTk
+from PIL import Image
 
 import cv2
 from src.image.imnp import ImageNP
