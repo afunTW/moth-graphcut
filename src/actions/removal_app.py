@@ -7,6 +7,7 @@ sys.path.append('../..')
 
 import cv2
 from src import tkconfig
+from src.image.imcv import ImageCV
 from src.image.imnp import ImageNP
 from src.support.msg_box import Instruction, MessageBox
 from src.support.tkconvert import TkConverter
@@ -62,6 +63,7 @@ class RemovalAction(RemovalViewer):
     def _check_and_update_photo(self, target_widget, img=None):
         try:
             assert img is not None
+            print(target_widget)
             self._tmp_photo = TkConverter.cv2_to_photo(img)
             target_widget.config(image=self._tmp_photo)
         except Exception as e:
@@ -81,19 +83,32 @@ class RemovalAction(RemovalViewer):
         elif state is None or not state or state not in STATE:
             LOGGER.error('{} not in standard state'.fornat(state))
         elif state == 'browse':
+            # update state message
             self._current_state = 'browse'
             self.label_state.config(text=u'瀏覽模式 ({}/{}) - {}'.format(
                 self._current_image_info['index']+1,
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2BlackdBold.TLabel')
+
+            # update display default photo
+            self._check_and_update_photo(self.label_display_image, None)
         elif state == 'edit':
+            # update state message
             self._current_state = 'edit'
             self.label_state.config(text=u'編輯模式 ({}/{}) - {}'.format(
                 self._current_image_info['index'] + 1,
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2RedBold.TLabel')
+
+            # running floodfill
+            display_image = ImageCV.run_floodfill(
+                self._current_image_info['image'],
+                self.val_scale_threshold.get(),
+                self.val_scale_iter.get()
+            )
+            self._check_and_update_photo(self.label_display_image, display_image)
 
     # update current image
     def _update_current_image(self, index):
