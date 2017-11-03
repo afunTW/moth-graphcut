@@ -21,6 +21,7 @@ class RemovalAction(RemovalViewer):
     def __init__(self):
         super().__init__()
         self.instruction = None
+        self.display_image = None
         self._image_queue = []
         self._current_image_info = {}
         self._current_state = None
@@ -46,6 +47,7 @@ class RemovalAction(RemovalViewer):
         self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
         self.root.bind(tkconfig.KEY_ESC, lambda x: self._switch_state('browse'))
         self.root.bind(tkconfig.KEY_ENTER, lambda x: self._switch_state('edit'))
+        self.root.bind(tkconfig.KEY_SPACE, self._k_save_floodfill_image)
 
     @property
     def current_image(self):
@@ -149,12 +151,12 @@ class RemovalAction(RemovalViewer):
     def _update_floodfill_image(self):
         if self._current_state == 'edit':
             # running floodfill
-            display_image = ImageCV.run_floodfill(
+            self.display_image = ImageCV.run_floodfill(
                 self._current_image_info['image'],
                 float(self.val_scale_threshold.get()),
                 int(self.val_scale_iter.get())
             )
-            self._check_and_update_photo(self.label_display_image, display_image)
+            self._check_and_update_photo(self.label_display_image, self.display_image)
 
     # update floodfill threshold
     def _update_floodfill_threshold(self, val_threshold):
@@ -219,6 +221,24 @@ class RemovalAction(RemovalViewer):
             LOGGER.error('Please init instruction window first')
         else:
             self.instruction.show()
+
+    # keyboard: save floodfill image
+    def _k_save_floodfill_image(self, event=None):
+        if self._current_state is None or self._current_state is not 'edit':
+            LOGGER.warn('Only allow to save image in edit image')
+        if not self.current_image:
+            LOGGER.error('No image to process')
+        elif self.display_image is None:
+            LOGGER.error('No floodfill image to save')
+        else:
+            save_path = self.current_image.split('.')[0]
+            save_path = '{}_floodfill.jpg'.format(save_path)
+            cv2.imwrite(save_path, self.display_image)
+            LOGGER.info('Save - {}'.format(save_path))
+            self._switch_state('browse')
+            self._k_switch_to_next_image()
+            Mbox = MessageBox()
+            Mbox.info(string=u'已儲存 - {}'.format(save_path))
 
     # open filedialog to get input image paths
     def input_images(self):
