@@ -8,7 +8,7 @@ sys.path.append('../..')
 import cv2
 from src import tkconfig
 from src.image.imnp import ImageNP
-from src.support.msg_box import Instruction
+from src.support.msg_box import Instruction, MessageBox
 from src.support.tkconvert import TkConverter
 from src.view.removal_app import RemovalViewer
 
@@ -74,7 +74,10 @@ class RemovalAction(RemovalViewer):
         brose mode - switch to previous/next image
         edit mode - computer vision operation
         '''
-        if state is None or not state or state not in STATE:
+        if not self._image_queue:
+            LOGGER.warn('No images in the image queue')
+            self.input_images()
+        elif state is None or not state or state not in STATE:
             LOGGER.error('{} not in standard state'.fornat(state))
         elif state == 'browse':
             self._current_state = 'browse'
@@ -191,7 +194,7 @@ class RemovalAction(RemovalViewer):
     def input_images(self):
         initdir = os.path.abspath(os.path.join(__FILE__, '../../../'))
         paths = askopenfilenames(
-            title=u'請選擇要去被的圖片',
+            title=u'請選擇要去背的圖片',
             filetypes=[('JPG file (*.jpg)', '*jpg'),
                        ('JPEG file (*.jpeg)', '*.jpeg'),
                        ('PNG file (*.png)', '*.png')],
@@ -220,7 +223,6 @@ class RemovalAction(RemovalViewer):
             image_w, image_h, int(resize_w), int(resize_h)
         ))
         return image
-
 
 if __name__ == '__main__':
     logging.basicConfig(
