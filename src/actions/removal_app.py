@@ -8,6 +8,7 @@ sys.path.append('../..')
 import cv2
 from src import tkconfig
 from src.image.imnp import ImageNP
+from src.support.msg_box import Instruction
 from src.support.tkconvert import TkConverter
 from src.view.removal_app import RemovalViewer
 
@@ -18,15 +19,21 @@ STATE = ['browse', 'edit']
 class RemovalAction(RemovalViewer):
     def __init__(self):
         super().__init__()
+        self.instruction = None
         self._image_queue = []
         self._current_image_info = {}
         self._current_state = None
+
+        # init
+        self._init_instruction()
 
         # callback
         self.scale_threshold.config(command=self._update_floodfill_threshold)
         self.scale_iter.config(command=self._update_floodfill_iteration)
 
         # keyboard binding
+        self.root.bind('h', self._k_show_instruction)
+        self.root.bind('H', self._k_show_instruction)
         self.root.bind(tkconfig.KEY_UP, self._k_switch_to_previous_image)
         self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
@@ -34,13 +41,21 @@ class RemovalAction(RemovalViewer):
         self.root.bind(tkconfig.KEY_ESC, lambda x: self._switch_state('browse'))
         self.root.bind(tkconfig.KEY_ENTER, lambda x: self._switch_state('edit'))
 
-
     @property
     def current_image(self):
         if self._current_image_info and 'path' in self._current_image_info:
             return self._current_image_info['path']
         else:
             return False
+
+    # init instruction
+    def _init_instruction(self):
+        self.instruction = Instruction(title=u'提示視窗')
+        self.instruction.row_append('ESC', u'進入瀏覽模式')
+        self.instruction.row_append('ENTER', u'進入編輯模式')
+        self.instruction.row_append('UP/LEFT', u'在瀏覽模式下切換至上一張圖片')
+        self.instruction.row_append('DOWN/RIGHT', u'在瀏覽模式下切換至下一張圖片')
+        self.instruction.row_append('h/H', u'打開提示視窗')
 
     # check and update image to given widget
     def _check_and_update_photo(self, target_widget, img=None):
@@ -164,6 +179,13 @@ class RemovalAction(RemovalViewer):
                 self._check_and_update_photo(self.label_display_image, None)
         else:
             LOGGER.warning('No given image')
+
+    # keyboard: show instruction
+    def _k_show_instruction(self, event=None):
+        if self.instruction is None:
+            LOGGER.error('Please init instruction window first')
+        else:
+            self.instruction.show()
 
     # open filedialog to get input image paths
     def input_images(self):
