@@ -15,6 +15,8 @@ from src.view.ttkstyle import TTKStyle, init_css
 
 LOGGER = logging.getLogger(__name__)
 
+THRESHOLD_OPTION = [(u'手動', 'manual'), ('Mean Adaptive', 'mean'), ('Gaussian Adaptive', 'gaussian')]
+
 class GraphCutViewer(TkViewer):
     def __init__(self):
         super().__init__()
@@ -30,7 +32,7 @@ class GraphCutViewer(TkViewer):
     # init frame
     def _init_frame(self):
         # root
-        self.frame_root = TkFrame(self.root)
+        self.frame_root = TkFrame(self.root, bg='white')
         self.frame_root.grid(row=0, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_root, 0, 1, 2)
         self.set_all_grid_columnconfigure(self.frame_root, 0)
@@ -66,19 +68,42 @@ class GraphCutViewer(TkViewer):
         self.set_all_grid_columnconfigure(self.frame_footer, 0)
 
         # footer > panel setting
-        self.frame_panel_setting = TkLabelFrame(self.frame_footer, text=u'輸入圖片選項: ', font=self.font.h4())
+        self.frame_panel_setting = ttk.LabelFrame(self.frame_footer, text=u'輸入圖片選項: ', style='H4.TLabelframe')
         self.frame_panel_setting.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_panel_setting, 0)
+        self.set_all_grid_rowconfigure(self.frame_panel_setting, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_panel_setting, 0)
 
+        # footer > panel setting > template option
+        self.frame_template_options = TkFrame(self.frame_panel_setting, bg='gray82')
+        self.frame_template_options.grid(row=0, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_template_options, 0)
+        self.set_all_grid_columnconfigure(self.frame_template_options, 0)
+
+        # footer > panel setting > gamma
+        self.frame_gamma = TkFrame(self.frame_panel_setting, bg='gray82')
+        self.frame_gamma.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_gamma, 0)
+        self.set_all_grid_columnconfigure(self.frame_gamma, 0)
+
         # footer > display setting
-        self.frame_display_setting = TkLabelFrame(self.frame_footer, text=u'輸出圖片選項: ', font=self.font.h4())
+        self.frame_display_setting = ttk.LabelFrame(self.frame_footer, text=u'輸出圖片選項: ', style='H4.TLabelframe')
         self.frame_display_setting.grid(row=1, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_display_setting, 0)
         self.set_all_grid_columnconfigure(self.frame_display_setting, 0)
 
+        # footer > display setting > threshold options
+        self.frame_threshold_options = TkFrame(self.frame_display_setting, bg='gray82')
+        self.frame_threshold_options.grid(row=0, column=0, sticky='news')
+
+        # footer > display setting > manual threshold
+        self.frame_manual_threshold = TkFrame(self.frame_display_setting, bg='gray82')
+        self.frame_manual_threshold.grid(row=1, column=0, sticky='news')
+        self.set_all_grid_rowconfigure(self.frame_manual_threshold, 0)
+        self.set_all_grid_columnconfigure(self.frame_manual_threshold, 0)
+
         self._init_widget_head()
         self._init_widget_body()
+        self._init_widget_footer()
 
     # init head widget
     def _init_widget_head(self):
@@ -102,6 +127,55 @@ class GraphCutViewer(TkViewer):
         self.photo_display = self.photo_panel
         self.label_display_image = ttk.Label(self.frame_display, image=self.photo_display)
         self.label_display_image.grid(row=1, column=0, sticky='ns')
+
+    # init footer widget
+    def _init_widget_footer(self):
+        # input panel template option
+        self.label_template = ttk.Label(self.frame_template_options, text=u'過濾樣式: ', style='H5.TLabel')
+        self.label_template.grid(row=0, column=0, sticky='w')
+
+        # input panel gamma
+        self.label_gamma = ttk.Label(self.frame_gamma, text=u'調整對比 ({:.2f}): '.format(1.), style='H5.TLabel')
+        self.label_gamma.grid(row=0, column=0, sticky='w')
+        self.val_scale_gamma = tkinter.DoubleVar()
+        self.val_scale_gamma.set(1.0)
+        self.scale_gamma = ttk.Scale(self.frame_gamma,
+                                     orient=tkinter.HORIZONTAL,
+                                     length=self._im_w*2,
+                                     from_=0, to=25,
+                                     variable=self.val_scale_gamma,
+                                     style='Gray.Horizontal.TScale')
+        self.scale_gamma.grid(row=0, column=1, sticky='w')
+
+        # display setting
+        # self.set_all_grid_columnconfigure(self.frame_threshold_options, *[i for i in range(len(THRESHOLD_OPTION)+1)])
+        self.label_threshold_options = ttk.Label(self.frame_threshold_options, text=u'門檻值選項: ', style='H5.TLabel')
+        self.label_threshold_options.grid(row=0, column=0, sticky='w')
+        self.val_threshold_option = tkinter.StringVar()
+        self.val_threshold_option.set(THRESHOLD_OPTION[0][-1])
+        self.radiobtn_threshold_options = []
+        for i, op in enumerate(THRESHOLD_OPTION):
+            text, val = op
+            radiobtn = ttk.Radiobutton(self.frame_threshold_options,
+                                       text=text,
+                                       variable=self.val_threshold_option,
+                                       value=val,
+                                       style='H5.TRadiobutton')
+            radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
+            self.radiobtn_threshold_options.append(radiobtn)
+
+        self.label_manual_threshold = ttk.Label(self.frame_manual_threshold, text=u'門檻值 ({:.2f}): '.format(250), style='H5.TLabel')
+        self.label_manual_threshold.grid(row=0, column=0, sticky='w')
+        self.val_manual_threshold = tkinter.DoubleVar()
+        self.val_manual_threshold.set(250)
+        self.scale_manual_threshold = ttk.Scale(self.frame_manual_threshold,
+                                                orient=tkinter.HORIZONTAL,
+                                                length=self._im_w*2,
+                                                from_=1, to=254,
+                                                variable=self.val_manual_threshold,
+                                                style='Gray.Horizontal.TScale')
+        self.scale_manual_threshold.grid(row=0, column=1, sticky='news', columnspan=len(THRESHOLD_OPTION))
+
 
 if __name__ == '__main__':
     logging.basicConfig(
