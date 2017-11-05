@@ -123,7 +123,7 @@ class RemovalViewer(TkViewer):
                                          length=self._im_w * 2,
                                          from_=0.01, to=0.99,
                                          variable=self.val_scale_threshold,
-                                         style='White.Horizontal.TScale')
+                                         style='Gray.Horizontal.TScale')
         self.label_floodfill_threshold.grid(row=0, column=0, sticky='w')
         self.scale_threshold.grid(row=0, column=1, sticky='w')
 
@@ -136,7 +136,7 @@ class RemovalViewer(TkViewer):
                                     length=self._im_w * 2,
                                     from_=1, to=10,
                                     variable=self.val_scale_iter,
-                                    style='White.Horizontal.TScale')
+                                    style='Gray.Horizontal.TScale')
         self.label_floodfill_iter.grid(row=1, column=0, sticky='w')
         self.scale_iter.grid(row=1, column=1, sticky='w')
 
