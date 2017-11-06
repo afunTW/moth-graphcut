@@ -78,6 +78,30 @@ class GraphCutAction(GraphCutViewer):
         except Exception as e:
             self._check_and_update_photo(self.label_display_image, None)
 
+    # move line to left or right and check boundary
+    def _check_and_move_line(self, line, step=0):
+        try:
+            assert len(line) == 2
+            ptx1, ptx2 = line
+            assert len(ptx1) == 2 and len(ptx2) == 2
+            pty1, pty2 = (ptx1[0]+step, ptx1[1]), (ptx2[0]+step, ptx2[1])
+            pty1 = (min(max(0, pty1[0]), self._im_w), pty1[1])
+            pty2 = (min(max(0, pty2[0]), self._im_w), pty2[1])
+            return (pty1, pty2)
+        except Exception as e:
+            LOGGER.exception(e)
+
+    # move line to left and update to panel
+    def _check_and_update_symmetry(self, step=0):
+        if 'symmetry' in self._current_image_info:
+            newline = self._check_and_move_line(self._current_image_info['symmetry'], step)
+            if not newline:
+                LOGGER.error('Failed to move symmetry line')
+            else:
+                self._current_image_info['symmetry'] = newline
+                self._render_panel_image()
+
+    # switch to different state
     def _switch_state(self, state):
         '''
         brose mode - switch to previous/next image
@@ -103,6 +127,12 @@ class GraphCutAction(GraphCutViewer):
             # update display default photo
             self._check_and_update_display(None)
 
+            # rebind the keyboard event
+            self.root.bind(tkconfig.KEY_UP, self._k_switch_to_previous_image)
+            self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
+            self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
+            self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
+
         elif state == 'edit':
 
             # update state message
@@ -112,6 +142,33 @@ class GraphCutAction(GraphCutViewer):
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2RedBold.TLabel')
+
+            # generate symmetry line
+            self._current_image_info['panel'] = self._current_image_info['image'].copy()
+            self._current_image_info['symmetry'] = ImageNP.generate_symmetric_line(self._current_image_info['panel'])
+            self._render_panel_image()
+
+            # rebind the keyboard event
+            self.root.bind(tkconfig.KEY_LEFT, lambda x: self._check_and_update_symmetry(step=-1))
+            self.root.bind(tkconfig.KEY_RIGHT, lambda x: self._check_and_update_symmetry(step=1))
+            self.root.bind(tkconfig.KEY_PAGEDOWN, lambda x: self._check_and_update_symmetry(step=-10))
+            self.root.bind(tkconfig.KEY_PAGEUP, lambda x: self._check_and_update_symmetry(step=10))
+
+    # render panel image
+    def _render_panel_image(self):
+        if not self._image_queue:
+            LOGGER.error('No image in the queue to process')
+        elif self._current_state != 'edit':
+            LOGGER.error('You cannot render panel image in {} state'.format(self._current_state))
+        elif not self._current_image_info or 'panel' not in self._current_image_info:
+            LOGGER.error('No processing image to render')
+        else:
+            self._current_image_info['panel'] = self._current_image_info['image'].copy()
+            if 'symmetry' in self._current_image_info:
+                pt1, pt2 = self._current_image_info['symmetry']
+                cv2.line(self._current_image_info['panel'], pt1, pt2, [0, 0, 0], 2)
+
+            self._check_and_update_panel(img=self._current_image_info['panel'])
 
     # reset algorithm parameter
     def _reset_parameter(self):
@@ -209,7 +266,6 @@ class GraphCutAction(GraphCutViewer):
                 self._check_and_update_display(None)
         else:
             LOGGER.warning('No given image')
-
 
     # open filedialog to get input image paths
     def input_images(self):
