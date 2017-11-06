@@ -10,6 +10,7 @@ sys.path.append('../..')
 import cv2
 from src import tkconfig
 from src.image.imnp import ImageNP
+from src.support.msg_box import Instruction, MessageBox
 from src.support.tkconvert import TkConverter
 from src.view.graphcut_app import GraphCutViewer
 
@@ -25,6 +26,9 @@ class GraphCutAction(GraphCutViewer):
         self._current_image_info = {}
         self._current_state = None
 
+        # init
+        self._init_instruction()
+
         # line color
         self._color_body_line = [255, 0, 0]
 
@@ -38,6 +42,8 @@ class GraphCutAction(GraphCutViewer):
             radiobtn.config(command=self._update_scale_manual_threshold_state)
 
         # keyboard
+        self.root.bind('h', self._k_show_instruction)
+        self.root.bind('H', self._k_show_instruction)
         self.root.bind(tkconfig.KEY_UP, self._k_switch_to_previous_image)
         self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
         self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
@@ -56,6 +62,17 @@ class GraphCutAction(GraphCutViewer):
     def flag_was_modified(self):
         flag_option = [self._flag_body_width]
         return any(flag_option)
+
+    # init instruction
+    def _init_instruction(self):
+        self.instruction = Instruction(title=u'提示視窗')
+        self.instruction.row_append(u'ESC', u'進入瀏覽模式')
+        self.instruction.row_append(u'ENTER', u'進入編輯模式')
+        self.instruction.row_append(u'UP/LEFT (瀏覽模式)', u'切換至上一張圖片')
+        self.instruction.row_append(u'DOWN/RIGHT (瀏覽模式)', u'切換至下一張圖片')
+        self.instruction.row_append(u'LEFT/RIGHT (編輯模式)', u'移動鏡像中線 1 pixel')
+        self.instruction.row_append(u'PAGE_DOWN/PAGE_UP (編輯模式)', u'移動鏡像中線 10 pixel')
+        self.instruction.row_append(u'h/H', u'打開提示視窗')
 
     # check and update image to given widget
     def _check_and_update_photo(self, target_widget, photo=None):
@@ -270,6 +287,13 @@ class GraphCutAction(GraphCutViewer):
         self._current_image_info['body_width'] = body_width
         self._flag_body_width = True
         self._render_panel_image()
+
+    # keyboard: show instruction
+    def _k_show_instruction(self, event=None):
+        if self.instruction is None:
+            LOGGER.error('Please init instruction window first')
+        else:
+            self.instruction.show()
 
     # keyboard: switch to previous image
     def _k_switch_to_previous_image(self, event=None, step=1):
