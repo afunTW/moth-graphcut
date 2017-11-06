@@ -34,6 +34,8 @@ class GraphCutAction(GraphCutViewer):
 
         # flag
         self._flag_body_width = False
+        self._flag_drew_left = False
+        self._flag_drew_right = False
 
         # callback
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
@@ -281,12 +283,43 @@ class GraphCutAction(GraphCutViewer):
 
     # mouse: confirm body line and unbind mouse motion
     def _m_confirm_body_width(self, event=None):
+        # confirm body width
         self._color_body_line = [0, 0, 255]
         self.label_panel_image.unbind(tkconfig.MOUSE_MOTION)
         body_width = abs(event.x-self._current_image_info['symmetry'][0][0])
+        self._render_panel_image()
+
+        # record and set flag
         self._current_image_info['body_width'] = body_width
         self._flag_body_width = True
-        self._render_panel_image()
+
+        # bind the next phase mouse event
+        self.label_panel_image.bind(tkconfig.MOUSE_MOTION_LEFT, self._m_track_seperate_label)
+
+    # mouse: get the track label to seperate moth component
+    def _m_track_seperate_label(self, event=None):
+        '''
+        Condition of tracking seperate label
+        e.g. on the left side
+        - not was_left and not was_right: mirror
+        - not was_left and was_right: reset left and record left
+        - was_left and not was_right: reset all and mirror
+        - was_left and was_right: reset left and reocrd left
+        '''
+        if 'panel' not in self._current_image_info:
+            LOGGER.error('No image to process')
+        elif not self._flag_body_width:
+            LOGGER.error('Please to confirm the body width first')
+        else:
+            point_x = lambda x: x[0][0]
+
+            # on the left side
+            if 0 <= event.x <= point_x(self._current_image_info['l_line']):
+                pass
+
+            # on the right side
+            if point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
+                pass
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
