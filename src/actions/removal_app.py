@@ -104,7 +104,7 @@ class RemovalAction(RemovalViewer):
             self.input_images()
 
         elif state is None or not state or state not in STATE:
-            LOGGER.error('{} not in standard state'.fornat(state))
+            LOGGER.error('{} not in standard state'.format(state))
 
         elif state == 'browse':
 
