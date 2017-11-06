@@ -25,6 +25,9 @@ class GraphCutAction(GraphCutViewer):
         self._current_image_info = {}
         self._current_state = None
 
+        # line color
+        self._color_body_line = [255, 0, 0]
+
         # callback
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
         self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
@@ -154,6 +157,10 @@ class GraphCutAction(GraphCutViewer):
             self.root.bind(tkconfig.KEY_PAGEDOWN, lambda x: self._check_and_update_symmetry(step=-10))
             self.root.bind(tkconfig.KEY_PAGEUP, lambda x: self._check_and_update_symmetry(step=10))
 
+            # bind the mouse event
+            self.label_panel_image.bind(tkconfig.MOUSE_MOTION, self._m_check_and_update_body_width)
+            self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_confirm_body_width)
+
     # render panel image
     def _render_panel_image(self):
         if not self._image_queue:
@@ -167,6 +174,12 @@ class GraphCutAction(GraphCutViewer):
             if 'symmetry' in self._current_image_info:
                 pt1, pt2 = self._current_image_info['symmetry']
                 cv2.line(self._current_image_info['panel'], pt1, pt2, [0, 0, 0], 2)
+            if 'l_line' in self._current_image_info:
+                pt1, pt2 = self._current_image_info['l_line']
+                cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_body_line, 2)
+            if 'r_line' in self._current_image_info:
+                pt1, pt2 = self._current_image_info['r_line']
+                cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_body_line, 2)
 
             self._check_and_update_panel(img=self._current_image_info['panel'])
 
@@ -225,6 +238,27 @@ class GraphCutAction(GraphCutViewer):
             self.scale_manual_threshold.state(('active', '!disabled'))
         else:
             self.scale_manual_threshold.state(('disabled', '!active'))
+
+    # mouse: check and update body line
+    def _m_check_and_update_body_width(self, event=None):
+        if self._current_state == 'edit':
+            if 'symmetry' not in self._current_image_info:
+                LOGGER.warning('No symmetry line')
+            else:
+                middle_line = self._current_image_info['symmetry']
+                middle_x = middle_line[0][0]
+                body_width = abs(event.x - middle_x)
+                l_ptx = max(0, middle_x-body_width)
+                r_ptx = min(middle_x+body_width, self._im_w)
+                self._current_image_info['l_line'] = ((l_ptx, 0), (l_ptx, self._im_h))
+                self._current_image_info['r_line'] = ((r_ptx, 0), (r_ptx, self._im_h))
+                self._render_panel_image()
+
+    # mouse: confirm body line and unbind mouse motion
+    def _m_confirm_body_width(self, event=None):
+        self._color_body_line = [0, 0, 255]
+        self.label_panel_image.unbind(tkconfig.MOUSE_MOTION)
+        self._render_panel_image()
 
     # keyboard: switch to previous image
     def _k_switch_to_previous_image(self, event=None, step=1):
