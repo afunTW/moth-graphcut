@@ -29,6 +29,8 @@ class GraphCutViewer(TkViewer):
         init_css()
         TTKStyle('H4Padding.TLabelframe', background='gray82')
         TTKStyle('H4Padding.TLabelframe.Label',  font=('', 16), background='gray82')
+        TTKStyle('H2BlackdBold.TLabel', font=('', 24, 'bold'), background='white', foreground='black')
+        TTKStyle('H2RedBold.TLabel', font=('', 24, 'bold'), background='white', foreground='red')
         self.font = TkFonts()
 
     # init frame
@@ -109,8 +111,11 @@ class GraphCutViewer(TkViewer):
 
     # init head widget
     def _init_widget_head(self):
+        self.set_all_grid_rowconfigure(self.frame_head, 0, 1)
         self.label_state = ttk.Label(self.frame_head, text=u'現在模式: N/A', style='H2.TLabel')
         self.label_state.grid(row=0, column=0, sticky='w')
+        self.label_resize = ttk.Label(self.frame_head, text=u'原有尺寸 N/A-> 顯示尺寸 N/A', style='H2.TLabel')
+        self.label_resize.grid(row=1, column=0, sticky='w')
 
     # init body widget
     def _init_widget_body(self):
