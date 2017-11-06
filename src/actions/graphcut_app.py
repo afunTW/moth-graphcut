@@ -25,6 +25,8 @@ class GraphCutAction(GraphCutViewer):
         # callback
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
         self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
+        for radiobtn in self.radiobtn_threshold_options:
+            radiobtn.config(command=self._update_scale_manual_threshold_state)
 
     # callback: drag the ttk.Scale and show the current value
     def _update_scale_gamma_msg(self, val_gamma):
@@ -35,6 +37,14 @@ class GraphCutAction(GraphCutViewer):
     def _update_scale_manual_threshold_msg(self, val_threshold):
         val_threshold = float(val_threshold)
         self.label_manual_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
+
+    # callback: disable the manual scale when the option is not the manual threshold
+    def _update_scale_manual_threshold_state(self):
+        val_option = self.val_threshold_option.get()
+        if val_option == 'manual':
+            self.scale_manual_threshold.state(('active', '!disabled'))
+        else:
+            self.scale_manual_threshold.state(('disabled', '!active'))
 
 if __name__ == '__main__':
     logging.basicConfig(

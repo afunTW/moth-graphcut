@@ -146,6 +146,7 @@ class GraphCutViewer(TkViewer):
                                      from_=0, to=25,
                                      variable=self.val_scale_gamma,
                                      style='Gray.Horizontal.TScale')
+        self.scale_gamma.state(('active', '!disabled'))
         self.scale_gamma.grid(row=0, column=1, sticky='w')
 
         # display threshold option
@@ -175,6 +176,7 @@ class GraphCutViewer(TkViewer):
                                                 from_=1, to=254,
                                                 variable=self.val_manual_threshold,
                                                 style='Gray.Horizontal.TScale')
+        self.scale_manual_threshold.state(('active', '!disabled'))
         self.scale_manual_threshold.grid(row=0, column=1, sticky='news', columnspan=len(THRESHOLD_OPTION))
 
 
