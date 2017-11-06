@@ -148,8 +148,7 @@ class GraphCutViewer(TkViewer):
                                      style='Gray.Horizontal.TScale')
         self.scale_gamma.grid(row=0, column=1, sticky='w')
 
-        # display setting
-        # self.set_all_grid_columnconfigure(self.frame_threshold_options, *[i for i in range(len(THRESHOLD_OPTION)+1)])
+        # display threshold option
         self.label_threshold_options = ttk.Label(self.frame_threshold_options, text=u'門檻值選項: ', style='H5.TLabel')
         self.label_threshold_options.grid(row=0, column=0, sticky='w')
         self.val_threshold_option = tkinter.StringVar()
@@ -165,6 +164,7 @@ class GraphCutViewer(TkViewer):
             radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
             self.radiobtn_threshold_options.append(radiobtn)
 
+        # display threshold manual scale
         self.label_manual_threshold = ttk.Label(self.frame_manual_threshold, text=u'門檻值 ({:.2f}): '.format(250), style='H5.TLabel')
         self.label_manual_threshold.grid(row=0, column=0, sticky='w')
         self.val_manual_threshold = tkinter.DoubleVar()
