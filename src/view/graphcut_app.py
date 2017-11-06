@@ -27,6 +27,8 @@ class GraphCutViewer(TkViewer):
 
     def _init_style(self):
         init_css()
+        TTKStyle('H4Padding.TLabelframe', background='gray82')
+        TTKStyle('H4Padding.TLabelframe.Label',  font=('', 16), background='gray82')
         self.font = TkFonts()
 
     # init frame
@@ -68,35 +70,35 @@ class GraphCutViewer(TkViewer):
         self.set_all_grid_columnconfigure(self.frame_footer, 0)
 
         # footer > panel setting
-        self.frame_panel_setting = ttk.LabelFrame(self.frame_footer, text=u'輸入圖片選項: ', style='H4.TLabelframe')
-        self.frame_panel_setting.grid(row=0, column=0, sticky='news')
+        self.frame_panel_setting = ttk.LabelFrame(self.frame_footer, text=u'輸入圖片選項: ', style='H4Padding.TLabelframe')
+        self.frame_panel_setting.grid(row=0, column=0, sticky='news', pady=10)
         self.set_all_grid_rowconfigure(self.frame_panel_setting, 0, 1)
         self.set_all_grid_columnconfigure(self.frame_panel_setting, 0)
 
         # footer > panel setting > template option
-        self.frame_template_options = TkFrame(self.frame_panel_setting, bg='gray82')
+        self.frame_template_options = TkFrame(self.frame_panel_setting, bg='gray82', pady=5)
         self.frame_template_options.grid(row=0, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_template_options, 0)
         self.set_all_grid_columnconfigure(self.frame_template_options, 0)
 
         # footer > panel setting > gamma
-        self.frame_gamma = TkFrame(self.frame_panel_setting, bg='gray82')
+        self.frame_gamma = TkFrame(self.frame_panel_setting, bg='gray82', pady=5)
         self.frame_gamma.grid(row=1, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_gamma, 0)
         self.set_all_grid_columnconfigure(self.frame_gamma, 0)
 
         # footer > display setting
-        self.frame_display_setting = ttk.LabelFrame(self.frame_footer, text=u'輸出圖片選項: ', style='H4.TLabelframe')
-        self.frame_display_setting.grid(row=1, column=0, sticky='news')
+        self.frame_display_setting = ttk.LabelFrame(self.frame_footer, text=u'輸出圖片選項: ', style='H4Padding.TLabelframe')
+        self.frame_display_setting.grid(row=1, column=0, sticky='news', pady=10)
         self.set_all_grid_rowconfigure(self.frame_display_setting, 0)
         self.set_all_grid_columnconfigure(self.frame_display_setting, 0)
 
         # footer > display setting > threshold options
-        self.frame_threshold_options = TkFrame(self.frame_display_setting, bg='gray82')
+        self.frame_threshold_options = TkFrame(self.frame_display_setting, bg='gray82', pady=5)
         self.frame_threshold_options.grid(row=0, column=0, sticky='news')
 
         # footer > display setting > manual threshold
-        self.frame_manual_threshold = TkFrame(self.frame_display_setting, bg='gray82')
+        self.frame_manual_threshold = TkFrame(self.frame_display_setting, bg='gray82', pady=5)
         self.frame_manual_threshold.grid(row=1, column=0, sticky='news')
         self.set_all_grid_rowconfigure(self.frame_manual_threshold, 0)
         self.set_all_grid_columnconfigure(self.frame_manual_threshold, 0)
@@ -113,7 +115,6 @@ class GraphCutViewer(TkViewer):
     # init body widget
     def _init_widget_body(self):
         # panel
-        self.set_all_grid_rowconfigure(self.frame_panel, 0, 1)
         self.label_panel = ttk.Label(self.frame_panel, text='Input Panel', style='H2.TLabel')
         self.label_panel.grid(row=0, column=0, sticky='ns')
         self.photo_panel = ImageNP.generate_checkboard((self._im_h, self._im_w), block_size=10)
