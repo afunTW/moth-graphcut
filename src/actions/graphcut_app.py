@@ -28,6 +28,9 @@ class GraphCutAction(GraphCutViewer):
         # line color
         self._color_body_line = [255, 0, 0]
 
+        # flag
+        self._flag_body_width = False
+
         # callback
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
         self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
@@ -48,6 +51,11 @@ class GraphCutAction(GraphCutViewer):
             return self._current_image_info['path']
         else:
             return False
+
+    @property
+    def flag_was_modified(self):
+        flag_option = [self._flag_body_width]
+        return any(flag_option)
 
     # check and update image to given widget
     def _check_and_update_photo(self, target_widget, photo=None):
@@ -258,6 +266,9 @@ class GraphCutAction(GraphCutViewer):
     def _m_confirm_body_width(self, event=None):
         self._color_body_line = [0, 0, 255]
         self.label_panel_image.unbind(tkconfig.MOUSE_MOTION)
+        body_width = abs(event.x-self._current_image_info['symmetry'][0][0])
+        self._current_image_info['body_width'] = body_width
+        self._flag_body_width = True
         self._render_panel_image()
 
     # keyboard: switch to previous image
