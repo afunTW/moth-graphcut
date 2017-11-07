@@ -336,22 +336,28 @@ class GraphCutAction(GraphCutViewer):
         elif not self._flag_body_width:
             LOGGER.error('Please to confirm the body width first')
         elif not self._flag_drawing_left and not self._flag_drawing_right:
-            LOGGER.error('No in the drawing mode')
+            LOGGER.warning('Not in the drawing mode')
         else:
             point_x = lambda x: x[0][0]
             mirror_distance = lambda x: abs(x-point_x(self._current_image_info['symmetry']))
 
             # on the left side
-            if self._flag_drawing_left and 0 <= event.x <= point_x(self._current_image_info['l_line']):
-                self._current_image_info['l_track'].append((event.x, event.y))
-                if not self._flag_drew_right:
-                    self._current_image_info['r_track'].append((event.x+mirror_distance(event.x)*2, event.y))
+            if self._flag_drawing_left:
+                if 0 <= event.x <= point_x(self._current_image_info['l_line']):
+                    self._current_image_info['l_track'].append((event.x, event.y))
+                    if not self._flag_drew_right:
+                        self._current_image_info['r_track'].append((event.x+mirror_distance(event.x)*2, event.y))
+                else:
+                    self._m_unlock_track_flag()
 
             # on the right side
-            if self._flag_drawing_right and point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
-                self._current_image_info['r_track'].append((event.x, event.y))
-                if not self._flag_drew_left:
-                    self._current_image_info['l_track'].append((event.x-mirror_distance(event.x)*2, event.y))
+            if self._flag_drawing_right:
+                if point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
+                    self._current_image_info['r_track'].append((event.x, event.y))
+                    if not self._flag_drew_left:
+                        self._current_image_info['l_track'].append((event.x-mirror_distance(event.x)*2, event.y))
+                else:
+                    self._m_unlock_track_flag()
 
             self._render_panel_image()
 
