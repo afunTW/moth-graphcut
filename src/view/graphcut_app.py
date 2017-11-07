@@ -130,7 +130,7 @@ class GraphCutViewer(TkViewer):
 
         # display
         self.label_display = ttk.Label(self.frame_display, text='Display', style='H2.TLabel')
-        self.label_display.grid(row=0, column=0, sticky='ns', columnspan=3)
+        self.label_display.grid(row=0, column=0, columnspan=3)
 
         self.set_all_grid_rowconfigure(self.frame_display, 0, 1, 2)
         self.set_all_grid_columnconfigure(self.frame_display, 0, 1, 2)
@@ -139,15 +139,15 @@ class GraphCutViewer(TkViewer):
         self.photo_large = ImageNP.generate_checkboard((self._im_h, self._im_w//3), 10)
         self.photo_large = TkConverter.ndarray_to_photo(self.photo_large)
         self.label_fl_image = ttk.Label(self.frame_display, image=self.photo_small)
-        self.label_fl_image.grid(row=1, column=0, sticky='ns')
+        self.label_fl_image.grid(row=1, column=0)
         self.label_fr_image = ttk.Label(self.frame_display, image=self.photo_small)
-        self.label_fr_image.grid(row=1, column=1, sticky='ns')
+        self.label_fr_image.grid(row=1, column=1)
         self.label_bl_image = ttk.Label(self.frame_display, image=self.photo_small)
-        self.label_bl_image.grid(row=2, column=0, sticky='ns')
+        self.label_bl_image.grid(row=2, column=0)
         self.label_br_image = ttk.Label(self.frame_display, image=self.photo_small)
-        self.label_br_image.grid(row=2, column=1, sticky='ns')
+        self.label_br_image.grid(row=2, column=1)
         self.label_body_image = ttk.Label(self.frame_display, image=self.photo_large)
-        self.label_body_image.grid(row=1, column=2, sticky='ns', rowspan=2)
+        self.label_body_image.grid(row=1, column=2, rowspan=2)
 
     # init footer widget
     def _init_widget_footer(self):
