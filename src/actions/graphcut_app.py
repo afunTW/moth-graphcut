@@ -156,7 +156,6 @@ class GraphCutAction(GraphCutViewer):
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2BlackdBold.TLabel')
-            self._reset_parameter()
 
             # update display default photo
             self._check_and_update_display(None)
@@ -226,10 +225,15 @@ class GraphCutAction(GraphCutViewer):
 
     # reset algorithm parameter
     def _reset_parameter(self):
+        # reset
         self._color_body_line = [255, 0, 0]
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
+
+        # update to message widget
+        self._update_scale_gamma_msg(self.val_scale_gamma.get())
+        self._update_scale_manual_threshold_msg(self.val_manual_threshold.get())
 
     # update current image
     def _update_current_image(self, index):
@@ -423,6 +427,7 @@ class GraphCutAction(GraphCutViewer):
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
                 self._check_and_update_display(None)
+                self._reset_parameter()
         else:
             LOGGER.warning('No given image')
 
@@ -444,6 +449,7 @@ class GraphCutAction(GraphCutViewer):
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
                 self._check_and_update_display(None)
+                self._reset_parameter()
         else:
             LOGGER.warning('No given image')
 
