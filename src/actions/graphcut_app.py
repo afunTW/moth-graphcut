@@ -208,11 +208,12 @@ class GraphCutAction(GraphCutViewer):
         else:
             # preprocess
             display_image = self._current_image_info['image'].copy()
-            display_image = self._separate_component_by_track_and_line(display_image)
-            display_fl = self._separate_component_by_coor(display_image.copy(), 'fl', crop=True)
-            display_fr = self._separate_component_by_coor(display_image.copy(), 'fr', crop=True)
-            display_bl = self._separate_component_by_coor(display_image.copy(), 'bl', crop=True)
-            display_br = self._separate_component_by_coor(display_image.copy(), 'br', crop=True)
+            display_image = self._separate_component_by_track(display_image)
+            display_image = self._separate_component_by_line(display_image)
+            display_fl = self._separate_component_by_coor(display_image.copy(), 'fl')
+            display_fr = self._separate_component_by_coor(display_image.copy(), 'fr')
+            display_bl = self._separate_component_by_coor(display_image.copy(), 'bl')
+            display_br = self._separate_component_by_coor(display_image.copy(), 'br')
 
             # mask - choose by option
             self._current_fl_info = self._separate_component_by_threshold(display_fl)
@@ -220,14 +221,36 @@ class GraphCutAction(GraphCutViewer):
             self._current_bl_info = self._separate_component_by_threshold(display_bl)
             self._current_br_info = self._separate_component_by_threshold(display_br)
 
+            # body
+            display_body = self._current_image_info['image'].copy()
+            display_body = self._separate_component_by_track(display_body)
+            display_body[np.where(self._current_fl_info['mask'] == 255)] = 255
+            display_body[np.where(self._current_fr_info['mask'] == 255)] = 255
+            display_body[np.where(self._current_bl_info['mask'] == 255)] = 255
+            display_body[np.where(self._current_br_info['mask'] == 255)] = 255
+            # from matplotlib import pyplot as plt
+            # plt.imshow(display_body); plt.show()
+
             # test
             self._check_and_update_fl(self._current_fl_info['show_image'])
             self._check_and_update_fr(self._current_fr_info['show_image'])
             self._check_and_update_bl(self._current_bl_info['show_image'])
             self._check_and_update_br(self._current_br_info['show_image'])
+            self._check_and_update_body(display_body)
 
     # eliminate image by track and line
-    def _separate_component_by_track_and_line(self, img):
+    def _separate_component_by_track(self, img):
+        if 'image' not in self._current_image_info:
+            LOGGER.warning('No process image')
+        else:
+            if 'l_track' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['l_track'])
+            if 'r_track' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['r_track'])
+            return img
+
+    # eliminate image by line
+    def _separate_component_by_line(self, img):
         if 'image' not in self._current_image_info:
             LOGGER.warning('No process image')
         else:
@@ -235,10 +258,6 @@ class GraphCutAction(GraphCutViewer):
                 img = self._draw_lines_by_points(img, self._current_image_info['l_line'])
             if 'r_line' in self._current_image_info:
                 img = self._draw_lines_by_points(img, self._current_image_info['r_line'])
-            if 'l_track' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['l_track'])
-            if 'r_track' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['r_track'])
             return img
 
     # removal image background by given x and y and part
@@ -530,7 +549,7 @@ class GraphCutAction(GraphCutViewer):
 
             # on the left side
             if self._flag_drawing_left:
-                if 0 <= event.x <= point_x(self._current_image_info['l_line']):
+                if 0 <= event.x < point_x(self._current_image_info['l_line']):
                     self._current_image_info['l_track'].append((event.x, event.y))
                     if not self._flag_drew_right:
                         self._current_image_info['r_track'].append((event.x+mirror_distance(event.x)*2, event.y))
@@ -539,7 +558,7 @@ class GraphCutAction(GraphCutViewer):
 
             # on the right side
             if self._flag_drawing_right:
-                if point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
+                if point_x(self._current_image_info['r_line']) < event.x <= self._im_w:
                     self._current_image_info['r_track'].append((event.x, event.y))
                     if not self._flag_drew_left:
                         self._current_image_info['l_track'].append((event.x-mirror_distance(event.x)*2, event.y))
