@@ -31,10 +31,13 @@ class GraphCutAction(GraphCutViewer):
 
         # line color
         self._color_body_line = [255, 0, 0]
+        self._color_track_line = [0, 0, 0]
 
         # flag
         self._flag_body_width = False
+        self._flag_drawing_left = False
         self._flag_drew_left = False
+        self._flag_drawing_right = False
         self._flag_drew_right = False
 
         # callback
@@ -153,6 +156,7 @@ class GraphCutAction(GraphCutViewer):
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2BlackdBold.TLabel')
+            self._reset_parameter()
 
             # update display default photo
             self._check_and_update_display(None)
@@ -207,11 +211,22 @@ class GraphCutAction(GraphCutViewer):
             if 'r_line' in self._current_image_info:
                 pt1, pt2 = self._current_image_info['r_line']
                 cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_body_line, 2)
+            if 'l_track' in self._current_image_info:
+                for i, ptx in enumerate(self._current_image_info['l_track']):
+                    if i == 0: continue
+                    pt1, pt2 = self._current_image_info['l_track'][i-1], ptx
+                    cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_track_line, 2)
+            if 'r_track' in self._current_image_info:
+                for i, ptx in enumerate(self._current_image_info['r_track']):
+                    if i == 0: continue
+                    pt1, pt2 = self._current_image_info['r_track'][i-1], ptx
+                    cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_track_line, 2)
 
             self._check_and_update_panel(img=self._current_image_info['panel'])
 
     # reset algorithm parameter
     def _reset_parameter(self):
+        self._color_body_line = [255, 0, 0]
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
@@ -294,32 +309,91 @@ class GraphCutAction(GraphCutViewer):
         self._flag_body_width = True
 
         # bind the next phase mouse event
-        self.label_panel_image.bind(tkconfig.MOUSE_MOTION_LEFT, self._m_track_seperate_label)
+        self.label_panel_image.bind(tkconfig.MOUSE_BUTTON_LEFT, self._m_lock_track_flag)
+        self.label_panel_image.bind(tkconfig.MOUSE_MOTION_LEFT, self._m_track_separate_label)
+        self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_unlock_track_flag)
 
-    # mouse: get the track label to seperate moth component
-    def _m_track_seperate_label(self, event=None):
+    # mouse: get the track label to separate moth component
+    def _m_track_separate_label(self, event=None):
         '''
-        Condition of tracking seperate label
+        Condition of tracking separate label
         e.g. on the left side
         - not was_left and not was_right: mirror
         - not was_left and was_right: reset left and record left
         - was_left and not was_right: reset all and mirror
-        - was_left and was_right: reset left and reocrd left
+        - was_left and was_right: reset left and record left
         '''
         if 'panel' not in self._current_image_info:
             LOGGER.error('No image to process')
         elif not self._flag_body_width:
             LOGGER.error('Please to confirm the body width first')
+        elif not self._flag_drawing_left and not self._flag_drawing_right:
+            LOGGER.error('No in the drawing mode')
         else:
             point_x = lambda x: x[0][0]
+            mirror_distance = lambda x: abs(x-point_x(self._current_image_info['symmetry']))
 
             # on the left side
-            if 0 <= event.x <= point_x(self._current_image_info['l_line']):
-                pass
+            if self._flag_drawing_left and 0 <= event.x <= point_x(self._current_image_info['l_line']):
+                self._current_image_info['l_track'].append((event.x, event.y))
+                if not self._flag_drew_right:
+                    self._current_image_info['r_track'].append((event.x+mirror_distance(event.x)*2, event.y))
 
             # on the right side
-            if point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
-                pass
+            if self._flag_drawing_right and point_x(self._current_image_info['r_line']) <= event.x <= self._im_w:
+                self._current_image_info['r_track'].append((event.x, event.y))
+                if not self._flag_drew_left:
+                    self._current_image_info['l_track'].append((event.x-mirror_distance(event.x)*2, event.y))
+
+            self._render_panel_image()
+
+    # mouse: lock to draw left or right
+    def _m_lock_track_flag(self, event=None):
+        # check
+        if 'l_track' not in self._current_image_info:
+            self._current_image_info['l_track'] = []
+        if 'r_track' not in self._current_image_info:
+            self._current_image_info['r_track'] = []
+
+        # lock and logic operation
+        if 'symmetry' not in self._current_image_info:
+            LOGGER.error('Please confirm body width first')
+
+        elif 0 <= event.x <= self._current_image_info['l_line'][0][0]:
+            self._flag_drawing_left = True
+            self._flag_drew_left = False
+            self._current_image_info['l_track'] = []
+            if not self._flag_drew_right:
+                self._current_image_info['r_track'] = []
+            LOGGER.info('Lock the left flag and ready to draw')
+
+        elif self._current_image_info['r_line'][0][0] <= event.x <= self._im_w:
+            self._flag_drawing_right = True
+            self._flag_drew_right = False
+            self._current_image_info['r_track'] = []
+            if not self._flag_drew_left:
+                self._current_image_info['l_track'] = []
+            LOGGER.info('Lock the right flag and ready to draw')
+
+    # mouse: unlock to confirm draw left or right
+    def _m_unlock_track_flag(self, event=None):
+        if 'symmetry' not in self._current_image_info:
+            LOGGER.error('Please confirm body width first')
+        elif self._flag_drawing_left:
+            self._flag_drawing_left = False
+            self._flag_drew_left = True
+            LOGGER.info('Unlock the left flag and ready to draw')
+        elif self._flag_drawing_right:
+            self._flag_drawing_right = False
+            self._flag_drew_right = True
+            LOGGER.info('Unlock the right flag and ready to draw')
+
+        if self._flag_drawing_left:
+            self._flag_drawing_left = False
+            LOGGER.warning('Unlock the left flag improperly')
+        if self._flag_drawing_right:
+            self._flag_drawing_right = False
+            LOGGER.warning('Unlock the right flag improperly')
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
