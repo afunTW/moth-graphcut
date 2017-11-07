@@ -7,8 +7,11 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilenames
 sys.path.append('../..')
 
+import numpy as np
+
 import cv2
 from src import tkconfig
+from src.image.imcv import ImageCV
 from src.image.imnp import ImageNP
 from src.support.msg_box import Instruction, MessageBox
 from src.support.tkconvert import TkConverter
@@ -24,6 +27,11 @@ class GraphCutAction(GraphCutViewer):
         self.instruction = None
         self._image_queue = []
         self._current_image_info = {}
+        self._current_fl_info = {}
+        self._current_fr_info = {}
+        self._current_bl_info = {}
+        self._current_br_info = {}
+        self._current_body_info = {}
         self._current_state = None
         self._init_instruction()
 
@@ -198,17 +206,25 @@ class GraphCutAction(GraphCutViewer):
         elif 'l_track' not in self._current_image_info or 'r_track' not in self._current_image_info:
             LOGGER.warning('No tracking label')
         else:
+            # preprocess
             display_image = self._current_image_info['image'].copy()
             display_image = self._separate_component_by_track_and_line(display_image)
             display_fl = self._separate_component_by_coor(display_image.copy(), 'fl', crop=True)
             display_fr = self._separate_component_by_coor(display_image.copy(), 'fr', crop=True)
             display_bl = self._separate_component_by_coor(display_image.copy(), 'bl', crop=True)
             display_br = self._separate_component_by_coor(display_image.copy(), 'br', crop=True)
+
+            # mask - choose by option
+            self._current_fl_info = self._separate_component_by_threshold(display_fl)
+            self._current_fr_info = self._separate_component_by_threshold(display_fr)
+            self._current_bl_info = self._separate_component_by_threshold(display_bl)
+            self._current_br_info = self._separate_component_by_threshold(display_br)
+
             # test
-            self._check_and_update_fl(display_fl)
-            self._check_and_update_fr(display_fr)
-            self._check_and_update_bl(display_bl)
-            self._check_and_update_br(display_br)
+            self._check_and_update_fl(self._current_fl_info['show_image'])
+            self._check_and_update_fr(self._current_fr_info['show_image'])
+            self._check_and_update_bl(self._current_bl_info['show_image'])
+            self._check_and_update_br(self._current_br_info['show_image'])
 
     # eliminate image by track and line
     def _separate_component_by_track_and_line(self, img):
@@ -262,6 +278,42 @@ class GraphCutAction(GraphCutViewer):
                 img = img[y:, x:]
         return img
 
+    # get the mask and connected component by threshold option
+    def _separate_component_by_threshold(self, img):
+        if self.val_threshold_option.get() == 'manual':
+            if 'active' not in self.scale_manual_threshold.state():
+                LOGGER.error('manual threshold is disable')
+            else:
+                # generate background
+                save_result = np.zeros(img.shape)
+
+                # contour
+                val_threshold = int(self.val_manual_threshold.get())
+                gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                ret, mask = cv2.threshold(gray_img, val_threshold, 255, cv2.THRESH_BINARY_INV)
+                cnts = ImageCV.connected_component_by_stats(mask, 1, cv2.CC_STAT_AREA)
+
+                # filled component
+                fill_mask, cnts = ImageCV.fill_connected_component(img, cnts, threshold=255)
+                target_cnt = ImageNP.contour_to_coor(cnts[0])
+                x, y, w, h = cv2.boundingRect(cnts[0])
+
+                # image
+                save_result[np.where(fill_mask == 255)] = img[np.where(fill_mask == 255)]
+                save_result = save_result.astype('uint8')
+                show_result = save_result.copy()
+                show_result = show_result[y:y+h, x:x+w]
+
+                meta = {
+                    'threshold': val_threshold,
+                    'mask': fill_mask,
+                    'cnts': target_cnt,
+                    'rect': (x, y, w, h),
+                    'save_image': save_result,
+                    'show_image': show_result
+                }
+                return meta
+
     # switch to different state
     def _switch_state(self, state):
         '''
@@ -293,6 +345,8 @@ class GraphCutAction(GraphCutViewer):
             self.root.bind(tkconfig.KEY_LEFT, self._k_switch_to_previous_image)
             self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
             self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
+
+            self._reset_parameter()
 
         elif state == 'edit':
 
@@ -358,6 +412,11 @@ class GraphCutAction(GraphCutViewer):
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
+
+        # unbind mouse event
+        self.root.unbind(tkconfig.MOUSE_BUTTON_LEFT)
+        self.root.unbind(tkconfig.MOUSE_MOTION_LEFT)
+        self.root.unbind(tkconfig.MOUSE_RELEASE_LEFT)
 
         # update to message widget
         self._update_scale_gamma_msg(self.val_scale_gamma.get())
@@ -564,7 +623,6 @@ class GraphCutAction(GraphCutViewer):
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
                 self._check_and_update_display()
-                self._reset_parameter()
         else:
             LOGGER.warning('No given image')
 
@@ -586,7 +644,6 @@ class GraphCutAction(GraphCutViewer):
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
                 self._check_and_update_display()
-                self._reset_parameter()
         else:
             LOGGER.warning('No given image')
 
