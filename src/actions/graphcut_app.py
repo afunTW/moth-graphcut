@@ -25,11 +25,9 @@ class GraphCutAction(GraphCutViewer):
         self._image_queue = []
         self._current_image_info = {}
         self._current_state = None
-
-        # init
         self._init_instruction()
 
-        # line color
+        # color
         self._color_body_line = [255, 0, 0]
         self._color_track_line = [0, 0, 0]
 
@@ -85,10 +83,8 @@ class GraphCutAction(GraphCutViewer):
             assert photo is not None
             target_widget.config(image=photo)
         except Exception as e:
-            self._default_photo = ImageNP.generate_checkboard(
-                (self._im_h, self._im_w), 10)
-            self._default_photo = TkConverter.ndarray_to_photo(
-                self._default_photo)
+            self._default_photo = ImageNP.generate_checkboard((self._im_h, self._im_w), 10)
+            self._default_photo = TkConverter.ndarray_to_photo(self._default_photo)
             target_widget.config(image=self._default_photo)
 
     # check and update image to input panel
@@ -101,15 +97,62 @@ class GraphCutAction(GraphCutViewer):
         except Exception as e:
             self._check_and_update_photo(self.label_panel_image, None)
 
-    # check and update image to display
-    def _check_and_update_display(self, img=None):
+    # check and update image to display panel
+    def _check_and_update_display(self):
+        self.photo_small = ImageNP.generate_checkboard((self._im_h//2, self._im_w//3), 10)
+        self.photo_small = TkConverter.ndarray_to_photo(self.photo_small)
+        self.photo_large = ImageNP.generate_checkboard((self._im_h, self._im_w//3), 10)
+        self.photo_large = TkConverter.ndarray_to_photo(self.photo_large)
+        self._check_and_update_fl(None)
+        self._check_and_update_fr(None)
+        self._check_and_update_bl(None)
+        self._check_and_update_br(None)
+        self._check_and_update_body(None)
+
+    # check and update image to fl
+    def _check_and_update_fl(self, img=None):
         try:
             assert img is not None
-            self.photo_display = TkConverter.cv2_to_photo(img)
-            self._check_and_update_photo(
-                self.label_display_image, self.photo_display)
+            self.photo_fl = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_fl_image, self.photo_fl)
         except Exception as e:
-            self._check_and_update_photo(self.label_display_image, None)
+            self._check_and_update_photo(self.label_fl_image, self.photo_small)
+
+    # check and update image to fr
+    def _check_and_update_fr(self, img=None):
+        try:
+            assert img is not None
+            self.photo_fr = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_fr_image, self.photo_fr)
+        except Exception as e:
+            self._check_and_update_photo(self.label_fr_image, self.photo_small)
+
+    # check and update image to bl
+    def _check_and_update_bl(self, img=None):
+        try:
+            assert img is not None
+            self.photo_bl = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_bl_image, self.photo_bl)
+        except Exception as e:
+            self._check_and_update_photo(self.label_bl_image, self.photo_small)
+
+    # check and update image to br
+    def _check_and_update_br(self, img=None):
+        try:
+            assert img is not None
+            self.photo_br = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_br_image, self.photo_br)
+        except Exception as e:
+            self._check_and_update_photo(self.label_br_image, self.photo_small)
+
+    # check and update image to fr
+    def _check_and_update_body(self, img=None):
+        try:
+            assert img is not None
+            self.photo_body = TkConverter.cv2_to_photo(img)
+            self._check_and_update_photo(self.label_body_image, self.photo_body)
+        except Exception as e:
+            self._check_and_update_photo(self.label_body_image, self.photo_large)
 
     # move line to left or right and check boundary
     def _check_and_move_line(self, line, step=0):
@@ -133,6 +176,15 @@ class GraphCutAction(GraphCutViewer):
             else:
                 self._current_image_info['symmetry'] = newline
                 self._render_panel_image()
+
+    # core function to separate component
+    def _separate_component(self):
+        if self._current_state != 'edit':
+            LOGGER.warning('Not avaliable to separate component in {} state'.format(self._current_state))
+        elif not self._flag_body_width:
+            LOGGER.error('Please confirm the body length first')
+        else:
+            print(self._current_image_info.keys())
 
     # switch to different state
     def _switch_state(self, state):
@@ -158,7 +210,7 @@ class GraphCutAction(GraphCutViewer):
             ), style='H2BlackdBold.TLabel')
 
             # update display default photo
-            self._check_and_update_display(None)
+            self._check_and_update_display()
 
             # rebind the keyboard event
             self.root.bind(tkconfig.KEY_UP, self._k_switch_to_previous_image)
@@ -396,10 +448,12 @@ class GraphCutAction(GraphCutViewer):
         elif self._flag_drawing_left:
             self._flag_drawing_left = False
             self._flag_drew_left = True
+            self._separate_component()
             LOGGER.info('Unlock the LEFT flag')
         elif self._flag_drawing_right:
             self._flag_drawing_right = False
             self._flag_drew_right = True
+            self._separate_component()
             LOGGER.info('Unlock the RIGHT flag')
 
         if self._flag_drawing_left:
@@ -432,7 +486,7 @@ class GraphCutAction(GraphCutViewer):
                 target_index = max(0, current_index - step)
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
-                self._check_and_update_display(None)
+                self._check_and_update_display()
                 self._reset_parameter()
         else:
             LOGGER.warning('No given image')
@@ -454,10 +508,25 @@ class GraphCutAction(GraphCutViewer):
                                    len(self._image_queue) - 1)
                 self._update_current_image(index=target_index)
                 self._check_and_update_panel(self._current_image_info['image'])
-                self._check_and_update_display(None)
+                self._check_and_update_display()
                 self._reset_parameter()
         else:
             LOGGER.warning('No given image')
+
+    # auto fit the image hight from original image to resize image
+    def auto_resize(self, image, ratio=0.5):
+        screen_h = self.root.winfo_screenheight()
+        screen_w = self.root.winfo_screenwidth()
+        image_h, image_w, image_channel = image.shape
+        resize_h = screen_h * ratio
+        resize_w = (resize_h / image_h) * image_w
+        resize_h, resize_w = int(resize_h), int(resize_w)
+        image = cv2.resize(image, (resize_w, resize_h),
+                           interpolation=cv2.INTER_AREA)
+        LOGGER.info('resize image from {}x{} to {}x{}'.format(
+            image_w, image_h, int(resize_w), int(resize_h)
+        ))
+        return image
 
     # open filedialog to get input image paths
     def input_images(self):
@@ -477,21 +546,7 @@ class GraphCutAction(GraphCutViewer):
             # update first image to input panel and change display default bg
             self._update_current_image(index=0)
             self._check_and_update_panel(self._current_image_info['image'])
-            self._check_and_update_display(None)
-
-    # auto fit the image hight from original image to resize image
-    def auto_resize(self, image, ratio=0.5):
-        screen_h = self.root.winfo_screenheight()
-        screen_w = self.root.winfo_screenwidth()
-        image_h, image_w, image_channel = image.shape
-        resize_h = screen_h * ratio
-        resize_w = (resize_h / image_h) * image_w
-        resize_h, resize_w = int(resize_h), int(resize_w)
-        image = cv2.resize(image, (resize_w, resize_h),interpolation=cv2.INTER_AREA)
-        LOGGER.info('resize image from {}x{} to {}x{}'.format(
-            image_w, image_h, int(resize_w), int(resize_h)
-        ))
-        return image
+            self._check_and_update_display()
 
 if __name__ == '__main__':
     logging.basicConfig(
