@@ -198,13 +198,69 @@ class GraphCutAction(GraphCutViewer):
         elif 'l_track' not in self._current_image_info or 'r_track' not in self._current_image_info:
             LOGGER.warning('No tracking label')
         else:
-            self._current_image_info['display'] = self._current_image_info['image'].copy()
-            self._current_image_info['display'] = self._draw_lines_by_points(
-                self._current_image_info['display'], self._current_image_info['l_track']
-            )
-            self._current_image_info['display'] = self._draw_lines_by_points(
-                self._current_image_info['display'], self._current_image_info['r_track']
-            )
+            display_image = self._current_image_info['image'].copy()
+            display_image = self._separate_component_by_track_and_line(display_image)
+            display_fl = self._separate_component_by_coor(display_image.copy(), 'fl', crop=True)
+            display_fr = self._separate_component_by_coor(display_image.copy(), 'fr', crop=True)
+            display_bl = self._separate_component_by_coor(display_image.copy(), 'bl', crop=True)
+            display_br = self._separate_component_by_coor(display_image.copy(), 'br', crop=True)
+            # test
+            self._check_and_update_fl(display_fl)
+            self._check_and_update_fr(display_fr)
+            self._check_and_update_bl(display_bl)
+            self._check_and_update_br(display_br)
+
+    # eliminate image by track and line
+    def _separate_component_by_track_and_line(self, img):
+        if 'image' not in self._current_image_info:
+            LOGGER.warning('No process image')
+        else:
+            if 'l_line' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['l_line'])
+            if 'r_line' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['r_line'])
+            if 'l_track' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['l_track'])
+            if 'r_track' in self._current_image_info:
+                img = self._draw_lines_by_points(img, self._current_image_info['r_track'])
+            return img
+
+    # removal image background by given x and y and part
+    def _separate_component_by_coor(self, img, part, crop=False):
+        bottom_y = lambda track: max([ptx[1] for ptx in track])
+        top_y = lambda track: min([ptx[1] for ptx in track])
+        l_ptx = self._current_image_info['l_line'][0][0]
+        r_ptx = self._current_image_info['r_line'][0][0]
+
+        if part == 'fl':
+            x = l_ptx
+            y = bottom_y(self._current_image_info['l_track'])
+            img[:, x:] = 255
+            img[y:, :] = 255
+            if crop:
+                img = img[:y, :x]
+        elif part == 'fr':
+            x = r_ptx
+            y = bottom_y(self._current_image_info['r_track'])
+            img[:, :x] = 255
+            img[y:, :] = 255
+            if crop:
+                img = img[:y, x:]
+        elif part == 'bl':
+            x = l_ptx
+            y = top_y(self._current_image_info['l_track'])
+            img[:, x:] = 255
+            img[:y, :] = 255
+            if crop:
+                img = img[y:, :x]
+        elif part == 'br':
+            x = r_ptx
+            y = top_y(self._current_image_info['r_track'])
+            img[:, :x] = 255
+            img[:y, :] = 255
+            if crop:
+                img = img[y:, x:]
+        return img
 
     # switch to different state
     def _switch_state(self, state):
