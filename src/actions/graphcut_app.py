@@ -92,8 +92,7 @@ class GraphCutAction(GraphCutViewer):
         try:
             assert img is not None
             self.photo_panel = TkConverter.cv2_to_photo(img)
-            self._check_and_update_photo(
-                self.label_panel_image, self.photo_panel)
+            self._check_and_update_photo(self.label_panel_image, self.photo_panel)
         except Exception as e:
             self._check_and_update_photo(self.label_panel_image, None)
 
@@ -177,14 +176,35 @@ class GraphCutAction(GraphCutViewer):
                 self._current_image_info['symmetry'] = newline
                 self._render_panel_image()
 
+    # draw lines by point record
+    def _draw_lines_by_points(self, img, track, color=(255, 255, 255)):
+        for i, record in enumerate(track):
+            if len(record) > 2:
+                img = self._draw_lines_by_points(img, record, color=color)
+            elif i == 0:
+                continue
+            else:
+                cv2.line(img, track[i-1], record, color, 2)
+        return img
+
     # core function to separate component
     def _separate_component(self):
         if self._current_state != 'edit':
             LOGGER.warning('Not avaliable to separate component in {} state'.format(self._current_state))
+        elif 'image' not in self._current_image_info:
+            LOGGER.warning('No process image')
         elif not self._flag_body_width:
-            LOGGER.error('Please confirm the body length first')
+            LOGGER.warning('Please confirm the body length first')
+        elif 'l_track' not in self._current_image_info or 'r_track' not in self._current_image_info:
+            LOGGER.warning('No tracking label')
         else:
-            print(self._current_image_info.keys())
+            self._current_image_info['display'] = self._current_image_info['image'].copy()
+            self._current_image_info['display'] = self._draw_lines_by_points(
+                self._current_image_info['display'], self._current_image_info['l_track']
+            )
+            self._current_image_info['display'] = self._draw_lines_by_points(
+                self._current_image_info['display'], self._current_image_info['r_track']
+            )
 
     # switch to different state
     def _switch_state(self, state):
@@ -388,7 +408,7 @@ class GraphCutAction(GraphCutViewer):
         elif not self._flag_body_width:
             LOGGER.error('Please to confirm the body width first')
         elif not self._flag_drawing_left and not self._flag_drawing_right:
-            LOGGER.warning('Not in the drawing mode')
+            LOGGER.debug('Not in the drawing mode')
         else:
             point_x = lambda x: x[0][0]
             mirror_distance = lambda x: abs(x-point_x(self._current_image_info['symmetry']))
@@ -411,7 +431,8 @@ class GraphCutAction(GraphCutViewer):
                 else:
                     self._m_unlock_track_flag()
 
-            self._render_panel_image()
+            if self._flag_drawing_left or self._flag_drawing_right:
+                self._render_panel_image()
 
     # mouse: lock to draw left or right
     def _m_lock_track_flag(self, event=None):
