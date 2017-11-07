@@ -313,6 +313,10 @@ class GraphCutAction(GraphCutViewer):
         self.label_panel_image.bind(tkconfig.MOUSE_MOTION_LEFT, self._m_track_separate_label)
         self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_unlock_track_flag)
 
+        # unbind symmetry line movement
+        self.root.unbind(tkconfig.KEY_LEFT)
+        self.root.unbind(tkconfig.KEY_RIGHT)
+
     # mouse: get the track label to separate moth component
     def _m_track_separate_label(self, event=None):
         '''
@@ -365,7 +369,7 @@ class GraphCutAction(GraphCutViewer):
             self._current_image_info['l_track'] = []
             if not self._flag_drew_right:
                 self._current_image_info['r_track'] = []
-            LOGGER.info('Lock the left flag and ready to draw')
+            LOGGER.info('Lock the LEFT flag')
 
         elif self._current_image_info['r_line'][0][0] <= event.x <= self._im_w:
             self._flag_drawing_right = True
@@ -373,7 +377,7 @@ class GraphCutAction(GraphCutViewer):
             self._current_image_info['r_track'] = []
             if not self._flag_drew_left:
                 self._current_image_info['l_track'] = []
-            LOGGER.info('Lock the right flag and ready to draw')
+            LOGGER.info('Lock the RIGHT flag')
 
     # mouse: unlock to confirm draw left or right
     def _m_unlock_track_flag(self, event=None):
@@ -382,18 +386,18 @@ class GraphCutAction(GraphCutViewer):
         elif self._flag_drawing_left:
             self._flag_drawing_left = False
             self._flag_drew_left = True
-            LOGGER.info('Unlock the left flag and ready to draw')
+            LOGGER.info('Unlock the LEFT flag')
         elif self._flag_drawing_right:
             self._flag_drawing_right = False
             self._flag_drew_right = True
-            LOGGER.info('Unlock the right flag and ready to draw')
+            LOGGER.info('Unlock the RIGHT flag')
 
         if self._flag_drawing_left:
             self._flag_drawing_left = False
-            LOGGER.warning('Unlock the left flag improperly')
+            LOGGER.warning('Unlock the LEFT flag improperly')
         if self._flag_drawing_right:
             self._flag_drawing_right = False
-            LOGGER.warning('Unlock the right flag improperly')
+            LOGGER.warning('Unlock the RIGHT flag improperly')
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
