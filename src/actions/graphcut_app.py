@@ -317,34 +317,47 @@ class GraphCutAction(GraphCutViewer):
             if 'active' not in self.scale_manual_threshold.state():
                 LOGGER.error('manual threshold is disable')
             else:
-                # generate background
+                # preprocess
                 save_result = np.zeros(img.shape)
-
-                # contour
                 val_threshold = int(self.val_manual_threshold.get())
                 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                ret, mask = cv2.threshold(gray_img, val_threshold, 255, cv2.THRESH_BINARY_INV)
-                cnts = ImageCV.connected_component_by_stats(mask, 1, cv2.CC_STAT_AREA)
+                meta = {}
 
-                # filled component
-                fill_mask, cnts = ImageCV.fill_connected_component(img, cnts, threshold=255)
-                target_cnt = ImageNP.contour_to_coor(cnts[0])
-                x, y, w, h = cv2.boundingRect(cnts[0])
+                try:
+                    # contour
+                    ret, mask = cv2.threshold(gray_img, val_threshold, 255, cv2.THRESH_BINARY_INV)
+                    cnts = ImageCV.connected_component_by_stats(mask, 1, cv2.CC_STAT_AREA)
 
-                # image
-                save_result[np.where(fill_mask == 255)] = img[np.where(fill_mask == 255)]
-                save_result = save_result.astype('uint8')
-                show_result = save_result.copy()
-                show_result = show_result[y:y+h, x:x+w]
+                    # filled component
+                    fill_mask, cnts = ImageCV.fill_connected_component(img, cnts, threshold=255)
+                    target_cnt = ImageNP.contour_to_coor(cnts[0])
+                    x, y, w, h = cv2.boundingRect(cnts[0])
 
-                meta = {
-                    'threshold': val_threshold,
-                    'mask': fill_mask,
-                    'cnts': target_cnt,
-                    'rect': (x, y, w, h),
-                    'save_image': save_result,
-                    'show_image': show_result
-                }
+                    # image
+                    save_result[np.where(fill_mask == 255)] = img[np.where(fill_mask == 255)]
+                    save_result = save_result.astype('uint8')
+                    show_result = save_result.copy()
+                    show_result = show_result[y:y+h, x:x+w]
+
+                    assert 200 < w*h < img.shape[0]*img.shape[1]-200
+                    meta = {
+                        'threshold': val_threshold,
+                        'mask': fill_mask,
+                        'cnts': target_cnt,
+                        'rect': (x, y, w, h),
+                        'save_image': save_result,
+                        'show_image': show_result
+                    }
+                except Exception as e:
+                    meta = {
+                        'threshold': None,
+                        'mask': None,
+                        'cnts': None,
+                        'rect': None,
+                        'save_image': None,
+                        'show_image': None
+                    }
+
                 return meta
 
     # switch to different state
