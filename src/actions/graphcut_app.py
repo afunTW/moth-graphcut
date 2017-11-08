@@ -179,7 +179,9 @@ class GraphCutAction(GraphCutViewer):
 
     # move line to left and update to panel
     def _check_and_update_symmetry(self, step=0):
-        if 'symmetry' in self._current_image_info:
+        if self._flag_body_width:
+            LOGGER.info('Got the body width history')
+        elif 'symmetry' in self._current_image_info:
             newline = self._check_and_move_line(self._current_image_info['symmetry'], step)
             if not newline:
                 LOGGER.error('Failed to move symmetry line')
@@ -212,6 +214,7 @@ class GraphCutAction(GraphCutViewer):
             # preprocess
             display_image = self._current_image_info['image'].copy()
             display_image = self._separate_component_by_track(display_image)
+            display_image = self._separate_component_by_eliminate(display_image)
             display_image = self._separate_component_by_line(display_image)
             display_fl = self._separate_component_by_coor(display_image.copy(), 'fl')
             display_fr = self._separate_component_by_coor(display_image.copy(), 'fr')
@@ -240,15 +243,24 @@ class GraphCutAction(GraphCutViewer):
             self._check_and_update_br(self._current_br_info['show_image'])
             self._check_and_update_body(self._current_body_info['show_image'])
 
-    # eliminate image by track and line
+    # eliminate image by track
     def _separate_component_by_track(self, img):
         if 'image' not in self._current_image_info:
             LOGGER.warning('No process image')
         else:
             if 'l_track' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['l_track'])
+                self._draw_lines_by_points(img, self._current_image_info['l_track'])
             if 'r_track' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['r_track'])
+                self._draw_lines_by_points(img, self._current_image_info['r_track'])
+            return img
+
+    # eliminate image by eliminate label
+    def _separate_component_by_eliminate(self, img):
+        if 'image' not in self._current_image_info:
+            LOGGER.warning('No process image')
+        else:
+            if 'eliminate_track' in self._current_image_info:
+                self._draw_lines_by_points(img, self._current_image_info['eliminate_track'])
             return img
 
     # eliminate image by line
@@ -257,9 +269,9 @@ class GraphCutAction(GraphCutViewer):
             LOGGER.warning('No process image')
         else:
             if 'l_line' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['l_line'])
+                self._draw_lines_by_points(img, self._current_image_info['l_line'])
             if 'r_line' in self._current_image_info:
-                img = self._draw_lines_by_points(img, self._current_image_info['r_line'])
+                self._draw_lines_by_points(img, self._current_image_info['r_line'])
             return img
 
     # removal image background by given x and y and part
@@ -368,6 +380,7 @@ class GraphCutAction(GraphCutViewer):
             self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
 
             self._reset_parameter()
+            self._check_and_update_panel(img=self._current_image_info['image'])
 
         elif state == 'edit':
 
@@ -379,20 +392,24 @@ class GraphCutAction(GraphCutViewer):
                 self._current_image_info['path'].split(os.sep)[-1]
             ), style='H2RedBold.TLabel')
 
-            # generate symmetry line
-            self._current_image_info['panel'] = self._current_image_info['image'].copy()
-            self._current_image_info['symmetry'] = ImageNP.generate_symmetric_line(self._current_image_info['panel'])
-            self._render_panel_image()
+            # render history
+            if self._flag_body_width:
+                self._render_panel_image()
+            else:
+                # generate symmetry line
+                self._current_image_info['panel'] = self._current_image_info['image'].copy()
+                self._current_image_info['symmetry'] = ImageNP.generate_symmetric_line(self._current_image_info['panel'])
+                self._render_panel_image()
 
-            # rebind the keyboard event
-            self.root.bind(tkconfig.KEY_LEFT, lambda x: self._check_and_update_symmetry(step=-1))
-            self.root.bind(tkconfig.KEY_RIGHT, lambda x: self._check_and_update_symmetry(step=1))
-            self.root.bind(tkconfig.KEY_PAGEDOWN, lambda x: self._check_and_update_symmetry(step=-10))
-            self.root.bind(tkconfig.KEY_PAGEUP, lambda x: self._check_and_update_symmetry(step=10))
+                # rebind the keyboard event
+                self.root.bind(tkconfig.KEY_LEFT, lambda x: self._check_and_update_symmetry(step=-1))
+                self.root.bind(tkconfig.KEY_RIGHT, lambda x: self._check_and_update_symmetry(step=1))
+                self.root.bind(tkconfig.KEY_PAGEDOWN, lambda x: self._check_and_update_symmetry(step=-10))
+                self.root.bind(tkconfig.KEY_PAGEUP, lambda x: self._check_and_update_symmetry(step=10))
 
-            # bind the mouse event
-            self.label_panel_image.bind(tkconfig.MOUSE_MOTION, self._m_check_and_update_body_width)
-            self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_confirm_body_width)
+                # bind the mouse event
+                self.label_panel_image.bind(tkconfig.MOUSE_MOTION, self._m_check_and_update_body_width)
+                self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_confirm_body_width)
 
     # render panel image
     def _render_panel_image(self):
@@ -510,7 +527,10 @@ class GraphCutAction(GraphCutViewer):
     # mouse: check and update body line
     def _m_check_and_update_body_width(self, event=None):
         if self._current_state == 'edit':
-            if 'symmetry' not in self._current_image_info:
+            if self._flag_body_width:
+                LOGGER.warning('Got body width history')
+                self._m_confirm_body_width()
+            elif 'symmetry' not in self._current_image_info:
                 LOGGER.warning('No symmetry line')
             else:
                 middle_line = self._current_image_info['symmetry']
@@ -527,8 +547,8 @@ class GraphCutAction(GraphCutViewer):
         # confirm body width
         self._color_body_line = [255, 0, 0]
         self.label_panel_image.unbind(tkconfig.MOUSE_MOTION)
-        body_width = abs(event.x-self._current_image_info['symmetry'][0][0])
         self._render_panel_image()
+        body_width = abs(event.x-self._current_image_info['symmetry'][0][0])
 
         # record and set flag
         self._current_image_info['body_width'] = body_width
@@ -664,6 +684,7 @@ class GraphCutAction(GraphCutViewer):
             if self._tmp_eliminate_track:
                 self._current_image_info['eliminate_track'].append(self._tmp_eliminate_track)
             self._tmp_eliminate_track = []
+            self._separate_component()
             LOGGER.info('Unlock the ELIMINATE flag')
 
     # keyboard: show instruction
