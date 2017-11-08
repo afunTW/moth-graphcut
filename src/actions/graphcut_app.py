@@ -228,15 +228,14 @@ class GraphCutAction(GraphCutViewer):
             display_body[np.where(self._current_fr_info['mask'] == 255)] = 255
             display_body[np.where(self._current_bl_info['mask'] == 255)] = 255
             display_body[np.where(self._current_br_info['mask'] == 255)] = 255
-            # from matplotlib import pyplot as plt
-            # plt.imshow(display_body); plt.show()
+            self._current_body_info = self._separate_component_by_threshold(display_body)
 
             # test
             self._check_and_update_fl(self._current_fl_info['show_image'])
             self._check_and_update_fr(self._current_fr_info['show_image'])
             self._check_and_update_bl(self._current_bl_info['show_image'])
             self._check_and_update_br(self._current_br_info['show_image'])
-            self._check_and_update_body(display_body)
+            self._check_and_update_body(self._current_body_info['show_image'])
 
     # eliminate image by track and line
     def _separate_component_by_track(self, img):
