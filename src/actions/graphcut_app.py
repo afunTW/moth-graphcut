@@ -515,6 +515,8 @@ class GraphCutAction(GraphCutViewer):
     def _update_scale_manual_threshold_msg(self, val_threshold):
         val_threshold = float(val_threshold)
         self.label_manual_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
+        if self._flag_drew_left or self._flag_drew_right:
+            self._separate_component()
 
     # callback: disable the manual scale when the option is not the manual threshold
     def _update_scale_manual_threshold_state(self):
