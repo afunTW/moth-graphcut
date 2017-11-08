@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 import sys
+import time
 import tkinter
 from inspect import currentframe, getframeinfo
 from tkinter import ttk
@@ -15,6 +17,7 @@ from src.image.imcv import ImageCV
 from src.image.imnp import ImageNP
 from src.support.msg_box import Instruction, MessageBox
 from src.support.tkconvert import TkConverter
+from src.support.msg_box import MessageBox, Instruction
 from src.view.graphcut_app import GraphCutViewer
 
 __FILE__ = os.path.abspath(getframeinfo(currentframe()).filename)
@@ -86,6 +89,7 @@ class GraphCutAction(GraphCutViewer):
         self.instruction.row_append(u'DOWN/RIGHT (瀏覽模式)', u'切換至下一張圖片')
         self.instruction.row_append(u'LEFT/RIGHT (編輯模式)', u'移動鏡像中線 1 pixel')
         self.instruction.row_append(u'PAGE_DOWN/PAGE_UP (編輯模式)', u'移動鏡像中線 10 pixel')
+        self.instruction.row_append(u'SPACE (瀏覽模式)', u'儲存圖片與 metadata')
         self.instruction.row_append(u'h/H', u'打開提示視窗')
 
     # check and update image to given widget
@@ -189,6 +193,17 @@ class GraphCutAction(GraphCutViewer):
                 self._current_image_info['symmetry'] = newline
                 self._render_panel_image()
 
+    # convert black bg component to rgba transparent bg
+    def _convert_to_rgba_component(self, img, mask):
+        if mask is None:
+            return None
+        _mask = mask / 255
+        _mask = np.expand_dims(_mask, axis=2)
+        _mask = np.concatenate((_mask, _mask, _mask), axis=2)
+        image = np.multiply(img, _mask).astype('uint8')
+        b, g, r = cv2.split(image)
+        return cv2.merge((b, g, r, mask))
+
     # draw lines by point record
     def _draw_lines_by_points(self, img, track, color=(255, 255, 255)):
         for i, record in enumerate(track):
@@ -199,6 +214,61 @@ class GraphCutAction(GraphCutViewer):
             else:
                 cv2.line(img, track[i-1], record, color, 2)
         return img
+
+    # save current image meta
+    def _save_image_metadata(self):
+        if self._current_state != 'edit':
+            LOGGER.warning('Not avaliable to save image metadata in {} state'.format(self._current_state))
+        elif not self._current_image_info:
+            LOGGER.warning('No image metadata to save')
+        else:
+            save_meta = {
+                'symmetry': None,
+                'body_width': None,
+                'l_track': None,
+                'r_track': None,
+                'path': None,
+                'size': None,
+                'timestamp': time.ctime()
+            }
+            if 'symmetry' in self._current_image_info:
+                save_meta['symmetry'] = self._current_image_info['symmetry']
+            if 'body_width' in self._current_image_info:
+                save_meta['body_width'] = self._current_image_info['body_width']
+            if 'l_track' in self._current_image_info:
+                save_meta['l_track'] = self._current_image_info['l_track']
+            if 'r_track' in self._current_image_info:
+                save_meta['r_track'] = self._current_image_info['r_track']
+            if 'path' in self._current_image_info:
+                save_meta['path'] = self._current_image_info['path']
+            if 'size' in self._current_image_info:
+                save_meta['size'] = self._current_image_info['size']
+
+            return save_meta
+
+    # save current omponent meta
+    def _save_component_metadata(self, _info):
+        if self._current_state != 'edit':
+            LOGGER.warning('Not avaliable to save component metadata in {} state'.format(self._current_state))
+        elif not isinstance(_info, dict):
+            LOGGER.warning('Input _info should be dict')
+        elif not _info:
+            LOGGER.warning('No component metadata to save')
+        else:
+            save_meta = {
+                'threshold_option': self.val_threshold_option.get(),
+                'threshold': None,
+                'rect': None,
+                'cnts': None
+            }
+            if 'threshold' in _info and self.val_threshold_option.get() == 'manual':
+                save_meta['threshold'] = _info['threshold']
+            if 'rect' in _info:
+                save_meta['rect'] = _info['rect']
+            if 'cnts' in _info:
+                save_meta['cnts'] = tuple(i.tolist() if isinstance(i, np.ndarray) else i for i in _info['cnts'])
+
+            return save_meta
 
     # core function to separate component
     def _separate_component(self):
@@ -345,7 +415,7 @@ class GraphCutAction(GraphCutViewer):
                         'mask': fill_mask,
                         'cnts': target_cnt,
                         'rect': (x, y, w, h),
-                        'save_image': save_result,
+                        'save_image': self._convert_to_rgba_component(save_result, fill_mask),
                         'show_image': show_result
                     }
                 except Exception as e:
@@ -392,6 +462,9 @@ class GraphCutAction(GraphCutViewer):
             self.root.bind(tkconfig.KEY_DOWN, self._k_switch_to_next_image)
             self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
 
+            # unbind event
+            self.root.unbind(tkconfig.KEY_SPACE)
+
             self._reset_parameter()
             self._check_and_update_panel(img=self._current_image_info['image'])
 
@@ -419,6 +492,7 @@ class GraphCutAction(GraphCutViewer):
                 self.root.bind(tkconfig.KEY_RIGHT, lambda x: self._check_and_update_symmetry(step=1))
                 self.root.bind(tkconfig.KEY_PAGEDOWN, lambda x: self._check_and_update_symmetry(step=-10))
                 self.root.bind(tkconfig.KEY_PAGEUP, lambda x: self._check_and_update_symmetry(step=10))
+                self.root.bind(tkconfig.KEY_SPACE, self._k_save_all_metadata)
 
                 # bind the mouse event
                 self.label_panel_image.bind(tkconfig.MOUSE_MOTION, self._m_check_and_update_body_width)
@@ -472,8 +546,26 @@ class GraphCutAction(GraphCutViewer):
 
     # reset algorithm parameter
     def _reset_parameter(self):
-        # reset
+        # reset color
         self._color_body_line = [0, 0, 255]
+
+        # reset metadata
+        self._current_fl_info = {}
+        self._current_fr_info = {}
+        self._current_bl_info = {}
+        self._current_br_info = {}
+        self._current_body_info = {}
+
+        # reset flag
+        self._flag_body_width = False
+        self._flag_drawing_left = False
+        self._flag_drew_left = False
+        self._flag_drawing_right = False
+        self._flag_drew_right = False
+        self._flag_drawing_eliminate = False
+        self._tmp_eliminate_track = []
+
+        # reset widget
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
@@ -701,6 +793,69 @@ class GraphCutAction(GraphCutViewer):
             self._tmp_eliminate_track = []
             self._separate_component()
             LOGGER.info('Unlock the ELIMINATE flag')
+
+    # keyboard: save metadata
+    def _k_save_all_metadata(self, event=None):
+        if self._current_state != 'edit':
+            LOGGER.warning('Not avaliable to save metadata in {} state'.format(self._current_state))
+        elif 'path' not in self._current_image_info:
+            LOGGER.warning('Loss current image path')
+        elif (
+            not self._current_fl_info and
+            not self._current_fr_info and
+            not self._current_bl_info and
+            not self._current_br_info
+        ):
+            LOGGER.warning('No component metadata to process')
+        else:
+            # metadata
+            all_metadata = {
+                'image': self._save_image_metadata(),
+                'fl': self._save_component_metadata(self._current_fl_info),
+                'fr': self._save_component_metadata(self._current_fr_info),
+                'bl': self._save_component_metadata(self._current_bl_info),
+                'br': self._save_component_metadata(self._current_br_info),
+                'body': self._save_component_metadata(self._current_body_info)
+            }
+
+            # save path
+            current_img_path = self._current_image_info['path']
+            save_directory = os.sep.join(current_img_path.split('.')[:-1])
+
+            if not os.path.exists(save_directory):
+                os.makedirs(save_directory)
+
+            save_filename = os.path.join(save_directory, 'metadata.json')
+            with open(save_filename, 'w+') as f:
+                json.dump(all_metadata, f)
+                LOGGER.info('Save metadata - {}'.format(save_filename))
+
+            # save image
+            if 'save_image' in self._current_fl_info and self._current_fl_info['save_image'] is not None:
+                save_imgname = os.path.join(save_directory, 'fore_left.png')
+                cv2.imwrite(save_imgname, self._current_fl_info['save_image'])
+                LOGGER.info('Save fore-left component - {}'.format(save_imgname))
+            if 'save_image' in self._current_fr_info and self._current_fr_info['save_image'] is not None:
+                save_imgname = os.path.join(save_directory, 'fore_right.png')
+                cv2.imwrite(save_imgname, self._current_fr_info['save_image'])
+                LOGGER.info('Save fore-right component - {}'.format(save_imgname))
+            if 'save_image' in self._current_bl_info and self._current_bl_info['save_image'] is not None:
+                save_imgname = os.path.join(save_directory, 'back_left.png')
+                cv2.imwrite(save_imgname, self._current_bl_info['save_image'])
+                LOGGER.info('Save back-left component - {}'.format(save_imgname))
+            if 'save_image' in self._current_br_info and self._current_br_info['save_image'] is not None:
+                save_imgname = os.path.join(save_directory, 'back_right.png')
+                cv2.imwrite(save_imgname, self._current_br_info['save_image'])
+                LOGGER.info('Save back-right component - {}'.format(save_imgname))
+            if 'save_image' in self._current_body_info and self._current_body_info['save_image'] is not None:
+                save_imgname = os.path.join(save_directory, 'body.png')
+                cv2.imwrite(save_imgname, self._current_body_info['save_image'])
+                LOGGER.info('Save body component - {}'.format(save_imgname))
+
+            self._switch_state('browse')
+            self._k_switch_to_next_image()
+            Mbox = MessageBox()
+            Mbox.info(u'已儲存')
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
