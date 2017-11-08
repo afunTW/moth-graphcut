@@ -33,11 +33,13 @@ class GraphCutAction(GraphCutViewer):
         self._current_br_info = {}
         self._current_body_info = {}
         self._current_state = None
+        self._tmp_eliminate_track = []
         self._init_instruction()
 
         # color
-        self._color_body_line = [255, 0, 0]
+        self._color_body_line = [0, 0, 255]
         self._color_track_line = [0, 0, 0]
+        self._color_eliminate_line = [0, 0, 255]
 
         # flag
         self._flag_body_width = False
@@ -45,6 +47,7 @@ class GraphCutAction(GraphCutViewer):
         self._flag_drew_left = False
         self._flag_drawing_right = False
         self._flag_drew_right = False
+        self._flag_drawing_eliminate = False
 
         # callback
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
@@ -215,13 +218,13 @@ class GraphCutAction(GraphCutViewer):
             display_bl = self._separate_component_by_coor(display_image.copy(), 'bl')
             display_br = self._separate_component_by_coor(display_image.copy(), 'br')
 
-            # mask - choose by option
+            # wings mask and get meta - threshold choose by option
             self._current_fl_info = self._separate_component_by_threshold(display_fl)
             self._current_fr_info = self._separate_component_by_threshold(display_fr)
             self._current_bl_info = self._separate_component_by_threshold(display_bl)
             self._current_br_info = self._separate_component_by_threshold(display_br)
 
-            # body
+            # body mask and get meta - threshold choose by option
             display_body = self._current_image_info['image'].copy()
             display_body = self._separate_component_by_track(display_body)
             display_body[np.where(self._current_fl_info['mask'] == 255)] = 255
@@ -230,7 +233,7 @@ class GraphCutAction(GraphCutViewer):
             display_body[np.where(self._current_br_info['mask'] == 255)] = 255
             self._current_body_info = self._separate_component_by_threshold(display_body)
 
-            # test
+            # render
             self._check_and_update_fl(self._current_fl_info['show_image'])
             self._check_and_update_fr(self._current_fr_info['show_image'])
             self._check_and_update_bl(self._current_bl_info['show_image'])
@@ -411,22 +414,36 @@ class GraphCutAction(GraphCutViewer):
                 pt1, pt2 = self._current_image_info['r_line']
                 cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_body_line, 2)
             if 'l_track' in self._current_image_info:
-                for i, ptx in enumerate(self._current_image_info['l_track']):
-                    if i == 0: continue
-                    pt1, pt2 = self._current_image_info['l_track'][i-1], ptx
-                    cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_track_line, 2)
+                self._draw_lines_by_points(
+                    img=self._current_image_info['panel'],
+                    track=self._current_image_info['l_track'],
+                    color=self._color_track_line
+                )
             if 'r_track' in self._current_image_info:
-                for i, ptx in enumerate(self._current_image_info['r_track']):
-                    if i == 0: continue
-                    pt1, pt2 = self._current_image_info['r_track'][i-1], ptx
-                    cv2.line(self._current_image_info['panel'], pt1, pt2, self._color_track_line, 2)
+                self._draw_lines_by_points(
+                    img=self._current_image_info['panel'],
+                    track=self._current_image_info['r_track'],
+                    color=self._color_track_line
+                )
+            if 'eliminate_track' in self._current_image_info:
+                self._draw_lines_by_points(
+                    img=self._current_image_info['panel'],
+                    track=self._current_image_info['eliminate_track'],
+                    color=self._color_eliminate_line
+                )
+            if self._tmp_eliminate_track:
+                self._draw_lines_by_points(
+                    img=self._current_image_info['panel'],
+                    track=self._tmp_eliminate_track,
+                    color=self._color_eliminate_line
+                )
 
             self._check_and_update_panel(img=self._current_image_info['panel'])
 
     # reset algorithm parameter
     def _reset_parameter(self):
         # reset
-        self._color_body_line = [255, 0, 0]
+        self._color_body_line = [0, 0, 255]
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
@@ -508,7 +525,7 @@ class GraphCutAction(GraphCutViewer):
     # mouse: confirm body line and unbind mouse motion
     def _m_confirm_body_width(self, event=None):
         # confirm body width
-        self._color_body_line = [0, 0, 255]
+        self._color_body_line = [255, 0, 0]
         self.label_panel_image.unbind(tkconfig.MOUSE_MOTION)
         body_width = abs(event.x-self._current_image_info['symmetry'][0][0])
         self._render_panel_image()
@@ -521,6 +538,9 @@ class GraphCutAction(GraphCutViewer):
         self.label_panel_image.bind(tkconfig.MOUSE_BUTTON_LEFT, self._m_lock_track_flag)
         self.label_panel_image.bind(tkconfig.MOUSE_MOTION_LEFT, self._m_track_separate_label)
         self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_LEFT, self._m_unlock_track_flag)
+        self.label_panel_image.bind(tkconfig.MOUSE_BUTTON_RIGHT, self._m_lock_eliminate_flag)
+        self.label_panel_image.bind(tkconfig.MOUSE_MOTION_RIGHT, self._m_track_eliminate_label)
+        self.label_panel_image.bind(tkconfig.MOUSE_RELEASE_RIGHT, self._m_unlock_eliminate_flag)
 
         # unbind symmetry line movement
         self.root.unbind(tkconfig.KEY_LEFT)
@@ -536,11 +556,7 @@ class GraphCutAction(GraphCutViewer):
         - was_left and not was_right: reset all and mirror
         - was_left and was_right: reset left and record left
         '''
-        if 'panel' not in self._current_image_info:
-            LOGGER.error('No image to process')
-        elif not self._flag_body_width:
-            LOGGER.error('Please to confirm the body width first')
-        elif not self._flag_drawing_left and not self._flag_drawing_right:
+        if not self._flag_drawing_left and not self._flag_drawing_right:
             LOGGER.debug('Not in the drawing mode')
         else:
             point_x = lambda x: x[0][0]
@@ -576,9 +592,12 @@ class GraphCutAction(GraphCutViewer):
             self._current_image_info['r_track'] = []
 
         # lock and logic operation
-        if 'symmetry' not in self._current_image_info:
-            LOGGER.error('Please confirm body width first')
-
+        if 'panel' not in self._current_image_info:
+            LOGGER.error('No image to process')
+        elif self._current_state != 'edit':
+            LOGGER.error('Not avaliable to procees in {} state'.format(self._current_state))
+        elif not self._flag_body_width:
+            LOGGER.error('Please to confirm the body width first')
         elif 0 <= event.x <= self._current_image_info['l_line'][0][0]:
             self._flag_drawing_left = True
             self._flag_drew_left = False
@@ -586,7 +605,6 @@ class GraphCutAction(GraphCutViewer):
             if not self._flag_drew_right:
                 self._current_image_info['r_track'] = []
             LOGGER.info('Lock the LEFT flag')
-
         elif self._current_image_info['r_line'][0][0] <= event.x <= self._im_w:
             self._flag_drawing_right = True
             self._flag_drew_right = False
@@ -597,8 +615,8 @@ class GraphCutAction(GraphCutViewer):
 
     # mouse: unlock to confirm draw left or right
     def _m_unlock_track_flag(self, event=None):
-        if 'symmetry' not in self._current_image_info:
-            LOGGER.error('Please confirm body width first')
+        if not self._flag_drawing_left and not self._flag_drawing_right:
+            LOGGER.debug('Not in the drawing mode')
         elif self._flag_drawing_left:
             self._flag_drawing_left = False
             self._flag_drew_left = True
@@ -616,6 +634,37 @@ class GraphCutAction(GraphCutViewer):
         if self._flag_drawing_right:
             self._flag_drawing_right = False
             LOGGER.warning('Unlock the RIGHT flag improperly')
+
+    # mouse: get the track label to eliminate image
+    def _m_track_eliminate_label(self, event=None):
+        if self._flag_drawing_eliminate:
+            self._tmp_eliminate_track.append((event.x, event.y))
+            self._render_panel_image()
+
+    # mouse: lock to draw eliminate label
+    def _m_lock_eliminate_flag(self, event=None):
+        # lock and logic operation
+        if 'panel' not in self._current_image_info:
+            LOGGER.error('No image to process')
+        elif self._current_state != 'edit':
+            LOGGER.error('Not avaliable to procees in {} state'.format(self._current_state))
+        elif not self._flag_body_width:
+            LOGGER.error('Please to confirm the body width first')
+        else:
+            self._tmp_eliminate_track = []
+            self._flag_drawing_eliminate = True
+            LOGGER.info('Lock the ELIMINATE flag')
+
+    # mouse: unlock to draw eliminate label
+    def _m_unlock_eliminate_flag(self, eveny=None):
+        if self._flag_drawing_eliminate:
+            self._flag_drawing_eliminate = False
+            if 'eliminate_track' not in self._current_image_info:
+                self._current_image_info['eliminate_track'] = []
+            if self._tmp_eliminate_track:
+                self._current_image_info['eliminate_track'].append(self._tmp_eliminate_track)
+            self._tmp_eliminate_track = []
+            LOGGER.info('Unlock the ELIMINATE flag')
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
