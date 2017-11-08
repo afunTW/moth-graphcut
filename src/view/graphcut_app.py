@@ -29,7 +29,7 @@ class GraphCutViewer(TkViewer):
         init_css()
         TTKStyle('H4Padding.TLabelframe', background='gray82')
         TTKStyle('H4Padding.TLabelframe.Label',  font=('', 16), background='gray82')
-        TTKStyle('H2BlackdBold.TLabel', font=('', 24, 'bold'), background='white', foreground='black')
+        TTKStyle('H2BlackBold.TLabel', font=('', 24, 'bold'), background='white', foreground='black')
         TTKStyle('H2RedBold.TLabel', font=('', 24, 'bold'), background='white', foreground='red')
         self.font = TkFonts()
 

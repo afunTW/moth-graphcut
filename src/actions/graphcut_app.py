@@ -354,7 +354,7 @@ class GraphCutAction(GraphCutViewer):
                 self._current_image_info['index'] + 1,
                 len(self._image_queue),
                 self._current_image_info['path'].split(os.sep)[-1]
-            ), style='H2BlackdBold.TLabel')
+            ), style='H2BlackBold.TLabel')
 
             # update display default photo
             self._check_and_update_display()
