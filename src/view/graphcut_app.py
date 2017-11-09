@@ -160,7 +160,8 @@ class GraphCutViewer(TkViewer):
             self.frame_template_options,
             text=u'自動去背',
             variable=self.val_checkbtn_floodfill,
-            onvalue='on', offvalue='off'
+            onvalue='on', offvalue='off',
+            style='H5.TCheckbutton'
         )
         self.checkbtn_floodfill.grid(row=0, column=1, sticky='w')
 
