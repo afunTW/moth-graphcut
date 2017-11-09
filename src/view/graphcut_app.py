@@ -27,10 +27,13 @@ class GraphCutViewer(TkViewer):
 
     def _init_style(self):
         init_css()
-        TTKStyle('H4Padding.TLabelframe', background='gray82')
-        TTKStyle('H4Padding.TLabelframe.Label',  font=('', 16), background='gray82')
-        TTKStyle('H2BlackBold.TLabel', font=('', 24, 'bold'), background='white', foreground='black')
-        TTKStyle('H2RedBold.TLabel', font=('', 24, 'bold'), background='white', foreground='red')
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H4Padding.TLabelframe', theme=theme, background='gray82')
+        TTKStyle('H4Padding.TLabelframe.Label', theme=theme,  font=('', 16), background='gray82')
+        TTKStyle('H2BlackBold.TLabel', theme=theme, font=('', 24, 'bold'), background='white', foreground='black')
+        TTKStyle('H2RedBold.TLabel', theme=theme, font=('', 24, 'bold'), background='white', foreground='red')
         self.font = TkFonts()
 
     # init frame
@@ -80,8 +83,6 @@ class GraphCutViewer(TkViewer):
         # footer > panel setting > template option
         self.frame_template_options = TkFrame(self.frame_panel_setting, bg='gray82', pady=5)
         self.frame_template_options.grid(row=0, column=0, sticky='news')
-        self.set_all_grid_rowconfigure(self.frame_template_options, 0)
-        self.set_all_grid_columnconfigure(self.frame_template_options, 0)
 
         # footer > panel setting > gamma
         self.frame_gamma = TkFrame(self.frame_panel_setting, bg='gray82', pady=5)
@@ -154,6 +155,14 @@ class GraphCutViewer(TkViewer):
         # input panel template option
         self.label_template = ttk.Label(self.frame_template_options, text=u'過濾樣式: ', style='H5.TLabel')
         self.label_template.grid(row=0, column=0, sticky='w')
+        self.val_checkbtn_floodfill = tkinter.StringVar()
+        self.checkbtn_floodfill = ttk.Checkbutton(
+            self.frame_template_options,
+            text=u'自動去背',
+            variable=self.val_checkbtn_floodfill,
+            onvalue='on', offvalue='off'
+        )
+        self.checkbtn_floodfill.grid(row=0, column=1, sticky='w')
 
         # input panel gamma
         self.label_gamma = ttk.Label(self.frame_gamma, text=u'調整對比 ({:.2f}): '.format(1.), style='H5.TLabel')
