@@ -13,7 +13,6 @@ sys.path.append('../..')
 import numpy as np
 
 import cv2
-from matplotlib import pyplot as plt
 from src import tkconfig
 from src.actions.alignment import AlignmentCore
 from src.image.imnp import ImageNP
