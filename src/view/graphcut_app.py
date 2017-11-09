@@ -163,7 +163,7 @@ class GraphCutViewer(TkViewer):
         self.scale_gamma = ttk.Scale(self.frame_gamma,
                                      orient=tkinter.HORIZONTAL,
                                      length=self._im_w*2,
-                                     from_=0, to=25,
+                                     from_=0, to=2.5,
                                      variable=self.val_scale_gamma,
                                      style='Gray.Horizontal.TScale')
         self.scale_gamma.state(('active', '!disabled'))
