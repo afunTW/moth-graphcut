@@ -53,8 +53,8 @@ class GraphCutAction(GraphCutViewer):
         self._flag_drawing_eliminate = False
 
         # callback
-        self.scale_gamma.config(command=self._update_scale_gamma_msg)
-        self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
+        self.scale_gamma.config(command=self._update_scale_gamma)
+        self.scale_manual_threshold.config(command=self._update_scale_manual_threshold)
         for radiobtn in self.radiobtn_threshold_options:
             radiobtn.config(command=self._update_scale_manual_threshold_state)
 
@@ -109,6 +109,23 @@ class GraphCutAction(GraphCutViewer):
             self.photo_panel = TkConverter.cv2_to_photo(img)
             self._check_and_update_photo(self.label_panel_image, self.photo_panel)
         except Exception as e:
+            self._check_and_update_photo(self.label_panel_image, None)
+
+    # check and update panel image by gamma value
+    def _check_and_update_panel_by_gamma(self, img=None):
+        try:
+            assert img is not None
+            val_gamma = float(self.val_scale_gamma.get())
+            tmp_image = img.copy()
+            tmp_image = tmp_image.astype('float64')
+            tmp_image[:] /= 255
+            tmp_image[:] = tmp_image[:]**val_gamma
+            tmp_image[:] *= 255
+            tmp_image = tmp_image.astype('uint8')
+            self.photo_panel = TkConverter.cv2_to_photo(tmp_image)
+            self._check_and_update_photo(self.label_panel_image, self.photo_panel)
+        except Exception as e:
+            LOGGER.exception(e)
             self._check_and_update_photo(self.label_panel_image, None)
 
     # check and update image to display panel
@@ -576,8 +593,8 @@ class GraphCutAction(GraphCutViewer):
         self.root.unbind(tkconfig.MOUSE_RELEASE_LEFT)
 
         # update to message widget
-        self._update_scale_gamma_msg(self.val_scale_gamma.get())
-        self._update_scale_manual_threshold_msg(self.val_manual_threshold.get())
+        self._update_scale_gamma(self.val_scale_gamma.get())
+        self._update_scale_manual_threshold(self.val_manual_threshold.get())
 
     # update current image
     def _update_current_image(self, index):
@@ -612,14 +629,21 @@ class GraphCutAction(GraphCutViewer):
             self._switch_state(state='browse')
 
     # callback: drag the ttk.Scale and show the current value
-    def _update_scale_gamma_msg(self, val_gamma):
+    def _update_scale_gamma(self, val_gamma):
+        # update msg
         val_gamma = float(val_gamma)
         self.label_gamma.config(text=u'調整對比 ({:.2f}): '.format(val_gamma))
 
+        # update input panel modified process
+        self._check_and_update_panel_by_gamma(self._current_image_info['image'].copy())
+
     # callback: drag the ttk.Scale and show the current value
-    def _update_scale_manual_threshold_msg(self, val_threshold):
+    def _update_scale_manual_threshold(self, val_threshold):
+        # update msg
         val_threshold = float(val_threshold)
         self.label_manual_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
+
+        # update separate component process
         if self._flag_drew_left or self._flag_drew_right:
             self._separate_component()
 
