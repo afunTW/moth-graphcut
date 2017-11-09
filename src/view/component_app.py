@@ -80,11 +80,14 @@ class EntryThermalComponentViewer(TkViewer):
     # init ttk style
     def _init_style(self):
         init_css()
-        TTKStyle('H5Bold.TLabel', font=('', 13, 'bold'))
-        TTKStyle('Title.TLabel', font=('', 13, 'bold'))
-        TTKStyle('H5.TLabel', font=('', 13))
-        TTKStyle('H5.TButton', font=('', 13))
-        TTKStyle('H5.TRadiobutton', font=('', 13))
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H5Bold.TLabel', theme=theme, font=('', 13, 'bold'))
+        TTKStyle('Title.TLabel', theme=theme, font=('', 13, 'bold'))
+        TTKStyle('H5.TLabel', theme=theme, font=('', 13))
+        TTKStyle('H5.TButton', theme=theme, font=('', 13))
+        TTKStyle('H5.TRadiobutton', theme=theme, font=('', 13))
 
     # init ttk body widget
     def _init_widget_body(self):
@@ -217,7 +220,10 @@ class PreviewComponentViewer(TkViewer):
     # init ttk style
     def _init_style(self):
         init_css()
-        TTKStyle('H2Gray.TLabel', font=('', 24, 'bold'), bg='gray56')
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H2Gray.TLabel', theme=theme, font=('', 24, 'bold'), bg='gray56')
 
     # init ttk widget for frame head
     def _init_widget_head(self):

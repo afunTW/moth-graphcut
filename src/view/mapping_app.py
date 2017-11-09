@@ -54,7 +54,10 @@ class EntryMappingViewer(TkViewer):
     # init ttk style
     def _init_style(self):
         init_css()
-        TTKStyle('H5Bold.TLabel', font=('', 13))
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H5Bold.TLabel', theme=theme, font=('', 13))
 
     # init ttk widget
     def _init_widget(self):
@@ -84,7 +87,10 @@ class AutoMappingViewer(TkViewer):
 
         self._init_window(zoom=False)
         self._init_style()
-        TTKStyle('H5.TButton', font=('', 13), background='white')
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H5.TButton', theme=theme, font=('', 13), background='white')
         self._init_frame()
         self._init_widget()
 
@@ -165,7 +171,10 @@ class ManualMappingViewer(TkViewer):
         self._img_h, self._img_w = 239, 320
         self._init_window(zoom=False)
         self._init_style()
-        TTKStyle('H5.TButton', font=('', 13), background='white')
+        theme = 'default'
+        if os.name == 'posix':
+            theme = 'alt'
+        TTKStyle('H5.TButton', theme=theme, font=('', 13), background='white')
         self._init_frame()
         self._init_widget_head()
         self._init_widget_body()
