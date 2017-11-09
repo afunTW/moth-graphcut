@@ -123,7 +123,11 @@ class GraphCutAction(GraphCutViewer):
             tmp_image[:] *= 255
             tmp_image = tmp_image.astype('uint8')
             self.photo_panel = TkConverter.cv2_to_photo(tmp_image)
+            self._current_image_info['preprocess'] = tmp_image
             self._check_and_update_photo(self.label_panel_image, self.photo_panel)
+
+            if self._current_state == 'edit':
+                self._render_panel_image()
         except Exception as e:
             LOGGER.exception(e)
             self._check_and_update_photo(self.label_panel_image, None)
@@ -524,7 +528,10 @@ class GraphCutAction(GraphCutViewer):
         elif not self._current_image_info or 'panel' not in self._current_image_info:
             LOGGER.error('No processing image to render')
         else:
-            self._current_image_info['panel'] = self._current_image_info['image'].copy()
+            if 'preprocess' in self._current_image_info:
+                self._current_image_info['panel'] = self._current_image_info['preprocess'].copy()
+            else:
+                self._current_image_info['panel'] = self._current_image_info['image'].copy()
             if 'symmetry' in self._current_image_info:
                 pt1, pt2 = self._current_image_info['symmetry']
                 cv2.line(self._current_image_info['panel'], pt1, pt2, [0, 0, 0], 2)
