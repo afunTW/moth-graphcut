@@ -72,24 +72,38 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             self.label_component_path.config(text=self._component_dir_path)
             try:
                 self._component_img = {
-                    'foreleft': cv2.imread(os.path.join(self._component_dir_path, '{}_fore_left.png').format(filename)),
-                    'foreright': cv2.imread(os.path.join(self._component_dir_path, '{}_fore_right.png').format(filename)),
-                    'backleft': cv2.imread(os.path.join(self._component_dir_path, '{}_back_left.png').format(filename)),
-                    'backright': cv2.imread(os.path.join(self._component_dir_path, '{}_back_right.png').format(filename)),
-                    'body': cv2.imread(os.path.join(self._component_dir_path, '{}_body.png').format(filename))
+                    'foreleft': cv2.imread(os.path.join(self._component_dir_path, 'fore_left.png')),
+                    'foreright': cv2.imread(os.path.join(self._component_dir_path, 'fore_right.png')),
+                    'backleft': cv2.imread(os.path.join(self._component_dir_path, 'back_left.png')),
+                    'backright': cv2.imread(os.path.join(self._component_dir_path, 'back_right.png')),
+                    'body': cv2.imread(os.path.join(self._component_dir_path, 'body.png'))
                 }
             except Exception as e:
                 LOGGER.exception(e)
                 Mbox = MessageBox()
                 Mbox.alert(string=u'無法正確開啟原圖')
 
+            # try to generate transform matrix path
+            if self._transform_matrix_path is None or not self._transform_matrix_path:
+                self._transform_matrix_path = os.path.join(self._component_dir_path.split('.')[0], 'transform_matrix.dat')
+                if os.path.exists(self._transform_matrix_path):
+                    LOGGER.info('Transform matrix file - {}'.format(self._transform_matrix_path))
+                    self.label_transform_matrix_path.config(text=self._transform_matrix_path)
+                    self._transform_matrix = np.fromfile(self._transform_matrix_path)
+                    self._transform_matrix = self._transform_matrix.reshape(3, 3)
+                else:
+                    LOGGER.warning('Transform matrix file {} does not exist'.format(self._transform_matrix_path))
+
             # try to generate other necessary data path
             if self._contour_path is None or not self._contour_path:
-                self._contour_path = os.path.join(self._component_dir_path.split('.')[0], '{}.json'.format(filename))
-                self.label_contour_meta_path.config(text=self._contour_path)
-                LOGGER.info('Contour meta - {}'.format(self._contour_path))
-                with open(self._contour_path, 'r') as f:
-                    self._contour_meta = json.load(f)
+                self._contour_path = os.path.join(self._component_dir_path.split('.')[0], 'metadata.json')
+                if os.path.exists(self._contour_path):
+                    self.label_contour_meta_path.config(text=self._contour_path)
+                    LOGGER.info('Contour meta - {}'.format(self._contour_path))
+                    with open(self._contour_path, 'r') as f:
+                        self._contour_meta = json.load(f)
+                else:
+                    LOGGER.warning('Contour meta {} does not exist'.foramt(self._contour_path))
 
     # load transform matrix path
     def _load_transform_matrix(self):
@@ -145,7 +159,14 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             Mbox = MessageBox()
             Mbox.alert(string=u'請選擇溫度圖檔案的資料夾')
             return False
-        elif self._component_img is None:
+        elif (
+            self._component_img is None or
+            self._component_img['foreleft'] is None or
+            self._component_img['foreright'] is None or
+            self._component_img['backleft'] is None or
+            self._component_img['backright'] is None or
+            self._component_img['body'] is None or
+        ):
             LOGGER.warning('Please provide the proper component image directory')
             Mbox = MessageBox()
             Mbox.alert(string=u'請上傳適當的圖檔')
@@ -155,7 +176,15 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             Mbox = MessageBox()
             Mbox.alert(string=u'請上傳適當的轉換矩陣檔案')
             return False
-        elif self._contour_meta is None or 'components_contour' not in self._contour_meta:
+        elif (
+            self._contour_meta is None or
+            sorted(set(self._contour_meta.keys())) != sorted(['fl', 'fr', 'bl', 'br', 'body', 'image']) or
+            'cnts' not in self._contour_meta['fl'] or
+            'cnts' not in self._contour_meta['fr'] or
+            'cnts' not in self._contour_meta['bl'] or
+            'cnts' not in self._contour_meta['br'] or
+            'cnts' not in self._contour_meta['body']
+        ):
             LOGGER.warning('Please provide the proper contour metadata')
             Mbox = MessageBox()
             Mbox.alert(string=u'請上傳適當的輪廓資料')
@@ -221,11 +250,11 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             thermal_frames = [os.path.join(self._thermal_dir_path, f) for f in os.listdir(self._thermal_dir_path)]
             thermal_frames = sorted(thermal_frames, key=lambda x: int(x.split(os.sep)[-1].split('.')[0].split('_')[-1]))
             component_cnts = {
-                'foreleft': self._contour_meta['components_contour']['forewings']['left'],
-                'foreright': self._contour_meta['components_contour']['forewings']['right'],
-                'backleft': self._contour_meta['components_contour']['backwings']['left'],
-                'backright': self._contour_meta['components_contour']['backwings']['right'],
-                'body': self._contour_meta['components_contour']['body']
+                'foreleft': self._contour_meta['fl']['cnts'],
+                'foreright': self._contour_meta['fr']['cnts'],
+                'backleft': self._contour_meta['bl']['cnts'],
+                'backright': self._contour_meta['br']['cnts'],
+                'body': self._contour_meta['body']['cnts']
             }
 
             # view state
