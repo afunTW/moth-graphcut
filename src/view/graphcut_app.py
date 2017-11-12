@@ -24,6 +24,7 @@ class GraphCutViewer(TkViewer):
         self._init_window(zoom=False)
         self._init_style()
         self._init_frame()
+        self._init_menu()
 
     def _init_style(self):
         init_css()
@@ -209,6 +210,17 @@ class GraphCutViewer(TkViewer):
         self.scale_manual_threshold.state(('active', '!disabled'))
         self.scale_manual_threshold.grid(row=0, column=1, sticky='news', columnspan=len(THRESHOLD_OPTION))
 
+    # init menu bar
+    def _init_menu(self):
+        # root
+        self.menu_root = tkinter.Menu(self.root)
+        self.root.config(menu=self.menu_root)
+
+        # load image
+        self.menu_load_img = tkinter.Menu(self.menu_root)
+
+        # show menu
+        self.menu_root.add_cascade(label=u'File', menu=self.menu_load_img)
 
 if __name__ == '__main__':
     logging.basicConfig(

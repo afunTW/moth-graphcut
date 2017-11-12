@@ -53,6 +53,7 @@ class GraphCutAction(GraphCutViewer):
         self._flag_drawing_eliminate = False
 
         # callback
+        self.menu_load_img.add_command(label=u'載入圖片', command=self.input_images)
         self.checkbtn_floodfill.config(command=self._check_and_update_panel_floodfill)
         self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
         self.scale_gamma.config(command=self._update_scale_gamma_msg)
