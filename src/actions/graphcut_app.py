@@ -942,7 +942,7 @@ class GraphCutAction(GraphCutViewer):
             self._switch_state('browse')
             self._k_switch_to_next_image()
             Mbox = MessageBox()
-            Mbox.info(u'已儲存')
+            Mbox.info(string=u'已儲存')
 
     # keyboard: show instruction
     def _k_show_instruction(self, event=None):
