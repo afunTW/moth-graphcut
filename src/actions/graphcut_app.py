@@ -54,8 +54,8 @@ class GraphCutAction(GraphCutViewer):
 
         # callback
         self.checkbtn_floodfill.config(command=self._check_and_update_panel_floodfill)
-        self.scale_gamma.config(command=self._update_scale_gamma)
-        self.scale_manual_threshold.config(command=self._update_scale_manual_threshold)
+        self.scale_manual_threshold.config(command=self._update_scale_manual_threshold_msg)
+        self.scale_gamma.config(command=self._update_scale_gamma_msg)
         for radiobtn in self.radiobtn_threshold_options:
             radiobtn.config(command=self._update_scale_manual_threshold_state)
 
@@ -68,6 +68,14 @@ class GraphCutAction(GraphCutViewer):
         self.root.bind(tkconfig.KEY_RIGHT, self._k_switch_to_next_image)
         self.root.bind(tkconfig.KEY_ESC, lambda x: self._switch_state('browse'))
         self.root.bind(tkconfig.KEY_ENTER, lambda x: self._switch_state('edit'))
+        self.scale_gamma.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self._update_scale_gamma(self.val_scale_gamma.get())
+        )
+        self.scale_manual_threshold.bind(
+            tkconfig.MOUSE_RELEASE_LEFT,
+            lambda x: self._update_scale_manual_threshold(self.val_manual_threshold.get())
+        )
 
     @property
     def current_image(self):
@@ -669,7 +677,7 @@ class GraphCutAction(GraphCutViewer):
     def _update_scale_gamma(self, val_gamma):
         # update msg
         val_gamma = float(val_gamma)
-        self.label_gamma.config(text=u'調整對比 ({:.2f}): '.format(val_gamma))
+        self._update_scale_gamma_msg(val_gamma)
 
         # update input panel modified process
         if 'removal' not in self._current_image_info:
@@ -679,15 +687,27 @@ class GraphCutAction(GraphCutViewer):
 
         self._check_and_update_panel_by_gamma(self._current_image_info['gamma'])
 
+    # callback: drag the ttk.Scale and update the message
+    def _update_scale_gamma_msg(self, val_gamma):
+        # update msg
+        val_gamma = float(val_gamma)
+        self.label_gamma.config(text=u'調整對比 ({:.2f}): '.format(val_gamma))
+
     # callback: drag the ttk.Scale and show the current value
     def _update_scale_manual_threshold(self, val_threshold):
         # update msg
         val_threshold = float(val_threshold)
-        self.label_manual_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
+        self._update_scale_manual_threshold_msg(val_threshold)
 
         # update separate component process
         if self._flag_drew_left or self._flag_drew_right:
             self._separate_component()
+
+    # callback: drag and update
+    def _update_scale_manual_threshold_msg(self, val_threshold):
+        # update msg
+        val_threshold = float(val_threshold)
+        self.label_manual_threshold.config(text=u'門檻值 ({:.2f}): '.format(val_threshold))
 
     # callback: disable the manual scale when the option is not the manual threshold
     def _update_scale_manual_threshold_state(self):
