@@ -153,12 +153,12 @@ class GraphCutViewer(TkViewer):
     # init footer widget
     def _init_widget_footer(self):
         # input panel template option
-        self.label_template = ttk.Label(self.frame_template_options, text=u'過濾樣式: ', style='H5.TLabel')
+        self.label_template = ttk.Label(self.frame_template_options, text=u'過濾方式: ', style='H5.TLabel')
         self.label_template.grid(row=0, column=0, sticky='w')
         self.val_checkbtn_floodfill = tkinter.StringVar()
         self.checkbtn_floodfill = ttk.Checkbutton(
             self.frame_template_options,
-            text=u'自動去背',
+            text=u'floodfill',
             variable=self.val_checkbtn_floodfill,
             onvalue='on', offvalue='off',
             style='H5.TCheckbutton'
