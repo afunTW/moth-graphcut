@@ -619,6 +619,7 @@ class GraphCutAction(GraphCutViewer):
         self._tmp_eliminate_track = []
 
         # reset widget
+        self.val_checkbtn_floodfill.set('off')
         self.val_scale_gamma.set(1.0)
         self.val_threshold_option.set('manual')
         self.val_manual_threshold.set(250)
