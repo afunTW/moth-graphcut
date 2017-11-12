@@ -53,6 +53,7 @@ class GraphCutAction(GraphCutViewer):
         self._flag_drawing_eliminate = False
 
         # callback
+        self.checkbtn_floodfill.config(command=self._check_and_update_panel_floodfill)
         self.scale_gamma.config(command=self._update_scale_gamma)
         self.scale_manual_threshold.config(command=self._update_scale_manual_threshold)
         for radiobtn in self.radiobtn_threshold_options:
@@ -110,6 +111,26 @@ class GraphCutAction(GraphCutViewer):
             self._check_and_update_photo(self.label_panel_image, self.photo_panel)
         except Exception as e:
             self._check_and_update_photo(self.label_panel_image, None)
+
+    # check and update panel image with floodfill
+    def _check_and_update_panel_floodfill(self):
+        if self.val_checkbtn_floodfill.get() == 'on':
+            if 'removal' not in self._current_image_info:
+                self._current_image_info['removal'] = self._current_image_info['image'].copy()
+            self._current_image_info['removal'] = ImageCV.run_floodfill(
+                self._current_image_info['removal'],
+                threshold=0.85,
+                iter_blur=5
+            )
+        elif self.val_checkbtn_floodfill.get() == 'off':
+            self._current_image_info['removal'] = self._current_image_info['image'].copy()
+
+        # check gamma value
+        self._update_scale_gamma(self.val_scale_gamma.get())
+
+        # was separate componnent
+        if self._current_state == 'edit':
+            self._separate_component()
 
     # check and update panel image by gamma value
     def _check_and_update_panel_by_gamma(self, img=None):
@@ -303,7 +324,11 @@ class GraphCutAction(GraphCutViewer):
             LOGGER.warning('No tracking label')
         else:
             # preprocess
-            display_image = self._current_image_info['image'].copy()
+            display_image = None
+            if self.val_checkbtn_floodfill.get() == 'on' and 'removal' in self._current_image_info:
+                display_image = self._current_image_info['removal'].copy()
+            else:
+                display_image = self._current_image_info['image'].copy()
             display_image = self._separate_component_by_track(display_image)
             display_image = self._separate_component_by_eliminate(display_image)
             display_image = self._separate_component_by_line(display_image)
@@ -319,7 +344,11 @@ class GraphCutAction(GraphCutViewer):
             self._current_br_info = self._separate_component_by_threshold(display_br)
 
             # body mask and get meta - threshold choose by option
-            display_body = self._current_image_info['image'].copy()
+            display_body = None
+            if self.val_checkbtn_floodfill.get() == 'on' and 'removal' in self._current_image_info:
+                display_body = self._current_image_info['removal'].copy()
+            else:
+                display_body = self._current_image_info['image'].copy()
             display_body = self._separate_component_by_track(display_body)
             display_body[np.where(self._current_fl_info['mask'] == 255)] = 255
             display_body[np.where(self._current_fr_info['mask'] == 255)] = 255
@@ -642,7 +671,12 @@ class GraphCutAction(GraphCutViewer):
         self.label_gamma.config(text=u'調整對比 ({:.2f}): '.format(val_gamma))
 
         # update input panel modified process
-        self._check_and_update_panel_by_gamma(self._current_image_info['image'].copy())
+        if 'removal' not in self._current_image_info:
+            self._current_image_info['gamma'] = self._current_image_info['image'].copy()
+        else:
+            self._current_image_info['gamma'] = self._current_image_info['removal'].copy()
+
+        self._check_and_update_panel_by_gamma(self._current_image_info['gamma'])
 
     # callback: drag the ttk.Scale and show the current value
     def _update_scale_manual_threshold(self, val_threshold):
