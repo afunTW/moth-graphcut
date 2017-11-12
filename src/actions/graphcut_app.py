@@ -410,28 +410,28 @@ class GraphCutAction(GraphCutViewer):
         l_ptx = self._current_image_info['l_line'][0][0]
         r_ptx = self._current_image_info['r_line'][0][0]
 
-        if part == 'fl':
+        if part == 'fl' and self._current_image_info['l_track']:
             x = l_ptx
             y = bottom_y(self._current_image_info['l_track'])
             img[:, x:] = 255
             img[y:, :] = 255
             if crop:
                 img = img[:y, :x]
-        elif part == 'fr':
+        elif part == 'fr' and self._current_image_info['r_track']:
             x = r_ptx
             y = bottom_y(self._current_image_info['r_track'])
             img[:, :x] = 255
             img[y:, :] = 255
             if crop:
                 img = img[:y, x:]
-        elif part == 'bl':
+        elif part == 'bl' and self._current_image_info['l_track']:
             x = l_ptx
             y = top_y(self._current_image_info['l_track'])
             img[:, x:] = 255
             img[:y, :] = 255
             if crop:
                 img = img[y:, :x]
-        elif part == 'br':
+        elif part == 'br' and self._current_image_info['r_track']:
             x = r_ptx
             y = top_y(self._current_image_info['r_track'])
             img[:, :x] = 255
