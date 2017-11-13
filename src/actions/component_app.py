@@ -165,7 +165,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             self._component_img['foreright'] is None or
             self._component_img['backleft'] is None or
             self._component_img['backright'] is None or
-            self._component_img['body'] is None or
+            self._component_img['body'] is None
         ):
             LOGGER.warning('Please provide the proper component image directory')
             Mbox = MessageBox()
