@@ -283,7 +283,7 @@ class ManualMappingAction(ManualMappingViewer):
             M.tofile(save_file)
             LOGGER.info('Save transform matrix file - {}'.format(save_file))
             Mbox = MessageBox()
-            Mbox.info(string='Done.', parent=self.root)
+            Mbox.info(string='Done.')
 
     # key event: undo anchor
     def _undo_anchor(self, k):
