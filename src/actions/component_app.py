@@ -324,7 +324,7 @@ class EntryThermalComponentAction(EntryThermalComponentViewer):
             self.label_convert_state.config(text=u'共 {} 份檔案 - 已完成'.format(len(thermal_frames)))
             self.root.update()
             Mbox = MessageBox()
-            Mbox.info(string=u'Done', parent=self.root)
+            Mbox.info(string=u'Done')
 
 
 class PreviewComponentAction(PreviewComponentViewer):
