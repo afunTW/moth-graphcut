@@ -182,7 +182,7 @@ class GraphCutViewer(TkViewer):
 
         # display threshold option
         self.label_threshold_options = ttk.Label(self.frame_threshold_options, text=u'門檻值選項: ', style='H5.TLabel')
-        self.label_threshold_options.grid(row=0, column=0, sticky='w')
+        # self.label_threshold_options.grid(row=0, column=0, sticky='w')
         self.val_threshold_option = tkinter.StringVar()
         self.val_threshold_option.set(THRESHOLD_OPTION[0][-1])
         self.radiobtn_threshold_options = []
@@ -193,7 +193,7 @@ class GraphCutViewer(TkViewer):
                                        variable=self.val_threshold_option,
                                        value=val,
                                        style='H5.TRadiobutton')
-            radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
+            # radiobtn.grid(row=0, column=i+1, sticky='w', padx=10)
             self.radiobtn_threshold_options.append(radiobtn)
 
         # display threshold manual scale
