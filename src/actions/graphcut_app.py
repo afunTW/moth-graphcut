@@ -133,6 +133,7 @@ class GraphCutAction(GraphCutViewer):
             )
         elif self.val_checkbtn_floodfill.get() == 'off':
             self._current_image_info['removal'] = self._current_image_info['image'].copy()
+        self.root.focus()
 
         # check gamma value
         self._update_scale_gamma(self.val_scale_gamma.get())
