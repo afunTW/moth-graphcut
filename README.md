@@ -2,17 +2,15 @@
 
 協助使用 ThermalCAM 軟體取得生物溫度之後, 想要取得各部位溫度的需求
 
-**原圖**
-
-<img src="https://user-images.githubusercontent.com/4820492/32762156-a3b0a968-c932-11e7-8d89-91c2c10594d0.jpg" alt="0" width="300">
-
-**灰階溫度圖**
-
-<img src="https://user-images.githubusercontent.com/4820492/32762178-ca574496-c932-11e7-84e0-eb37a3fbbcfb.png" alt="0" width="300">
+| original | gray-scale |
+| -------- | ---------- |
+| <img src="https://user-images.githubusercontent.com/4820492/32762156-a3b0a968-c932-11e7-8d89-91c2c10594d0.jpg" alt="0" width="300"> | <img src="https://user-images.githubusercontent.com/4820492/32762178-ca574496-c932-11e7-84e0-eb37a3fbbcfb.png" alt="0" width="300"> |
 
 **最終結果**
 
-<img src="https://user-images.githubusercontent.com/4820492/32762244-3fae10d0-c933-11e7-9a0a-5f7de58f5b0d.png" alt="0" width="300"><img src="https://user-images.githubusercontent.com/4820492/32762247-431041c6-c933-11e7-9c89-c20a285ca7fb.png" alt="0" width="300"><img src="https://user-images.githubusercontent.com/4820492/32762207-00c55aea-c933-11e7-9b23-1fc3d397be5b.png" alt="0" width="300"><img src="https://user-images.githubusercontent.com/4820492/32762230-28d0ffee-c933-11e7-91ec-412092bd9203.png" alt="0" width="300"><img src="https://user-images.githubusercontent.com/4820492/32762219-14b91ef6-c933-11e7-98c3-e8fee919d9b3.png" alt="0" width="300">
+| left-top | right-top | left-bottom | right-bottom | body |
+| -------- | --------- | ----------- | ------------ | ---- |
+| ![lt](https://user-images.githubusercontent.com/4820492/32762244-3fae10d0-c933-11e7-9a0a-5f7de58f5b0d.png) | ![rt](https://user-images.githubusercontent.com/4820492/32762247-431041c6-c933-11e7-9c89-c20a285ca7fb.png) | ![lb](https://user-images.githubusercontent.com/4820492/32762207-00c55aea-c933-11e7-9b23-1fc3d397be5b.png) | ![rb](https://user-images.githubusercontent.com/4820492/32762230-28d0ffee-c933-11e7-91ec-412092bd9203.png) | ![body](https://user-images.githubusercontent.com/4820492/32762219-14b91ef6-c933-11e7-98c3-e8fee919d9b3.png) |
 
 ## Requirement
 
